@@ -1,0 +1,761 @@
+/* react相关引用部分  */
+import React from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { createStructuredSelector } from 'reselect';
+
+/* material-ui 引用部分  */
+import {
+  Table,
+  TableBody,
+  TableHeader,
+  TableHeaderColumn,
+  TableRow,
+  TableRowColumn,
+} from 'material-ui/Table';
+import TextField from 'material-ui/TextField';
+import { Tabs, Tab } from 'material-ui/Tabs';
+import Snackbar from 'material-ui/Snackbar';
+
+import CircularProgress from 'material-ui/CircularProgress';
+import Dialog from 'material-ui/Dialog';
+
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
+import FontIcon from 'material-ui/FontIcon';
+import FlatButton from 'material-ui/FlatButton';
+
+/* ui框架引用部分  */
+import PageBase from '../../../../components/PageBase';
+import { makeSelectGlobal } from '../../../App/selectors';
+
+/* 私人代码引用部分 */
+import makeSelectGogamechen1 from '../GroupPage/selectors';
+import { requestBodyBase, waitAsyncRequestFinish } from '../../Goperation/utils/async'
+import { SubmitDialogs } from '../../factorys/dialogs';
+import kvTable from '../../factorys/kvtable';
+import KvIputInDialogs from '../../factorys/kvinput';
+import { DEFAULTUPGRADE, UpgradeDialog } from '../../Gopcdn/factorys/upgrade';
+import {
+  resourcesTable,
+  resourceVersionsTable,
+} from '../../Gopcdn/factorys/tables';
+import UploadsFile from '../../Gopcdn/factorys/upload';
+import * as goGameRequest from '../client';
+import * as cdnRequest from '../../Gopcdn/client';
+import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
+import { SMALL_PACKAGE, FULL_PACKAGE } from '../configs';
+
+const CREATEBASE = {
+  package_name: '',
+  mark: 'unkonwn',
+  desc: '',
+};
+
+const ERRORPACKAGERESOURCE = {
+  etype: '包资源错误',
+  name: '包资源错误',
+};
+
+const DEFAULTPARAM = {
+  ftype: '',
+  gversion: '',
+  desc: '',
+};
+
+class PackageGogame extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      submit: null,
+      packages: [],
+      package: null,
+      show: null,
+      pfile: null,
+      resources: [],
+      resource: null,
+      version: null,
+      create: CREATEBASE,
+      upgrade: DEFAULTUPGRADE,
+      loading: false,
+      paramOK: false,
+      parameters: DEFAULTPARAM,
+      showSnackbar: false,
+      snackbarMessage: '',
+    };
+    this.kvinput = null;
+  }
+
+  componentDidMount() {
+    const { gameStore } = this.props;
+    const group = gameStore.group;
+    if (group) {
+      this.resources();
+      this.index();
+    }
+  }
+  /* base component function*/
+  handleSnackbarClose = () => {
+    this.setState({
+      showSnackbar: false,
+    });
+  };
+  handleLoading = () => {
+    this.setState({
+      loading: true,
+    });
+  };
+  handleLoadingClose = (message = null) => {
+    const newState = {
+      submit: null,
+      loading: false,
+      create: CREATEBASE,
+    };
+    if (message !== null) {
+      newState.showSnackbar = true;
+      newState.snackbarMessage = message;
+    }
+    this.setState(newState);
+  };
+  handleSumbitDialogs = (submit) => {
+    this.setState({ submit });
+  };
+  /* action */
+  notify = () => {
+    const { appStore } = this.props;
+    goGameRequest.notifyPackages(appStore.user,
+      (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
+  };
+  index = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    this.handleLoading();
+    goGameRequest.indexPackages(appStore.user, group.group_id, this.handleIndex, this.handleLoadingClose);
+  };
+  create = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    this.handleLoading();
+    const body = Object.assign({}, this.state.create);
+    body.resource_id = this.state.resource.resource_id;
+    goGameRequest.createPackage(appStore.user, group.group_id, body,
+      this.handleCreate, this.handleLoadingClose);
+  };
+  show = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    if (this.state.package !== null) {
+      this.handleLoading();
+      goGameRequest.showPackage(appStore.user, group.group_id, this.state.package.package_id,
+        this.handleShow, this.handleLoadingClose);
+    }
+  };
+  update = (body) => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    if (this.state.package !== null) {
+      this.handleLoading();
+      goGameRequest.updatePackage(appStore.user, group.group_id, this.state.package.package_id, body,
+        this.handleUpdate, this.handleLoadingClose);
+    }
+  };
+  delete = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    if (this.state.package !== null) {
+      this.handleLoading();
+      goGameRequest.deletePackage(appStore.user, group.group_id, this.state.package.package_id,
+        this.handleDelete, this.handleLoadingClose);
+    }
+  };
+  deletePfile = () => {
+    const { appStore } = this.props;
+    if (this.state.package !== null) {
+      this.handleLoading();
+      goGameRequest.deletePfile(appStore.user, this.state.package.package_id, this.state.pfile.pfile_id,
+        this.handlePfileDelete, this.handleLoadingClose);
+    }
+  };
+  resources = () => {
+    const { appStore } = this.props;
+    this.handleLoading();
+    cdnRequest.indexResources(appStore.user, this.handleResources, this.handleLoadingClose);
+  };
+  resource = (resourceId) => {
+    const { appStore } = this.props;
+    this.handleLoading();
+    cdnRequest.showResource(appStore.user, resourceId, true,
+      this.handleResource, this.handleLoadingClose);
+  };
+  upload = (body, successCallback, failCallback) => {
+    const { appStore } = this.props;
+    this.handleLoading();
+    goGameRequest.createPfile(appStore.user, this.state.package.package_id, body,
+      successCallback, failCallback);
+  };
+  upgrade = () => {
+    const { appStore, gameStore } = this.props;
+    const body = requestBodyBase({ version: this.state.upgrade.version, detail: { username: appStore.user.name } },
+      this.state.upgrade.timeout);
+    this.handleLoading();
+    goGameRequest.upgradePackage(appStore.user, gameStore.group.group_id, this.state.package.package_id, body,
+      this.handleUgrade, this.handleLoadingClose);
+  };
+  /* handle action result */
+  handleIndex = (result) => {
+    this.handleLoadingClose();
+    this.setState({ packages: result.data });
+  };
+  handleShow = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ show: result.data[0] });
+  };
+  handleCreate = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ resource: null, create: CREATEBASE });
+    this.index();
+    this.notify();
+  };
+  handleDelete = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ package: null, show: null, pfiles: [], pfile: null });
+    this.index();
+    this.notify();
+  };
+  handlePfileDelete = (result) => {
+    this.handleLoadingClose(result.result);
+    const show = Object.assign({}, this.state.show);
+    const deleted = show.files.filter((p) => p.pfile_id === this.state.pfile.pfile_id)[0];
+    show.files.splice(show.files.indexOf(deleted), 1);
+    this.setState({ show, pfile: null });
+    this.notify();
+  };
+  handleUpdate = (result) => {
+    this.handleLoadingClose(result.result);
+    this.notify();
+  };
+  handleUgrade = (result) => {
+    const asyncRespone = result.data[0];
+    let msg;
+    if (asyncRespone.resultcode !== 0) {
+      msg = ` ${asyncRespone.request_id} 异步请求失败`;
+    } else {
+      const agentRespone = result.data[0].respones[0];
+      msg = agentRespone.resultcode === 0 ? '更新成功' : `失败结果码: ${agentRespone.resultcode} 结果:${agentRespone.result}`;
+    }
+    this.handleLoadingClose(msg);
+    if (this.state.show) this.show();
+  };
+  handleResources = (result) => {
+    this.handleLoadingClose(result.result);
+    // 过滤不必要的资源类型
+    const resources = result.data.filter((r) => { return (r.etype === 'ios' || r.etype === 'android') && !r.cdndomain.internal; });
+    this.setState({ resources });
+  };
+  handleResource = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ resource: result.data[0] });
+  };
+  selectPackage = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ package: null });
+    } else {
+      const index = rows[0];
+      const p = this.state.packages[index];
+      this.setState({ package: p });
+    }
+  };
+  /* util function */
+  selectPfile = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ pfile: null });
+    } else {
+      const index = rows[0];
+      const pfile = this.state.show.files[index];
+      this.setState({ pfile });
+    }
+  };
+  selectResource = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ resource: null });
+    } else {
+      const index = rows[0];
+      const resource = this.state.resources[index];
+      this.setState({ resource });
+    }
+  };
+  selectVresion = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ version: null });
+    } else {
+      const index = rows[0];
+      const version = this.state.show.versions[index];
+      this.setState({ version });
+    }
+  };
+  closeShow = () => {
+    this.setState({ show: null, resource: null, version: null, pfile: null });
+  };
+  claneParams = () => {
+    this.setState({ paramOK: false, parameters: DEFAULTPARAM });
+  };
+  presource = (resourceId) => {
+    if (resourceId === null) return ERRORPACKAGERESOURCE;
+    const resources = this.state.resources.filter((r) => r.resource_id === resourceId);
+    if (resources.length > 0) return resources[0];
+    return ERRORPACKAGERESOURCE;
+  };
+  /* Dialog 接口 */
+  openDialog = (event) => {
+    const action = event.currentTarget.value;
+    let submit = null;
+    switch (action) {
+      case 'delete': {
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '删除包文件',
+          // onSubmit: this.delete,
+          onSubmit: () => {
+            this.delete();
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'rversion': {
+        const body = { rversion: this.state.version.version };
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`资源ID: ${this.state.package.resource_id}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>默认资源版本更改为</span>
+              <span style={{ marginLeft: '5%' }}>{`版本: ${this.state.version.version}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`别名(显示版本): ${this.state.version.alias}`}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '包引用资源默认版本更改',
+          onSubmit: () => {
+            this.update(body);
+            // 更新显示内容
+            const p = Object.assign({}, this.state.package);
+            const show = Object.assign({}, this.state.show);
+            p.rversion = this.state.version.version;
+            show.rversion = this.state.version.version;
+            this.setState({ show, package: p });
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'gversion': {
+        const body = { gversion: this.state.pfile.pfile_id };
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>默认包文件修改为</span>
+              <span style={{ marginLeft: '5%' }}>{`包文件ID: ${this.state.pfile.pfile_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`对应玩家版本号: ${this.state.pfile.gversion}`}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '默认包文件(玩家版本号)修改',
+          onSubmit: () => {
+            this.update(body);
+            // 更新显示内容
+            const p = Object.assign({}, this.state.package);
+            const show = Object.assign({}, this.state.show);
+            p.gversion = this.state.pfile.pfile_id;
+            show.gversion = this.state.pfile.pfile_id;
+            this.setState({ show, package: p });
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'deletePfile': {
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>将被删除的包文件</span>
+              <span style={{ marginLeft: '5%' }}>{`包文件ID: ${this.state.pfile.pfile_id}`}</span>
+              <span style={{ marginLeft: '5%' }}>{`包类型: ${this.state.pfile.ftype}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`对应玩家版本号: ${this.state.pfile.gversion}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>下载地址:</span>
+              <span style={{ marginLeft: '2%' }}>{this.state.pfile.address}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '删除指定包文件',
+          // onSubmit: this.delete,
+          onSubmit: () => {
+            this.deletePfile();
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'upgrade': {
+        submit = {
+          title: '更新包引用资源版本',
+          onSubmit: () => {
+            if (!this.state.upgrade.version) {
+              this.handleLoadingClose('更新版本号未空,未发送任何更新命令,请重新填写更新信息');
+            } else {
+              this.upgrade();
+              this.handleSumbitDialogs(null);
+            }
+            this.setState({ upgrade: DEFAULTUPGRADE });
+          },
+          data: (
+            <div>
+              <p style={{ marginLeft: '12%' }}>
+                <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+                <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+                <span style={{ marginLeft: '2%' }}>{`资源ID: ${this.state.package.resource_id}`}</span>
+              </p>
+              <UpgradeDialog
+                changeUpgrade={(up) => {
+                  this.setState({ upgrade: up });
+                }}
+              />
+            </div>
+          ),
+          onCancel: () => {
+            this.setState({ upgrade: DEFAULTUPGRADE });
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      default:
+        break;
+    }
+    this.handleSumbitDialogs(submit);
+  };
+
+  render() {
+    const submit = this.state.submit;
+    const { gameStore } = this.props;
+    const group = gameStore.group;
+    const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
+
+    console.log(this.state);
+
+    return (
+      <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
+        <Dialog
+          title="请等待"
+          titleStyle={{ textAlign: 'center' }}
+          modal
+          open={this.state.loading}
+        >
+          {<CircularProgress size={80} thickness={5} style={{ display: 'block', margin: 'auto' }} />}
+        </Dialog>
+        <SubmitDialogs
+          open={submit !== null}
+          payload={submit}
+        />
+        { group === null ? (
+          <div>
+            <br />
+            <h1 style={{ fontSize: 50 }}>
+              请先选择游戏组
+            </h1>
+          </div>
+        ) : (
+          <Tabs>
+            <Tab label="包列表" onActive={this.index}>
+              <div>
+                <div style={{ display: 'inline-block', marginTop: '0.5%' }}>
+                  <FlatButton
+                    primary
+                    label={this.state.show ? '返回' : '详情'}
+                    disabled={this.state.package == null}
+                    onClick={this.state.show ? this.closeShow : this.show}
+                    icon={<FontIcon className="material-icons">
+                      {this.state.show ? 'reply' : 'zoom_in'}
+                    </FontIcon>}
+                  />
+                  <FlatButton
+                    secondary
+                    label="删除包"
+                    value="delete"
+                    disabled={this.state.package === null}
+                    onClick={this.openDialog}
+                    icon={<FontIcon className="material-icons">delete</FontIcon>}
+                  />
+                  <FlatButton
+                    secondary
+                    label="删除包文件"
+                    value="deletePfile"
+                    disabled={this.state.pfile === null || this.state.package.gversion === this.state.pfile.pfile_id}
+                    onClick={this.openDialog}
+                    icon={<FontIcon className="material-icons">delete</FontIcon>}
+                  />
+                  <FlatButton
+                    primary
+                    label="默认包文件"
+                    value="gversion"
+                    disabled={this.state.pfile === null || this.state.package.gversion === this.state.pfile.pfile_id}
+                    onClick={this.openDialog}
+                    icon={<FontIcon className="material-icons">face</FontIcon>}
+                  />
+                  <FlatButton
+                    primary
+                    label="默认资源版本"
+                    value="rversion"
+                    disabled={this.state.version === null || this.state.package.rversion === this.state.version.version}
+                    onClick={this.openDialog}
+                    icon={<FontIcon className="material-icons">cloud_download</FontIcon>}
+                  />
+                  <FlatButton
+                    primary
+                    label="更新资源"
+                    value="upgrade"
+                    disabled={this.state.package == null}
+                    onClick={this.openDialog}
+                    icon={<FontIcon className="material-icons">file_upload</FontIcon>}
+                  />
+                </div>
+              </div>
+              { this.state.show ? (
+                <div style={{ overflow: 'auto' }}>
+                  <div style={{ float: 'left' }}>
+                    {packageTable(this.state.show, this.presource,
+                      { marginLeft: '1%', overflow: 'auto', width: '200px', maxWidth: '30%', tableLayout: 'auto' })}
+                  </div>
+                  <div style={{ float: 'left', marginLeft: '1%', width: '1000px', overflow: 'auto' }}>
+                    {pfilesTable(this.state.show.files, this.selectPfile, this.state.pfile,
+                      { overflow: 'auto', width: '900px', maxWidth: '200%', tableLayout: 'auto' })}
+                    {resourceVersionsTable(this.state.show.versions, this.selectVresion, this.state.version, false,
+                      { overflow: 'auto', width: '200px', maxWidth: '30%', tableLayout: 'auto' })}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {/* 包列表 */}
+                  {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource, null)}
+                </div>
+              ) }
+            </Tab>
+            <Tab label="添加包" onActive={() => this.setState({ resource: null })}>
+              <div>
+                <FlatButton
+                  primary
+                  style={{ marginTop: '1%' }}
+                  label="创建新包"
+                  disabled={this.state.create.package_name.length === 0 || this.state.resource === null}
+                  onClick={this.create}
+                  icon={<FontIcon className="material-icons">add_circle</FontIcon>}
+                />
+                <FlatButton
+                  primary
+                  label="返回"
+                  disabled={this.state.resource == null}
+                  onClick={() => this.setState({ resource: null })}
+                  icon={<FontIcon className="material-icons">reply</FontIcon>}
+                />
+              </div>
+              <div style={{ display: 'block' }}>
+                {this.state.resource ? (
+                  <div style={{ display: 'inline-block', width: '600px', maxWidth: '50%', float: 'left' }}>
+                    {packageResourceTable(this.state.resource, group, null)}
+                    <TextField
+                      floatingLabelText="包名"
+                      hintText="由研发提供的包名(唯一)"
+                      value={this.state.create.package_name}
+                      fullWidth
+                      errorText={this.state.create.package_name.length > 0 ? '' : '资源类型未填写(必要)'}
+                      onChange={(event, value) => {
+                        const name = value.trim();
+                        if (name || name === '') {
+                          const create = Object.assign({}, this.state.create);
+                          create.package_name = name;
+                          this.setState({ create });
+                        }
+                      }}
+                    />
+                    <TextField
+                      floatingLabelText="包标记"
+                      hintText="包渠道标记(暂无作用)"
+                      value={this.state.create.mark}
+                      fullWidth
+                      onChange={(event, value) => {
+                        const mark = value.trim();
+                        if (mark || mark === '') {
+                          const create = Object.assign({}, this.state.create);
+                          create.mark = mark;
+                          this.setState({ create });
+                        }
+                      }}
+                    />
+                    <TextField
+                      floatingLabelText="包说明"
+                      hintText="用于说明包用途(可以为空)"
+                      value={this.state.create.desc}
+                      fullWidth
+                      onChange={(event, value) => {
+                        const desc = value.trim();
+                        if (desc || desc === '') {
+                          const create = Object.assign({}, this.state.create);
+                          create.desc = desc;
+                          this.setState({ create });
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <h1 style={{ fontSize: 30, marginTop: '3%', marginLeft: '4%' }}>请先选取包引用的资源</h1>
+                    {resourcesTable(this.state.resources, this.selectResource, this.state.resource,
+                      { width: '1000px', marginTop: '2%', tableLayout: 'auto' })}
+                  </div>
+                )}
+              </div>
+            </Tab>
+            <Tab label="添加包文件" onActive={this.claneParams}>
+              {this.state.paramOK
+                ? (
+                  <UploadsFile
+                    detail={false}
+                    parameters={this.state.parameters}
+                    title={`归属包ID: ${this.state.package.package_id}
+                  归属包名: ${this.state.package.package_name}
+                  玩家版本号: ${this.state.parameters.gversion}`}
+                    goback={this.claneParams}
+                    doupload={this.upload}
+                    handleLoading={this.handleLoading}
+                    handleLoadingClose={this.handleLoadingClose}
+                  />
+                )
+                : (
+                  <div style={{ marginLeft: '1%', marginTop: '1%' }}>
+                    <div>
+                      <DropDownMenu
+                        autoWidth={false}
+                        value={this.state.parameters.ftype}
+                        onChange={(event, index, ftype) => {
+                          if (ftype) {
+                            const parameters = Object.assign({}, this.state.parameters);
+                            parameters.ftype = ftype;
+                            this.setState({ parameters });
+                          }
+                        }}
+                        // style={{ display: 'inline-block', marginTop: '0%', float: 'left', width: '130px' }}
+                        style={{ width: '200px' }}
+                      >
+                        <MenuItem value="" primaryText="包类型" />
+                        <MenuItem value={FULL_PACKAGE} primaryText="大包" />
+                        <MenuItem value={SMALL_PACKAGE} primaryText="小包" />
+                      </DropDownMenu>
+                    </div>
+                    <div>
+                      <TextField
+                        floatingLabelText="玩家版本号"
+                        hintText="用于识标安装包版本号"
+                        style={{ width: '300px', marginLeft: '1%' }}
+                        value={this.state.parameters.gversion ? this.state.parameters.gversion : ''}
+                        fullWidth
+                        errorText={(this.state.parameters.gversion) ? '' : '玩家版本号信息(必要)'}
+                        onChange={(event, value) => {
+                          const parameters = Object.assign({}, this.state.parameters);
+                          parameters.gversion = value.trim();
+                          this.setState({ parameters });
+                        }}
+                      />
+                    </div>
+                    <FlatButton
+                      primary
+                      onClick={() => { this.setState({ paramOK: true }); }}
+                      label="下一步"
+                      disabled={!this.state.package || this.state.parameters.ftype.length < 1 || this.state.parameters.gversion.length < 3}
+                      icon={<FontIcon className="material-icons">done</FontIcon>}
+                    />
+                    {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource, null)}
+                  </div>
+                )}
+            </Tab>
+            <Tab label="包属性管理">
+              <div>功能未开放</div>
+            </Tab>
+            <Tab label="包标记管理">
+              <div>功能未开放</div>
+            </Tab>
+            <Tab label="主动通知更新">
+              <div>
+                <p>
+                  <span>这个按钮将调用packages的通知接口,本接口与组信息无关</span>
+                </p>
+                <FlatButton
+                  primary
+                  style={{ marginTop: '1%' }}
+                  label="主动更新"
+                  onClick={this.notify}
+                  icon={<FontIcon className="material-icons">swap_vertical_circle</FontIcon>}
+                />
+              </div>
+            </Tab>
+          </Tabs>
+        )
+        }
+        <Snackbar
+          open={this.state.showSnackbar}
+          message={this.state.snackbarMessage}
+          autoHideDuration={5500}
+          onRequestClose={this.handleSnackbarClose}
+        />
+      </PageBase>
+    );
+  }
+}
+
+PackageGogame.propTypes = {
+  appStore: PropTypes.any,
+  gameStore: PropTypes.any,
+};
+
+const mapStateToProps = createStructuredSelector({
+  gameStore: makeSelectGogamechen1(),
+  appStore: makeSelectGlobal(),
+});
+
+
+export default connect(mapStateToProps)(PackageGogame);
