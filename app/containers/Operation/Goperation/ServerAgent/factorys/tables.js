@@ -13,7 +13,6 @@ import {
 const MB = 1024 * 1024;
 
 function agentTable(data, style = null) {
-
   const metadata = data.metadata;
   return (
     <Table

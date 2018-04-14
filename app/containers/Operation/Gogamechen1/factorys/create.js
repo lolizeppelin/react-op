@@ -1,11 +1,11 @@
 /* react相关引用部分  */
 import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { createStructuredSelector } from 'reselect';
 
 /* material-ui 引用部分  */
 import TextField from 'material-ui/TextField';
+import DatePicker from 'material-ui/DatePicker';
+import TimePicker from 'material-ui/TimePicker';
 import {
   Table,
   TableBody,
@@ -19,184 +19,275 @@ import {
   Stepper,
   StepLabel,
 } from 'material-ui/Stepper';
-
-
-
-import { Tabs, Tab } from 'material-ui/Tabs';
-import Snackbar from 'material-ui/Snackbar';
-
+import RaisedButton from 'material-ui/RaisedButton';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
+import FlatButton from 'material-ui/FlatButton';
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 
-import DropDownMenu from 'material-ui/DropDownMenu';
-import MenuItem from 'material-ui/MenuItem';
-import FontIcon from 'material-ui/FontIcon';
-import FlatButton from 'material-ui/FlatButton';
-
-/* ui框架引用部分  */
-import PageBase from '../../../../components/PageBase';
-import { makeSelectGlobal } from '../../../App/selectors';
-
 /* 私人代码引用部分 */
-import * as objfileRequest from '../client';
-import * as gopRequest from '../../Goperation/client';
-import * as cdnRequest from '../../Gopcdn/client';
 import * as goGameConfig from '../configs';
-import { SubmitDialogs } from '../../factorys/dialogs';
+import * as goGameRequest from '../client';
+import * as gopRequest from '../../Goperation/client';
+import * as gopDbRequest from '../../Gopdb/client';
+import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
+import { databaseTable } from '../../Gopdb/factorys/tables';
 
-import UploadsFile from '../../Gopcdn/factorys/upload';
-import { fileTable } from '../../Goperation/ServerAgent/factorys/tables';
-import { resourceTable } from '../../Gopcdn/factorys/tables';
 
-
-const DEFALUTPARAM = {
-  objtype: goGameConfig.GAMESERVER,
-  subtype: goGameConfig.APPFILE,
-  version: null,
-};
+const contentStyle = { margin: '0 16px' };
+/* 默认程序参数 */
+const APPBASE = { agent_id: null };
+APPBASE[goGameConfig.APPFILE] = '';
+/* 默认数据库参数 */
+const DATABASEBASE = { datadb: 0, logdb: 0};
+/* 默认扩展参数 */
+const EXTSBASE = { areasname: '', date: 0, time: 0 };
+/* 是否自动选择 */
+const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto' };
 
 
 class CreateEntity extends React.Component {
   constructor(props) {
     super(props);
+    const { objtype } = props;
 
     this.state = {
-      show: null,
-      parameters: DEFALUTPARAM,
-      paramOK: false,
-      filter: null,
-      resource: null,
-      submit: null,
-      objfile: null,
+      app: APPBASE,
+      databases: DATABASEBASE,
+      exts: EXTSBASE,
+      type: BASECHIOSES,
+
       objfiles: [],
+      agent: null,
+      agents: [],
+      datadb: null,
+      datadbs: [],
+      logdb: null,
+      logdbs: [],
+
+      finished: false,
+      stepIndex: 0,
+
       loading: false,
       showSnackbar: false,
       snackbarMessage: '',
     };
+
+    this.isPrivate = objtype === goGameConfig.GAMESERVER;
   }
 
-  componentDidMount() {
-    this.index();
+  componentWillReceiveProps(nextProps) {
+    if ((this.props.active !== nextProps.active) && nextProps.active === 'create' && this.state.objfiles.length === 0) this.indexObjfiles();
   }
 
-  handleSnackbarClose = () => {
-    this.setState({
-      showSnackbar: false,
+  indexObjfiles = () => {
+    const { appStore } = this.props;
+    this.props.handleLoading();
+    goGameRequest.indexObjfiles(appStore.user, this.handleIndexObjfiles, this.props.handleLoadingClose);
+  };
+  handleIndexObjfiles = (result) => {
+    this.props.handleLoadingClose(result.result);
+    const objfiles = result.data.filter((f) => f.objtype === this.props.objtype && f.subtype === goGameConfig.APPFILE);
+    this.setState({ objfiles });
+  };
+  indexAgents = () => {
+    const { appStore } = this.props;
+    this.props.handleLoading();
+    goGameRequest.entityAgents(appStore.user,
+      this.props.objtype, this.handleIndexAgents, this.props.handleLoadingClose);
+  };
+  handleIndexAgents = (result) => {
+    this.props.handleLoadingClose(result.result);
+    this.setState({ agents: result.data });
+  };
+  indexDatabases = () => {
+    const { appStore } = this.props;
+    if (this.state.datadbs.length < 1 || this.state.logdbs.length < 1) {
+      this.props.handleLoading();
+      goGameRequest.entityDatabases(appStore.user,
+        this.props.objtype, this.handleIndexDatabases, this.props.handleLoadingClose);
+    }
+  };
+  handleIndexDatabases = (result) => {
+    const { objtype } = this.props;
+    this.props.handleLoadingClose(result.result);
+    const logdbs = [];
+    const datadbs = [];
+    result.data.map((dbinfo) => {
+      if (dbinfo.databases.length > 0 && (dbinfo.affinity & goGameConfig.DBAFFINITYS[objtype][goGameConfig.DATADB])) {
+        dbinfo.databases.map((db) => datadbs.push(db));
+      }
+      return null;
     });
-  };
-  handleLoading = () => {
-    this.setState({
-      loading: true,
-    });
-  };
-  handleLoadingClose = (message = null) => {
-    const newState = {
-      submit: null,
-      loading: false,
-      create: null,
-    };
-    if (message !== null) {
-      newState.showSnackbar = true;
-      newState.snackbarMessage = message;
+    if (this.isPrivate) {
+      result.data.map((dbinfo) => {
+        if (dbinfo.databases.length > 0 && (dbinfo.affinity & goGameConfig.DBAFFINITYS[objtype][goGameConfig.LOGDB])) {
+          dbinfo.databases.map((db) => logdbs.push(db));
+        }
+        return null;
+      });
     }
-    this.setState(newState);
+    this.setState({ datadbs, logdbs });
   };
-  handleSumbitDialogs = (submit) => {
-    this.setState({ submit });
-  };
-  index = () => {
+  showAgent = (agentId) => {
     const { appStore } = this.props;
-    this.handleLoading();
-    this.setState({ objfiles: [] });
-    objfileRequest.indexObjfiles(appStore.user, this.handleIndex, this.handleLoadingClose);
+    this.props.handleLoading();
+    gopRequest.showAgent(appStore.user,
+      agentId, false, false, this.handleIndexAgent, this.props.handleLoadingClose);
   };
-  create = (body, successCallback, failCallback) => {
+  handleIndexAgent = (result) => {
+    this.props.handleLoadingClose(result.result);
+    this.setState({ agent: result.data[0] });
+  };
+  showDatabase = (databaseId, subtype) => {
     const { appStore } = this.props;
-    this.setState({ loading: true });
-    objfileRequest.createObjfile(appStore.user, body,
-      successCallback, failCallback);
+    this.props.handleLoading();
+    let handleSuccess;
+    if (subtype === goGameConfig.LOGDB) handleSuccess = this.handleshowLogDb;
+    else handleSuccess = this.handleshowDataDb;
+    gopDbRequest.showDatabase(appStore.user,
+      databaseId, handleSuccess, this.props.handleLoadingClose);
   };
-  show = () => {
-    const { appStore } = this.props;
-    if (this.state.objfile !== null) {
-      this.handleLoading();
-      gopRequest.showFile(appStore.user, this.state.objfile.md5,
-        this.handleShow, this.handleLoadingClose);
-    }
+  handleshowDataDb = (result) => {
+    this.props.handleLoadingClose(result.result);
+    this.setState({ datadb: result.data[0] });
   };
-  resource = () => {
-    const { appStore } = this.props;
-    if (this.state.objfile !== null) {
-      this.handleLoading();
-      cdnRequest.showResource(appStore.user, this.state.objfile.resource_id, true,
-        this.handleResource, this.handleLoadingClose);
-    }
+  handleshowLogDb = (result) => {
+    this.props.handleLoadingClose(result.result);
+    this.setState({ logdb: result.data[0] });
   };
-  delete = () => {
-    const { appStore } = this.props;
-    if (this.state.objfile !== null) {
-      this.handleLoading();
-      objfileRequest.deleteObjfile(appStore.user, this.state.objfile.md5,
-        this.handleDelete, this.handleLoadingClose);
-    }
-  };
-  send = () => {
-    const { appStore } = this.props;
-    console.log('send active');
-  };
+
+
   selectFile = (rows) => {
+    const app = Object.assign({}, this.state.app);
     if (rows.length === 0) {
-      this.setState({ objfile: null, resource: null, show: null });
+      app.appfile = '';
+      this.setState({ app });
     } else {
       const index = rows[0];
       const objfile = this.state.objfiles[index];
-      this.setState({ objfile, resource: null, show: null });
+      app.appfile = objfile.md5;
+      this.setState({ app });
     }
   };
-  handleIndex = (result) => {
-    this.handleLoadingClose();
-    this.setState({ objfiles: result.data });
-  };
-  handleShow = (result) => {
-    this.handleLoadingClose(result.result);
-    if (result.resultcode === 0) this.setState({ show: result.data[0] });
-  };
-  handleDelete = (result) => {
-    this.handleLoadingClose(result.result);
-    this.setState({ objfile: null, resource: null, show: null });
-    this.index();
-  };
-  handleResource = (result) => {
-    this.handleLoadingClose(result.result);
-    this.setState({ resource: result.data[0] });
-  };
-  handleFilter = (event, index, filter) => {
-    this.setState({ filter, objfile: null });
-  };
-  openDialog = (event) => {
-    const action = event.currentTarget.value;
-    if (action === 'delete') {
-      const objfile = this.state.objfile;
-      const submit = {
-        title: '确认删除',
-        onSubmit: this.delete,
-        data: `删除文件信息: 程序:${objfile.objtype} 类型:${objfile.subtype} 版本:${objfile.version}`,
-        onCancel: () => {
-          this.handleSumbitDialogs(null);
-        },
-      };
-      this.handleSumbitDialogs(submit);
+  selectAgent = (rows) => {
+    const app = Object.assign({}, this.state.app);
+    if (rows.length === 0) {
+      app.agent_id = null;
+      this.setState({ app, agent: null });
+    } else {
+      const index = rows[0];
+      app.agent_id = this.state.agents[index];
+      this.showAgent(app.agent_id);
+      this.setState({ app });
     }
   };
-  claneParams = () => {
-    this.setState({ parameters: DEFALUTPARAM, paramOK: false });
+  selectDatadb = (rows) => {
+    const databases = Object.assign({}, this.state.databases);
+    if (rows.length === 0) {
+      databases.datadb = 0;
+      this.setState({ databases, datadb: null });
+    } else {
+      const index = rows[0];
+      databases.datadb = this.state.datadbs[index];
+      this.showDatabase(databases.datadb, goGameConfig.DATADB);
+      this.setState({ databases });
+    }
+  };
+  selectLogdb = (rows) => {
+    const databases = Object.assign({}, this.state.databases);
+    if (rows.length === 0) {
+      databases.logdb = 0;
+      this.setState({ databases, logdb: null });
+    } else {
+      const index = rows[0];
+      databases.logdb = this.state.logdbs[index];
+      this.showDatabase(databases.logdb, goGameConfig.LOGDB);
+      this.setState({ databases });
+    }
   };
 
+
+  handleNext = () => {
+    const { stepIndex } = this.state;
+    switch (stepIndex) {
+      case 0: {
+        /* 程序文件及运行服务器参数确认 */
+        break;
+      }
+      case 1: {
+        /* 数据库参数确认 */
+        break;
+      }
+      case 2: {
+        /* 额外参数确认 */
+        break;
+      }
+      case 3: {
+        /* 所有创建参数确认 */
+        // this.create();
+        break;
+      }
+      default : {
+        break;
+      }
+    }
+
+    this.setState({
+      stepIndex: stepIndex + 1,
+      finished: stepIndex >= 3,
+    });
+  };
+  handlePrev = () => {
+    const { stepIndex } = this.state;
+    if (stepIndex > 0) {
+      this.setState({ stepIndex: stepIndex - 1 });
+    }
+  };
+  nextOK = () => {
+    switch (this.state.stepIndex) {
+      case 0: {
+        if (this.state.type.appfile === 'specify' && this.state.agent === null) return false;
+        return (this.state.app[goGameConfig.APPFILE].length > 0);
+      }
+      case 1: {
+        /* 数据库校验 */
+        if (this.state.type.datadb === 'specify' && this.state.datadb === null) return false;
+        return !(this.state.type.logdb === 'specify' && this.state.logdb === null);
+      }
+      case 2: {
+        if (!this.isPrivate) return true;
+        return (this.state.exts.date > 0 && this.state.exts.time > 0 && this.state.exts.areasname.length > 0);
+      }
+      default:
+        return true;
+    }
+  };
+
+
+  create = () => {
+    console.log('创建执行中');
+    this.setState({ finish: true });
+  };
+  // handleCreate = (result) => {
+  //   this.handleLoadingClose();
+  //   this.setState({ objfiles: result.data });
+  // };
+  notify = () => {
+    console.log('lalala notify');
+  };
+
+
   render() {
-    const submit = this.state.submit;
-    const objfile = this.state.objfile;
+    const { objtype, active } = this.props;
+    if (active !== 'create') return null;
+    const isPrivate = objtype === goGameConfig.GAMESERVER;
+    const { finished, stepIndex } = this.state;
+
+    console.log(this.state);
+
     return (
-      <PageBase title="文件管理" navigation="Gogamechen1 / 文件管理" minHeight={180} noWrapContent>
+      <div>
         <Dialog
           title="请等待"
           titleStyle={{ textAlign: 'center' }}
@@ -205,197 +296,326 @@ class CreateEntity extends React.Component {
         >
           {<CircularProgress size={80} thickness={5} style={{ display: 'block', margin: 'auto' }} />}
         </Dialog>
-        <SubmitDialogs
-          open={submit !== null}
-          payload={submit}
-        />
-        <Tabs>
-          <Tab label="文件列表" onActive={this.index}>
-            <div>
-              <div style={{ display: 'inline-block' }}>
-                <div style={{ float: 'left' }}>
-                  <DropDownMenu
-                    autoWidth={false}
-                    value={this.state.filter}
-                    onChange={this.handleFilter}
-                  >
-                    <MenuItem value={null} primaryText="所有类型" />
-                    <MenuItem value={goGameConfig.GAMESERVER} primaryText="游戏服" />
-                    <MenuItem value={goGameConfig.GMSERVER} primaryText="GM服" />
-                    <MenuItem value={goGameConfig.CROSSSERVER} primaryText="战场服" />
-                  </DropDownMenu>
+        <div>
+          <h1 style={{ textAlign: 'center', fontSize: 30, marginTop: '2%', marginBottom: '1%' }}>
+            {`新增程序: ${objtype}`}
+          </h1>
+        </div>
+        <div style={{ width: '100%', maxWidth: 700, margin: 'auto', marginTop: '1%' }}>
+          <Stepper activeStep={stepIndex}>
+            <Step>
+              <StepLabel>程序文件及服务器</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>数据库</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>额外参数</StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>确认执行</StepLabel>
+            </Step>
+          </Stepper>
+          <div style={contentStyle}>
+            {finished ? (
+              <RaisedButton
+                label="返回"
+                style={{ marginLeft: '15%', marginTop: '2%' }}
+                primary
+                onClick={(event) => {
+                  event.preventDefault();
+                  this.setState({ stepIndex: 0,
+                    finished: false,
+                    app: APPBASE,
+                    databases: DATABASEBASE,
+                    exts: EXTSBASE,
+                    type: BASECHIOSES,
+                    agent: null,
+                    logdb: null,
+                    datadb: null,
+                  });
+                }}
+              />
+            ) : (
+              <div>
+                <div style={{ marginTop: 12 }}>
+                  <FlatButton
+                    label="后退"
+                    secondary
+                    disabled={stepIndex === 0}
+                    onClick={this.handlePrev}
+                    style={{ marginRight: 12 }}
+                  />
+                  <RaisedButton
+                    disabled={!this.nextOK()}
+                    label={stepIndex === 3 ? '确认添加' : '下一步'}
+                    primary
+                    onClick={this.handleNext}
+                  />
                 </div>
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  primary
-                  label="详细"
-                  disabled={this.state.objfile == null}
-                  onClick={this.show}
-                  icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
-                />
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  primary
-                  label="资源信息"
-                  disabled={this.state.objfile == null}
-                  onClick={this.resource}
-                  icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
-                />
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  secondary
-                  label="删除"
-                  value="delete"
-                  disabled={this.state.objfile == null}
-                  onClick={this.openDialog}
-                  icon={<FontIcon className="material-icons">delete</FontIcon>}
-                />
               </div>
-            </div>
-            <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '55%' }}>
+            )}
+          </div>
+        </div>
+        {stepIndex === 0 && (
+          <div>
+            <div style={{ float: 'left' }}>
               <Table
                 height="600px"
                 multiSelectable={false}
                 fixedHeader={false}
-                style={{ width: '600px', maxWidth: '70%', tableLayout: 'auto' }}
+                style={{ width: '400px', maxWidth: '30%', tableLayout: 'auto' }}
                 onRowSelection={this.selectFile}
               >
                 <TableHeader enableSelectAll={false} displaySelectAll={false}>
                   <TableRow>
-                    <TableHeaderColumn>程序类型</TableHeaderColumn>
-                    <TableHeaderColumn>文件类型</TableHeaderColumn>
-                    <TableHeaderColumn>版本</TableHeaderColumn>
-                    <TableHeaderColumn>归属资源</TableHeaderColumn>
+                    <TableHeaderColumn>选择程序文件版本</TableHeaderColumn>
                   </TableRow>
                 </TableHeader>
                 <TableBody deselectOnClickaway={false}>
-                  {this.state.objfiles.filter((v) => v.objtype === this.state.filter || this.state.filter === null)
-                    .map((row, index) => (
-                      <TableRow key={`objfile-${index}`} selected={(objfile && row.md5 === objfile.md5) ? true : null}>
-                        <TableRowColumn >{row.objtype}</TableRowColumn>
-                        <TableRowColumn>{row.subtype}</TableRowColumn>
-                        <TableRowColumn>{row.version}</TableRowColumn>
-                        <TableRowColumn>{row.resource_id}</TableRowColumn>
-                      </TableRow>
-                    ))}
+                  {this.state.objfiles.map((row, index) => (
+                    <TableRow key={`objfile-${index}`} selected={(this.state.app.appfile && row.md5 === this.state.app.appfile) ? true : null}>
+                      <TableRowColumn>{row.version}</TableRowColumn>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
-            <div style={{ display: 'inline-block' }}>
-              {this.state.show &&
+            <div style={{ float: 'left', marginLeft: '5%', marginTop: '1%', width: '300px' }}>
               <div>
-                {fileTable(this.state.show, { marginLeft: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
-              </div>}
-              {this.state.resource &&
-              <div>
-                {resourceTable(this.state.resource,
-                  { marginLeft: '1%', marginTop: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
-              </div>}
-            </div>
-          </Tab>
-          <Tab label="文件发送">
-            功能未开放
-          </Tab>
-          <Tab label="添加文件" onActive={this.claneParams}>
-            {this.state.paramOK
-              ? (
-                <UploadsFile
-                  detail
-                  parameters={this.state.parameters}
-                  title={`程序类型: ${this.state.parameters.objtype}
-                  文件类型: ${this.state.parameters.subtype}
-                  文件版本信息: ${this.state.parameters.version}`}
-                  goback={this.claneParams}
-                  doupload={this.create}
-                  handleLoading={this.handleLoading}
-                  handleLoadingClose={this.handleLoadingClose}
-                />
-              )
-              : (
-                <div style={{ marginLeft: '5%' }}>
-                  <div style={{ marginTop: '5%' }}>
-                    <p>
-                      <span style={{ marginLeft: '1%', fontSize: 20, width: '200px'}}>选择层序类型</span>
-                      <span style={{ marginLeft: '5%', fontSize: 20 }}>选择文件类型</span>
-                    </p>
-                  </div>
-                  <div>
-                    <DropDownMenu
-                      autoWidth={false}
-                      value={this.state.parameters.objtype}
-                      onChange={(event, index, objtype) => {
-                        const parameters = Object.assign({}, this.state.parameters);
-                        parameters.objtype = objtype;
-                        this.setState({ parameters });
-                      }}
-                      // style={{ display: 'inline-block', marginTop: '0%', float: 'left', width: '130px' }}
-                      style={{ width: '200px' }}
-                    >
-                      <MenuItem value={goGameConfig.GAMESERVER} primaryText="区服程序" />
-                      <MenuItem value={goGameConfig.GMSERVER} primaryText="GM程序" />
-                      <MenuItem value={goGameConfig.CROSSSERVER} primaryText="跨服战场程序" />
-                    </DropDownMenu>
-                    <DropDownMenu
-                      autoWidth
-                      value={this.state.parameters.subtype}
-                      onChange={(event, index, subtype) => {
-                        const parameters = Object.assign({}, this.state.parameters);
-                        parameters.subtype = subtype;
-                        this.setState({ parameters });
-                      }}
-                      // style={{ display: 'inline-block', marginTop: '0%', float: 'left', width: '130px' }}
-                    >
-                      <MenuItem value={goGameConfig.APPFILE} primaryText="程序文件" />
-                      <MenuItem value={goGameConfig.DATADB} primaryText="主数据库文件" />
-                      { this.state.parameters.objtype === goGameConfig.GAMESERVER
-                      && <MenuItem value={goGameConfig.LOGDB} primaryText="日志库文件" />}
-                    </DropDownMenu>
-                  </div>
-                  <div>
-                    <TextField
-                      floatingLabelText="版本信息"
-                      hintText="当前文件版本信息用于识标文件"
-                      style={{ width: '300px', marginLeft: '1%' }}
-                      value={this.state.parameters.version ? this.state.parameters.version : ''}
-                      fullWidth
-                      errorText={(this.state.parameters.version) ? '' : '文件版本信息(必要)'}
-                      onChange={(event, value) => {
-                        const parameters = Object.assign({}, this.state.parameters);
-                        parameters.version = value.trim();
-                        this.setState({ parameters });
-                      }}
-                    />
-                  </div>
-                  <FlatButton
-                    primary
-                    onClick={() => { this.setState({ paramOK: true }); }}
-                    label="下一步"
-                    disabled={this.state.parameters.version === null || this.state.parameters.version.length < 5}
-                    icon={<FontIcon className="material-icons">done</FontIcon>}
+                <h1 style={{ marginLeft: '10%' }}>设置运行服务器</h1>
+                <RadioButtonGroup
+                  style={{ marginLeft: '5%', marginTop: '3%' }}
+                  name="agent"
+                  defaultSelected={this.state.type.appfile}
+                  onChange={(event, chiose) => {
+                    const type = Object.assign({}, this.state.type);
+                    const app = Object.assign({}, this.state.app);
+                    const agent = chiose === 'auto' ? null : this.state.agent;
+                    type.appfile = chiose;
+                    app.agent_id = null;
+                    if (this.state.agents.length === 0) this.indexAgents();
+                    this.setState({ type, app, agent });
+                  }}
+                >
+                  <RadioButton
+                    value="auto"
+                    label="自动选取"
+                    style={{ marginBottom: '0.5%' }}
                   />
+                  <RadioButton
+                    value="specify"
+                    label="指定服务器"
+                  />
+                </RadioButtonGroup>
+              </div>
+              { this.state.type.appfile === 'specify' && (
+                <div>
+                  <Table
+                    height="600px"
+                    multiSelectable={false}
+                    fixedHeader={false}
+                    style={{ width: '200px', maxWidth: '80%', tableLayout: 'auto' }}
+                    onRowSelection={this.selectAgent}
+                  >
+                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                      <TableRow>
+                        <TableHeaderColumn>选择服务器</TableHeaderColumn>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody deselectOnClickaway={false}>
+                      {this.state.agents.map((row, index) => (
+                        <TableRow key={`agent-${index}`} selected={(this.state.app.agent_id && row === this.state.app.agent_id) ? true : null}>
+                          <TableRowColumn>{row}</TableRowColumn>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
-          </Tab>
-        </Tabs>
-        <Snackbar
-          open={this.state.showSnackbar}
-          message={this.state.snackbarMessage}
-          autoHideDuration={3500}
-          onRequestClose={this.handleSnackbarClose}
-        />
-      </PageBase>
+            </div>
+            { this.state.agent && (
+              <div>
+                {agentTable(this.state.agent,
+                  { marginLeft: '10%', width: '500px', maxWidth: '30%', tableLayout: 'auto' })}
+              </div>
+            )}
+          </div>
+        )}
+        {stepIndex === 1 && (
+          <div style={{ marginTop: '3%' }}>
+            <div style={{ float: 'left', width: '800px' }}>
+              <div style={{ float: 'left', width: '300px' }}>
+                <h1 style={{ marginLeft: '10%' }}>设置主数据库</h1>
+                <RadioButtonGroup
+                  style={{ marginLeft: '5%', marginTop: '5%' }}
+                  name="datadb"
+                  defaultSelected={this.state.type.datadb}
+                  onChange={(event, chiose) => {
+                    const type = Object.assign({}, this.state.type);
+                    const databases = Object.assign({}, this.state.databases);
+                    const datadb = chiose === 'auto' ? null : this.state.datadb;
+                    type.datadb = chiose;
+                    databases.datadb = 0;
+                    if (this.state.datadbs.length === 0) this.indexDatabases();
+                    this.setState({ type, databases, datadb });
+                  }}
+                >
+                  <RadioButton
+                    value="auto"
+                    label="自动选取"
+                    style={{ marginBottom: '0.5%' }}
+                  />
+                  <RadioButton
+                    value="specify"
+                    label="指定数据库"
+                  />
+                </RadioButtonGroup>
+                { this.state.type.datadb === 'specify' && (
+                  <Table
+                    height="400px"
+                    multiSelectable={false}
+                    fixedHeader={false}
+                    style={{ width: '100px', tableLayout: 'auto' }}
+                    onRowSelection={this.selectDatadb}
+                  >
+                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                      <TableRow>
+                        <TableHeaderColumn>选择主数据库</TableHeaderColumn>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody deselectOnClickaway={false}>
+                      {this.state.datadbs.map((row, index) => (
+                        <TableRow key={`datadb-${index}`} selected={(this.state.databases.datadb && row === this.state.databases.datadb) ? true : null}>
+                          <TableRowColumn>{row}</TableRowColumn>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+              <div>
+                {this.state.datadb && databaseTable(this.state.datadb, { width: '300px', tableLayout: 'auto' })}
+              </div>
+            </div>
+            {this.isPrivate && (
+              <div style={{ float: 'left', width: '800px' }}>
+                <div style={{ float: 'left', width: '300px' }}>
+                  <h1 style={{ marginLeft: '10%' }}>设置日志数据库</h1>
+                  <RadioButtonGroup
+                    style={{ marginLeft: '5%', marginTop: '5%' }}
+                    name="logdb"
+                    defaultSelected={this.state.type.logdb}
+                    onChange={(event, chiose) => {
+                      const type = Object.assign({}, this.state.type);
+                      const databases = Object.assign({}, this.state.databases);
+                      const logdb = chiose === 'auto' ? null : this.state.logdb;
+                      type.logdb = chiose;
+                      databases.logdb = 0;
+                      if (this.state.logdbs.length === 0) this.indexDatabases();
+                      this.setState({ type, databases, logdb });
+                    }}
+                  >
+                    <RadioButton
+                      value="auto"
+                      label="自动选取"
+                      style={{ marginBottom: '0.5%' }}
+                    />
+                    <RadioButton
+                      value="specify"
+                      label="指定日志数据库"
+                    />
+                  </RadioButtonGroup>
+                  { this.state.type.logdb === 'specify' && (
+                    <Table
+                      height="400px"
+                      multiSelectable={false}
+                      fixedHeader={false}
+                      style={{ width: '100px', tableLayout: 'auto' }}
+                      onRowSelection={this.selectLogdb}
+                    >
+                      <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                        <TableRow>
+                          <TableHeaderColumn>选择日志数据库</TableHeaderColumn>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody deselectOnClickaway={false}>
+                        {this.state.logdbs.map((row, index) => (
+                          <TableRow key={`logdb-${index}`} selected={(this.state.databases.logdb && row === this.state.databases.logdb) ? true : null}>
+                            <TableRowColumn>{row}</TableRowColumn>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+                <div>
+                  {this.state.logdb && databaseTable(this.state.logdb, { width: '300px', tableLayout: 'auto' })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {stepIndex === 2 && (
+          <div>
+            { isPrivate ? (
+              <div>
+                <div>区服名称</div>
+                <div>开服时间</div>
+                <div style={{ marginLeft: '10%' }}>
+                  <DatePicker
+                    hintText="开服日期" style={{ float: 'left' }}
+                    onChange={(none, datetime) => {
+                      const unixtime = datetime.getTime();
+                      const exts = Object.assign({}, this.state.exts);
+                      exts.date = unixtime;
+                      this.setState({ exts });
+                    }}
+                  />
+                  <TimePicker
+                    hintText="具体时间"
+                    style={{ marginLeft: '5%', float: 'left' }}
+                    format="24hr" minutesStep={10}
+                    onChange={(none, datetime) => {
+                      const h = datetime.getHours();
+                      const m = datetime.getMinutes();
+                      const exts = Object.assign({}, this.state.exts);
+                      exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
+                      this.setState({ exts });
+                    }}
+
+                  />
+                </div>
+              </div>
+              )
+              : (
+                <h1 style={{ marginLeft: '30%', marginTop: '5%' }}>
+                  <p style={{ fontSize: 30 }}>
+                    <span>{objtype} 程序</span>
+                    <span style={{ marginLeft: '1%' }}>没有额外参数</span>
+                  </p>
+                </h1>
+              )}
+          </div>
+        )}
+        {stepIndex >= 3 && (
+          <div>
+            确认所有参数
+          </div>
+        )}
+      </div>
     );
   }
 }
 
 
 CreateEntity.propTypes = {
-  appStore: PropTypes.any,
+  active: PropTypes.string,
+  objtype: PropTypes.string,
+  gameStore: PropTypes.object,
+  appStore: PropTypes.object,
+  handleLoading: PropTypes.func,
+  handleLoadingClose: PropTypes.func,
 };
 
-const mapStateToProps = createStructuredSelector({
-  appStore: makeSelectGlobal(),
-});
-
-
-export default connect(mapStateToProps)(CreateEntity);
+export default CreateEntity;

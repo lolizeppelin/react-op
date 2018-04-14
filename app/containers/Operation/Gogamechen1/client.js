@@ -108,6 +108,22 @@ function entityOpentime(user, groupId, objtype, entity, opentime, successCallbac
     .catch((error) => { failCallback(error.message); });
 }
 
+function entityAgents(user, objtype, successCallback, failCallback) {
+  const path = urlPrepare('agents', null, { objtype });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function entityDatabases(user, objtype, successCallback, failCallback) {
+  const path = urlPrepare('databases', null, { objtype });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
 function indexObjfiles(user, successCallback, failCallback) {
   const path = urlPrepare('objfiles', null, null);
   const url = `${baseurl}${path}`;
@@ -198,7 +214,6 @@ function deletePackage(user, groupId, packageId, successCallback, failCallback) 
     .catch((error) => { failCallback(error.message); });
 }
 
-
 function upgradePackage(user, groupId, packageId, body, successCallback, failCallback) {
   const path = urlPrepare('packages', 'upgrade', { group_id: groupId, package_id: packageId });
   const url = `${baseurl}${path}`;
@@ -206,7 +221,6 @@ function upgradePackage(user, groupId, packageId, body, successCallback, failCal
     .then((result) => waitAsyncRequestFinish(user, result, false, successCallback, failCallback))
     .catch((error) => { failCallback(error.message); });
 }
-
 
 function createPfile(user, packageId, body, successCallback, failCallback) {
   const path = urlPrepare('pfiles', null, { package_id: packageId });
@@ -224,7 +238,7 @@ function deletePfile(user, packageId, pfileId, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-
+/* 通知接口 */
 function notifyPackages(user, failCallback) {
   return allPackages(user, (result) => {
     const path = notifyPrepare('packages');
@@ -276,6 +290,8 @@ export {
   entityDelete,
   entityClean,
   entityOpentime,
+  entityAgents,
+  entityDatabases,
   indexObjfiles,
   createObjfile,
   showObjfile,

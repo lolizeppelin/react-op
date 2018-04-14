@@ -166,8 +166,9 @@ class Groups extends React.Component {
     this.nodify();
   };
   handleAreas = (result) => {
+    console.log(result);
     this.handleLoadingClose(result.result);
-    this.setState({ areas: result.data });
+    this.setState({ areas: result.data[0].areas });
   };
   handleChiefs = (result) => {
     this.handleLoadingClose(result.result);

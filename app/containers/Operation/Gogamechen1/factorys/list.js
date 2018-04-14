@@ -472,4 +472,4 @@ IndexEntitys.propTypes = {
 };
 
 
-export { IndexEntitys };
+export default IndexEntitys;

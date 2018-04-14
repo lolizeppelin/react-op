@@ -81,6 +81,8 @@ class UploadsFile extends React.Component {
                 this.setState({ precent: 100 });
               })
               .catch((err) => {
+                console.log('websocket错误?');
+                console.log(err);
                 handleLoadingClose(err.message);
                 this.setState({ precent: 100 });
               });

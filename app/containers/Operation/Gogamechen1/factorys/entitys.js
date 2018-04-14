@@ -16,7 +16,8 @@ import { makeSelectGlobal } from '../../../App/selectors';
 
 /* 私人代码引用部分 */
 import makeSelectGogamechen1 from '../GroupPage/selectors';
-import { IndexEntitys } from './list';
+import IndexEntitys from './list';
+import CreateEntity from './create';
 import { SubmitDialogs } from '../../factorys/dialogs';
 
 /* gogamechen1 程序主页面 */
@@ -25,6 +26,7 @@ class EntitysPage extends React.Component {
     super(props);
 
     this.state = {
+      active: 'list',
       submit: null,
       loading: false,
       showSnackbar: false,
@@ -60,7 +62,7 @@ class EntitysPage extends React.Component {
   render() {
     const { gameStore, objtype } = this.props;
     const group = gameStore.group;
-    const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
+    const ginfo = group === null ? 'No Group' : `组ID: ${group.group_id}  组名: ${group.name}`;
     const submit = this.state.submit;
     return (
       <PageBase
@@ -91,8 +93,25 @@ class EntitysPage extends React.Component {
               payload={submit}
             />
             <Tabs>
-              <Tab label="列表">
+              <Tab
+                label={`${objtype}列表`}
+                onActive={() => this.setState({ active: 'list' })}
+              >
                 <IndexEntitys
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`创建${objtype}`}
+                onActive={() => this.setState({ active: 'create' })}
+              >
+                <CreateEntity
+                  active={this.state.active}
                   objtype={objtype}
                   gameStore={this.props.gameStore}
                   appStore={this.props.appStore}
