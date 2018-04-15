@@ -3,7 +3,7 @@
 // See http://blog.mxstbr.com/2016/01/react-apps-with-pages for more information
 // about the code splitting business
 import { getAsyncInjectors } from './utils/asyncInjectors';
-import OPBASECONFIG from './config';
+import OPBASECONFIG from './configs';
 const BASEPATH = OPBASECONFIG.BASEPATH;
 
 const errorLoading = (err) => {
