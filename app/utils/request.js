@@ -50,16 +50,49 @@ function checkStatus(response) {
     });
 }
 
-/**
+/** 原始方法
  * Requests a URL, returning a promise
  *
  * @param  {string} url       The URL we want to request
  * @param  {object} [options] The options we want to pass to "fetch"
  *
  * @return {object}           The response data
- */
+
 export default function request(url, options) {
   return fetch(url, options)
     .then(checkStatus)
     .then(parseJSON);
+}*/
+
+/** 新增timeout参数用于控制http超时
+ * Requests a URL, returning a promise
+ *
+ * @param  {string} url       The URL we want to request
+ * @param  {object} [options] The options we want to pass to "fetch"
+ * @param  {int}    [timeout] Http request timeout
+ *
+ * @return {object}           The response data
+ */
+export default function request(url, options, timeout = null) {
+  let timer = null;
+  if (timeout) {
+    try {
+      const controller = new AbortController();
+      options.signal = controller.signal;
+      timer = setTimeout(() => controller.abort(), timeout);
+    } catch (err) {
+      console.log(`${err.message} 不支持fetch超时设置`);
+    }
+  }
+
+  return fetch(url, options)
+    .then((response) => {
+      if (timer) clearTimeout(timer);
+      return checkStatus(response);
+    })
+    .then(parseJSON)
+    .catch((err) => {
+      if (err.name !== 'AbortError' && timer) clearTimeout(timer);
+      throw err;
+    });
 }
