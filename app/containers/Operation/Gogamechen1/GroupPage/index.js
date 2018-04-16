@@ -33,6 +33,7 @@ import { makeSelectGlobal } from '../../../App/selectors';
 import * as groupActions from './actions';
 import makeSelectGogamechen1 from './selectors';
 import * as groupRequest from '../client';
+import * as notifyRequest from '../notify';
 import * as goGameConfig from '../configs';
 import { SubmitDialogs } from '../../factorys/dialogs';
 
@@ -80,7 +81,7 @@ class Groups extends React.Component {
   };
   nodify = () => {
     const { appStore } = this.props;
-    groupRequest.notifyGroups(appStore.user, (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
+    notifyRequest.notifyGroups(appStore.user, (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
   };
   index = () => {
     const { appStore } = this.props;

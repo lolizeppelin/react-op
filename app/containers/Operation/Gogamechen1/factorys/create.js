@@ -26,6 +26,7 @@ import FlatButton from 'material-ui/FlatButton';
 import sleep from '../../utils/asyncutils'
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';
+import * as notifyRequest from '../client';
 import * as gopRequest from '../../Goperation/client';
 import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
@@ -267,8 +268,8 @@ class CreateEntity extends React.Component {
   notify = (entity = null) => {
     const { gameStore, appStore } = this.props;
     const group = gameStore.group;
-    if (entity) goGameRequest.notifyAddEntity(appStore.user, group.group_id, entity, this.props.handleLoadingClose);
-    else goGameRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
+    if (entity) notifyRequest.notifyAddEntity(appStore.user, group.group_id, entity, this.props.handleLoadingClose);
+    else notifyRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
   };
 
   render() {

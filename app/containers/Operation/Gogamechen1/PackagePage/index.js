@@ -42,6 +42,7 @@ import {
 } from '../../Gopcdn/factorys/tables';
 import UploadsFile from '../../Gopcdn/factorys/upload';
 import * as goGameRequest from '../client';
+import * as notifyRequest from '../notify';
 import * as cdnRequest from '../../Gopcdn/client';
 import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
 import { SMALL_PACKAGE, FULL_PACKAGE } from '../configs';
@@ -124,7 +125,7 @@ class PackageGogame extends React.Component {
   /* action */
   notify = () => {
     const { appStore } = this.props;
-    goGameRequest.notifyPackages(appStore.user,
+    notifyRequest.notifyPackages(appStore.user,
       (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
   };
   index = () => {
