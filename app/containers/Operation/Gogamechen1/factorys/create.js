@@ -22,10 +22,8 @@ import {
 import RaisedButton from 'material-ui/RaisedButton';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import FlatButton from 'material-ui/FlatButton';
-import CircularProgress from 'material-ui/CircularProgress';
-import Dialog from 'material-ui/Dialog';
-
 /* 私人代码引用部分 */
+import sleep from '../../utils/asyncutils'
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';
 import * as gopRequest from '../../Goperation/client';
@@ -33,18 +31,11 @@ import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { databaseTable } from '../../Gopdb/factorys/tables';
 
-
 const contentStyle = { margin: '0 16px' };
-/* 默认程序参数 */
-const APPBASE = { agent_id: null };
-APPBASE[goGameConfig.APPFILE] = '';
-/* 默认数据库参数 */
-const DATABASEBASE = { datadb: 0, logdb: 0};
 /* 默认扩展参数 */
-const EXTSBASE = { areasname: '', date: 0, time: 0 };
+const EXTSBASE = { areasname: '', date: -1, time: -1, cross: 0 };
 /* 是否自动选择 */
 const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto' };
-
 
 class CreateEntity extends React.Component {
   constructor(props) {
@@ -52,11 +43,10 @@ class CreateEntity extends React.Component {
     const { objtype } = props;
 
     this.state = {
-      app: APPBASE,
-      databases: DATABASEBASE,
       exts: EXTSBASE,
       type: BASECHIOSES,
 
+      objfile: null,
       objfiles: [],
       agent: null,
       agents: [],
@@ -67,10 +57,6 @@ class CreateEntity extends React.Component {
 
       finished: false,
       stepIndex: 0,
-
-      loading: false,
-      showSnackbar: false,
-      snackbarMessage: '',
     };
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
@@ -159,51 +145,39 @@ class CreateEntity extends React.Component {
 
 
   selectFile = (rows) => {
-    const app = Object.assign({}, this.state.app);
     if (rows.length === 0) {
-      app.appfile = '';
-      this.setState({ app });
+      this.setState({ objfile: null });
     } else {
       const index = rows[0];
       const objfile = this.state.objfiles[index];
-      app.appfile = objfile.md5;
-      this.setState({ app });
+      this.setState({ objfile });
     }
   };
   selectAgent = (rows) => {
-    const app = Object.assign({}, this.state.app);
     if (rows.length === 0) {
-      app.agent_id = null;
-      this.setState({ app, agent: null });
+      this.setState({ agent: null });
     } else {
       const index = rows[0];
-      app.agent_id = this.state.agents[index];
-      this.showAgent(app.agent_id);
-      this.setState({ app });
+      const agentId = this.state.agents[index];
+      this.showAgent(agentId);
     }
   };
   selectDatadb = (rows) => {
-    const databases = Object.assign({}, this.state.databases);
     if (rows.length === 0) {
-      databases.datadb = 0;
-      this.setState({ databases, datadb: null });
+      this.setState({ datadb: null });
     } else {
       const index = rows[0];
-      databases.datadb = this.state.datadbs[index];
-      this.showDatabase(databases.datadb, goGameConfig.DATADB);
-      this.setState({ databases });
+      const databaseId = this.state.datadbs[index];
+      this.showDatabase(databaseId, goGameConfig.DATADB);
     }
   };
   selectLogdb = (rows) => {
-    const databases = Object.assign({}, this.state.databases);
     if (rows.length === 0) {
-      databases.logdb = 0;
-      this.setState({ databases, logdb: null });
+      this.setState({ logdb: null });
     } else {
       const index = rows[0];
-      databases.logdb = this.state.logdbs[index];
-      this.showDatabase(databases.logdb, goGameConfig.LOGDB);
-      this.setState({ databases });
+      const databaseId = this.state.logdbs[index];
+      this.showDatabase(databaseId, goGameConfig.LOGDB);
     }
   };
 
@@ -225,7 +199,7 @@ class CreateEntity extends React.Component {
       }
       case 3: {
         /* 所有创建参数确认 */
-        // this.create();
+        this.create();
         break;
       }
       default : {
@@ -241,14 +215,14 @@ class CreateEntity extends React.Component {
   handlePrev = () => {
     const { stepIndex } = this.state;
     if (stepIndex > 0) {
-      this.setState({ stepIndex: stepIndex - 1 });
+      this.setState({ stepIndex: stepIndex - 1, exts: EXTSBASE });
     }
   };
   nextOK = () => {
     switch (this.state.stepIndex) {
       case 0: {
         if (this.state.type.appfile === 'specify' && this.state.agent === null) return false;
-        return (this.state.app[goGameConfig.APPFILE].length > 0);
+        return (this.state.objfile !== null);
       }
       case 1: {
         /* 数据库校验 */
@@ -257,7 +231,7 @@ class CreateEntity extends React.Component {
       }
       case 2: {
         if (!this.isPrivate) return true;
-        return (this.state.exts.date > 0 && this.state.exts.time > 0 && this.state.exts.areasname.length > 0);
+        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.areasname.length > 0);
       }
       default:
         return true;
@@ -266,36 +240,44 @@ class CreateEntity extends React.Component {
 
 
   create = () => {
-    console.log('创建执行中');
-    this.setState({ finish: true });
+    const { objtype, gameStore, appStore } = this.props;
+    const { group } = gameStore;
+    this.props.handleLoading();
+    const body = {};
+    body[goGameConfig.APPFILE] = this.state.objfile.md5;
+    if (this.state.agent) body.agent_id = this.state.agent.agent_id;
+    const databases = {};
+    if (this.state.datadb) databases[goGameConfig.DATADB] = this.state.datadb.database_id;
+    if (this.state.logdb) databases[goGameConfig.LOGDB] = this.state.logdb.database_id;
+    if (Object.keys(databases).length > 0) body.databases = databases;
+    if (objtype === goGameConfig.GAMESERVER) {
+      body.areaname = this.state.exts.areasname;
+      body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time)/1000), 0);
+      if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
+    }
+    this.props.handleLoading();
+    goGameRequest.entityCreate(appStore.user, group.group_id, objtype, body,
+      this.handleCreate, this.props.handleLoadingClose);
   };
-  // handleCreate = (result) => {
-  //   this.handleLoadingClose();
-  //   this.setState({ objfiles: result.data });
-  // };
-  notify = () => {
-    console.log('lalala notify');
+  handleCreate = (result) => {
+    this.props.handleLoadingClose('新实体已经创建,通知后台绑定中');
+    this.notify(result.data[0]);
   };
 
+  notify = (entity = null) => {
+    const { gameStore, appStore } = this.props;
+    const group = gameStore.group;
+    if (entity) goGameRequest.notifyAddEntity(appStore.user, group.group_id, entity, this.props.handleLoadingClose);
+    else goGameRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
+  };
 
   render() {
     const { objtype, active } = this.props;
     if (active !== 'create') return null;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
-
-    console.log(this.state);
-
     return (
       <div>
-        <Dialog
-          title="请等待"
-          titleStyle={{ textAlign: 'center' }}
-          modal
-          open={this.state.loading}
-        >
-          {<CircularProgress size={80} thickness={5} style={{ display: 'block', margin: 'auto' }} />}
-        </Dialog>
         <div>
           <h1 style={{ textAlign: 'center', fontSize: 30, marginTop: '2%', marginBottom: '1%' }}>
             {`新增程序: ${objtype}`}
@@ -326,10 +308,9 @@ class CreateEntity extends React.Component {
                   event.preventDefault();
                   this.setState({ stepIndex: 0,
                     finished: false,
-                    app: APPBASE,
-                    databases: DATABASEBASE,
                     exts: EXTSBASE,
                     type: BASECHIOSES,
+                    objfile: null,
                     agent: null,
                     logdb: null,
                     datadb: null,
@@ -374,7 +355,7 @@ class CreateEntity extends React.Component {
                 </TableHeader>
                 <TableBody deselectOnClickaway={false}>
                   {this.state.objfiles.map((row, index) => (
-                    <TableRow key={`objfile-${index}`} selected={(this.state.app.appfile && row.md5 === this.state.app.appfile) ? true : null}>
+                    <TableRow key={`objfile-${index}`} selected={(this.state.objfile && row.md5 === this.state.objfile.md5) ? true : null}>
                       <TableRowColumn>{row.version}</TableRowColumn>
                     </TableRow>
                   ))}
@@ -390,12 +371,10 @@ class CreateEntity extends React.Component {
                   defaultSelected={this.state.type.appfile}
                   onChange={(event, chiose) => {
                     const type = Object.assign({}, this.state.type);
-                    const app = Object.assign({}, this.state.app);
                     const agent = chiose === 'auto' ? null : this.state.agent;
                     type.appfile = chiose;
-                    app.agent_id = null;
                     if (this.state.agents.length === 0) this.indexAgents();
-                    this.setState({ type, app, agent });
+                    this.setState({ type, agent });
                   }}
                 >
                   <RadioButton
@@ -425,7 +404,7 @@ class CreateEntity extends React.Component {
                     </TableHeader>
                     <TableBody deselectOnClickaway={false}>
                       {this.state.agents.map((row, index) => (
-                        <TableRow key={`agent-${index}`} selected={(this.state.app.agent_id && row === this.state.app.agent_id) ? true : null}>
+                        <TableRow key={`agent-${index}`} selected={(this.state.agent && row === this.state.agent.agent_id) ? true : null}>
                           <TableRowColumn>{row}</TableRowColumn>
                         </TableRow>
                       ))}
@@ -453,12 +432,10 @@ class CreateEntity extends React.Component {
                   defaultSelected={this.state.type.datadb}
                   onChange={(event, chiose) => {
                     const type = Object.assign({}, this.state.type);
-                    const databases = Object.assign({}, this.state.databases);
                     const datadb = chiose === 'auto' ? null : this.state.datadb;
                     type.datadb = chiose;
-                    databases.datadb = 0;
                     if (this.state.datadbs.length === 0) this.indexDatabases();
-                    this.setState({ type, databases, datadb });
+                    this.setState({ type, datadb });
                   }}
                 >
                   <RadioButton
@@ -486,7 +463,7 @@ class CreateEntity extends React.Component {
                     </TableHeader>
                     <TableBody deselectOnClickaway={false}>
                       {this.state.datadbs.map((row, index) => (
-                        <TableRow key={`datadb-${index}`} selected={(this.state.databases.datadb && row === this.state.databases.datadb) ? true : null}>
+                        <TableRow key={`datadb-${index}`} selected={(this.state.datadb && row === this.state.datadb.database_id) ? true : null}>
                           <TableRowColumn>{row}</TableRowColumn>
                         </TableRow>
                       ))}
@@ -508,12 +485,10 @@ class CreateEntity extends React.Component {
                     defaultSelected={this.state.type.logdb}
                     onChange={(event, chiose) => {
                       const type = Object.assign({}, this.state.type);
-                      const databases = Object.assign({}, this.state.databases);
                       const logdb = chiose === 'auto' ? null : this.state.logdb;
                       type.logdb = chiose;
-                      databases.logdb = 0;
                       if (this.state.logdbs.length === 0) this.indexDatabases();
-                      this.setState({ type, databases, logdb });
+                      this.setState({ type, logdb });
                     }}
                   >
                     <RadioButton
@@ -541,7 +516,7 @@ class CreateEntity extends React.Component {
                       </TableHeader>
                       <TableBody deselectOnClickaway={false}>
                         {this.state.logdbs.map((row, index) => (
-                          <TableRow key={`logdb-${index}`} selected={(this.state.databases.logdb && row === this.state.databases.logdb) ? true : null}>
+                          <TableRow key={`logdb-${index}`} selected={(this.state.logdb && row === this.state.logdb.database_id) ? true : null}>
                             <TableRowColumn>{row}</TableRowColumn>
                           </TableRow>
                         ))}
@@ -560,9 +535,24 @@ class CreateEntity extends React.Component {
           <div>
             { isPrivate ? (
               <div>
-                <div>区服名称</div>
-                <div>开服时间</div>
-                <div style={{ marginLeft: '10%' }}>
+                <div style={{ marginLeft: '10%', marginTop: '1%' }}>
+                  <TextField
+                    floatingLabelText="区服名"
+                    hintText="新区服的名称(一般为中文)"
+                    value={this.state.exts.areasname}
+                    fullWidth={false}
+                    errorText={this.state.exts.areasname.length > 0 ? '' : '区服名称未填写(必要)'}
+                    onChange={(event, value) => {
+                      const name = value.trim();
+                      if (name || name === '') {
+                        const exts = Object.assign({}, this.state.exts);
+                        exts.areasname = name;
+                        this.setState({ exts });
+                      }
+                    }}
+                  />
+                </div>
+                <div style={{ marginLeft: '10%', marginTop: '1%' }}>
                   <DatePicker
                     hintText="开服日期" style={{ float: 'left' }}
                     onChange={(none, datetime) => {
@@ -599,8 +589,62 @@ class CreateEntity extends React.Component {
           </div>
         )}
         {stepIndex >= 3 && (
-          <div>
-            确认所有参数
+          <div style={{ marginLeft: '20%', marginTop: '3%' }}>
+            <Table
+              height="600px"
+              multiSelectable={false}
+              fixedHeader={false}
+              selectable={false}
+              style={{ width: '500px', maxWidth: '40%', tableLayout: 'auto' }}
+            >
+              <TableHeader
+                displaySelectAll={false}
+                adjustForCheckbox={false}
+                enableSelectAll={false}
+              >
+                <TableRow>
+                  <TableHeaderColumn colSpan="2" style={{ textAlign: 'center' }}>
+                    <h1>创建程序参数</h1>
+                  </TableHeaderColumn>
+                </TableRow>
+              </TableHeader>
+              <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
+                <TableRow key="file-md">
+                  <TableRowColumn>文件MD5</TableRowColumn>
+                  <TableRowColumn>{this.state.objfile.md5}</TableRowColumn>
+                </TableRow>
+                <TableRow key="file-ver">
+                  <TableRowColumn>文件版本</TableRowColumn>
+                  <TableRowColumn>{this.state.objfile.version}</TableRowColumn>
+                </TableRow>
+                <TableRow key="agent">
+                  <TableRowColumn>安装服务器</TableRowColumn>
+                  <TableRowColumn>{this.state.agent ? this.state.agent.agent_id : '自动选择'}</TableRowColumn>
+                </TableRow>
+                <TableRow key="datadb">
+                  <TableRowColumn>程序数据库</TableRowColumn>
+                  <TableRowColumn>{this.state.datadb ? this.state.datadb.database_id : '自动选择'}</TableRowColumn>
+                </TableRow>
+                {this.isPrivate && (
+                  <TableRow key="logdb">
+                    <TableRowColumn>日志数据库</TableRowColumn>
+                    <TableRowColumn>{this.state.logdb ? this.state.logdb.database_id : '自动选择'}</TableRowColumn>
+                  </TableRow>
+                )}
+                {this.isPrivate && (
+                  <TableRow key="areaname">
+                    <TableRowColumn>区服名称</TableRowColumn>
+                    <TableRowColumn>{this.state.exts.areasname}</TableRowColumn>
+                  </TableRow>
+                )}
+                {this.isPrivate && (
+                  <TableRow key="opentime">
+                    <TableRowColumn>开服时间</TableRowColumn>
+                    <TableRowColumn>{new Date(this.state.exts.date + this.state.exts.time).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

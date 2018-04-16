@@ -18,6 +18,7 @@ import { Tabs, Tab } from 'material-ui/Tabs';
 import Snackbar from 'material-ui/Snackbar';
 
 import CircularProgress from 'material-ui/CircularProgress';
+import Slider from 'material-ui/Slider';
 import Dialog from 'material-ui/Dialog';
 
 import DropDownMenu from 'material-ui/DropDownMenu';
@@ -39,7 +40,8 @@ import { SubmitDialogs } from '../../factorys/dialogs';
 import UploadsFile from '../../Gopcdn/factorys/upload';
 import { fileTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { resourceTable } from '../../Gopcdn/factorys/tables';
-
+import { requestBodyBase } from '../../Goperation/utils/async';
+import { SendFileDialog, timeout as sendTimeout } from './sendfile';
 
 const DEFALUTPARAM = {
   objtype: goGameConfig.GAMESERVER,
@@ -53,6 +55,7 @@ class Objfiles extends React.Component {
     super(props);
 
     this.state = {
+      sendTimeout,
       show: null,
       parameters: DEFALUTPARAM,
       paramOK: false,
@@ -134,7 +137,16 @@ class Objfiles extends React.Component {
   };
   send = () => {
     const { appStore } = this.props;
-    console.log('send active');
+    const objfile = this.state.objfile;
+    this.handleLoading();
+    const body = requestBodyBase({ objtype: objfile.objtype }, this.state.sendTimeout);
+    objfileRequest.sendObjfile(appStore.user, objfile.md5, body, this.handleSend, this.handleLoadingClose);
+  };
+  handleSend = (result) => {
+    const agentRespones = result.data[0].respones;
+    const failAgents = agentRespones.filter((r) => r.resultcode !== 0);
+    if (failAgents.length > 0) this.handleLoadingClose('部分Agent没有成功获取服务器');
+    else this.handleLoadingClose('所有目标Agent完成文件拉取');
   };
   selectFile = (rows) => {
     if (rows.length === 0) {
@@ -167,12 +179,25 @@ class Objfiles extends React.Component {
   };
   openDialog = (event) => {
     const action = event.currentTarget.value;
+    const objfile = this.state.objfile;
     if (action === 'delete') {
-      const objfile = this.state.objfile;
       const submit = {
         title: '确认删除',
         onSubmit: this.delete,
         data: `删除文件信息: 程序:${objfile.objtype} 类型:${objfile.subtype} 版本:${objfile.version}`,
+        onCancel: () => {
+          this.handleSumbitDialogs(null);
+        },
+      };
+      this.handleSumbitDialogs(submit);
+    } else if (action === 'send') {
+      const submit = {
+        title: '发送文件',
+        onSubmit: this.send,
+        data: <SendFileDialog
+          objfile={objfile}
+          changeTimeout={(timeout) => this.setState({ sendTimeout: timeout })}
+        />,
         onCancel: () => {
           this.handleSumbitDialogs(null);
         },
@@ -236,6 +261,15 @@ class Objfiles extends React.Component {
                 <FlatButton
                   style={{ marginTop: '2%' }}
                   secondary
+                  label="发送"
+                  value="send"
+                  disabled={this.state.objfile == null}
+                  onClick={this.openDialog}
+                  icon={<FontIcon className="material-icons">file_upload</FontIcon>}
+                />
+                <FlatButton
+                  style={{ marginTop: '2%' }}
+                  secondary
                   label="删除"
                   value="delete"
                   disabled={this.state.objfile == null}
@@ -284,9 +318,6 @@ class Objfiles extends React.Component {
                   { marginLeft: '1%', marginTop: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
               </div>}
             </div>
-          </Tab>
-          <Tab label="文件发送">
-            功能未开放
           </Tab>
           <Tab label="添加文件" onActive={this.claneParams}>
             {this.state.paramOK
@@ -371,7 +402,11 @@ class Objfiles extends React.Component {
         </Tabs>
         <Snackbar
           open={this.state.showSnackbar}
-          message={this.state.snackbarMessage}
+          message={this.state.snackbarMessage.substring(0, 50)}
+          action={this.state.snackbarMessage.length > 50 ? '详情' : ''}
+          onActionTouchTap={() => {
+            alert(`${this.state.snackbarMessage}`);
+          }}
           autoHideDuration={3500}
           onRequestClose={this.handleSnackbarClose}
         />

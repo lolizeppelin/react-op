@@ -135,6 +135,23 @@ export default function createRoutes(store) {
         importModules.catch(errorLoading);
       },
     }, {
+      path: `${BASEPATH}/icons`,
+      name: 'iconsPage',
+      type: 'public',
+      getComponent(nextState, cb) {
+        const importModules = Promise.all([
+          System.import('containers/IconsPage'),
+        ]);
+
+        const renderRoute = loadModule(cb);
+
+        importModules.then(([component]) => {
+          renderRoute(component);
+        });
+
+        importModules.catch(errorLoading);
+      },
+    }, {
       path: '*',
       name: 'notfound',
       getComponent(nextState, cb) {

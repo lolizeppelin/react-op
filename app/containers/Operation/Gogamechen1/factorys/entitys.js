@@ -98,6 +98,7 @@ class EntitysPage extends React.Component {
                 onActive={() => this.setState({ active: 'list' })}
               >
                 <IndexEntitys
+                  active={this.state.active}
                   objtype={objtype}
                   gameStore={this.props.gameStore}
                   appStore={this.props.appStore}
@@ -123,8 +124,12 @@ class EntitysPage extends React.Component {
             </Tabs>
             <Snackbar
               open={this.state.showSnackbar}
-              message={this.state.snackbarMessage}
-              autoHideDuration={3500}
+              message={this.state.snackbarMessage.substring(0, 50)}
+              action={this.state.snackbarMessage.length > 50 ? '详情' : ''}
+              onActionTouchTap={() => {
+                alert(`${this.state.snackbarMessage}`);
+              }}
+              autoHideDuration={5000}
               onRequestClose={this.handleSnackbarClose}
             />
           </div>

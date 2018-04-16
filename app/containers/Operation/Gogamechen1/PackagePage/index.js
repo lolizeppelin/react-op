@@ -477,8 +477,6 @@ class PackageGogame extends React.Component {
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
 
-    console.log(this.state);
-
     return (
       <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
         <Dialog
@@ -738,8 +736,12 @@ class PackageGogame extends React.Component {
         }
         <Snackbar
           open={this.state.showSnackbar}
-          message={this.state.snackbarMessage}
+          message={this.state.snackbarMessage.substring(0, 50)}
           autoHideDuration={5500}
+          action={this.state.snackbarMessage.length > 50 ? '详情' : ''}
+          onActionTouchTap={() => {
+            alert(`${this.state.snackbarMessage}`);
+          }}
           onRequestClose={this.handleSnackbarClose}
         />
       </PageBase>

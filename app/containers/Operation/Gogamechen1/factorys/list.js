@@ -58,6 +58,10 @@ class IndexEntitys extends React.Component {
     this.index();
   }
 
+  componentWillReceiveProps(nextProps) {
+    if ((this.props.active !== nextProps.active) && nextProps.active === 'list') this.index();
+  }
+
 
   handleRequestError = (error) => {
     this.setState({ clean: 'unquote', opentime: OPENTIMEDEFAULT });
@@ -207,19 +211,19 @@ class IndexEntitys extends React.Component {
           <div style={{ marginLeft: '10%' }}>
             <RadioButtonGroup
               name="delete-database"
-              defaultSelected="unquote"
+              defaultSelected="delete"
               onChange={(ev, value) => { this.setState({ clean: value }); }}
             >
-              <RadioButton
-                value="unquote"
-                labelStyle={{ color: '#4CAF50' }}
-                label="解除数据库引用"
-              />
               <RadioButton
                 style={{ marginTop: '1%' }}
                 labelStyle={{ color: '#F44336' }}
                 value="delete"
                 label="删除数据库(不可恢复)"
+              />
+              <RadioButton
+                value="unquote"
+                labelStyle={{ color: '#4CAF50' }}
+                label="解除数据库引用"
               />
             </RadioButtonGroup>
           </div>
@@ -463,6 +467,7 @@ class IndexEntitys extends React.Component {
 
 
 IndexEntitys.propTypes = {
+  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

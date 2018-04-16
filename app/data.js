@@ -26,6 +26,7 @@ const data = {
         { id: 'gopcdn-resource-page', text: '资源管理', icon: <FontIcon className="material-icons">view_quilt</FontIcon>, url: `${BASEPATH}/cdnresources`, index: 11 },
       ],
     },
+    { id: 'icons-page', text: 'Icons', icon: <FontIcon className="material-icons">adjust</FontIcon>, url: `${BASEPATH}/icons`, index: 1 },
   ],
 };
 

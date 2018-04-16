@@ -173,7 +173,6 @@ class UploadsFile extends React.Component {
     const { finished, stepIndex } = this.state;
     const { detail, title, parameters } = this.props;
     const contentStyle = { margin: '0 16px' };
-    // console.log(this.state);
     return (
       <div>
         <Dialog

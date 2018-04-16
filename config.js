@@ -7,7 +7,8 @@ const NOTIFY = {
   packages: '/notify_package.php',
   areas: '/notify_areas.php',
   groups: '/notify_areagroups.php',
-  entity: 'http://172.23.0.131/get_reviewservers.php'
+  entity: 'http://172.23.0.131/notify_entity.php',
+  reviews: 'http://172.23.0.131/get_reviewservers.php',
 };
 
 /* 后台API */

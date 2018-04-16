@@ -17,7 +17,7 @@ function getQueryString(params) {
 }
 
 
-function http(url, method, token, body = null) {
+function http(url, method, token, body = null, timeout = null) {
   let URL = url;
   const headers = { 'Content-Type': 'application/json' };
   if (token !== null) headers.token = token;
@@ -28,7 +28,7 @@ function http(url, method, token, body = null) {
   }
   if (body !== null) options.body = JSON.stringify(body);
   console.log(URL);
-  return request(URL, options);
+  return request(URL, options, timeout);
 }
 
 export default http;
