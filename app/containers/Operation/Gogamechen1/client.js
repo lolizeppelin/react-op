@@ -76,7 +76,7 @@ function entitysIndex(user, groupId, objtype, detail, successCallback, failCallb
 }
 
 function entityCreate(user, groupId, objtype, body, successCallback, failCallback) {
-  const path = urlPrepare('entitys', null, { objtype, group_id: groupId, });
+  const path = urlPrepare('entitys', null, { objtype, group_id: groupId });
   const url = `${baseurl}${path}`;
   return http(url, 'POST', user.token, body, 3)
     .then((result) => { successCallback(result); })
@@ -315,7 +315,7 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
           user: bondInfo.user,
           passwd: bondInfo.passwd,
           schema: bondInfo.schema,
-          quote_id: bondInfo.quote_id};
+          quote_id: bondInfo.quote_id };
         isFinish.next(); },
       (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); });
 
@@ -341,7 +341,6 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
       bondSchema(user, ENDPOINTNAME, entity.entity,
         entity.databases.datadb.database_id, entity.databases.datadb.schema, false, BONDER,
         (result) => {
-          console.log('111112');
           const bondInfo = result.data[0];
           body.gmdb = { host: bondInfo.host,
             port: bondInfo.port,
@@ -355,7 +354,6 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
   });
 
   let notifyFail = false;
-  // const path = notifyPrepare('entity');
   const path = `${notifyPrepare('entity')}?group=${groupId}&action=add`;
   const options = { method: 'POST', credentials: 'include', body: JSON.stringify(body) };
 
@@ -381,22 +379,31 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
           (msg) => { errData.push(`主库读解绑错误: ${msg}`); isFinish.next(); });
       } else isFinish.next();
 
-      if (body.logdb) {
-        unBondSchema(user, body.logdb.quote_id,
-          () => isFinish.next(),
-          (msg) => { errData.push(`日志读解绑错误: ${msg}`); isFinish.next(); });
-      } else isFinish.next();
+      if (objtype === GAMESERVER) {
+        if (body.logdb) {
+          unBondSchema(user, body.logdb.quote_id,
+            () => isFinish.next(),
+            (msg) => { errData.push(`日志读解绑错误: ${msg}`); isFinish.next(); });
+        } else isFinish.next();
+      }
 
-      if (body.gmdb) {
-        unBondSchema(user, body.gmdb.quote_id,
-          () => isFinish.next(),
-          (msg) => { errData.push(`GM写解绑错误: ${msg}`); isFinish.next(); });
-      } else isFinish.next();
+      if (objtype === GMSERVER) {
+        if (body.gmdb) {
+          unBondSchema(user, body.gmdb.quote_id,
+            () => isFinish.next(),
+            (msg) => { errData.push(`GM写解绑错误: ${msg}`); isFinish.next(); });
+        } else isFinish.next();
+      }
     });
   }
-  if (errData.length > 0) failCallback(errData.join('\n'));
+
+  if (errData.length > 0) {
+    failCallback(errData.join('\n'));
+    /* 给点时间看错误 防止通知条覆盖 */
+    await sleep(3000);
+  }
   /* areas通知 */
-  notifyAreas(user, groupId, failCallback);
+  return notifyAreas(user, groupId, failCallback);
 }
 
 
@@ -434,5 +441,5 @@ export {
   notifyPackages,
   notifyAreas,
   notifyGroups,
-  notifyAddEntity
+  notifyAddEntity,
 };
