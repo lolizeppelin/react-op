@@ -18,7 +18,6 @@ import { Tabs, Tab } from 'material-ui/Tabs';
 import Snackbar from 'material-ui/Snackbar';
 
 import CircularProgress from 'material-ui/CircularProgress';
-import Slider from 'material-ui/Slider';
 import Dialog from 'material-ui/Dialog';
 
 import DropDownMenu from 'material-ui/DropDownMenu';

@@ -23,10 +23,9 @@ import RaisedButton from 'material-ui/RaisedButton';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import FlatButton from 'material-ui/FlatButton';
 /* 私人代码引用部分 */
-import sleep from '../../utils/asyncutils'
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';
-import * as notifyRequest from '../client';
+import * as notifyRequest from '../notify';
 import * as gopRequest from '../../Goperation/client';
 import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';

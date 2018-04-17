@@ -1,9 +1,16 @@
-/* 通知接口 */
-import { ENDPOINTNAME, GAMESERVER, GMSERVER, notifyPrepare } from './configs';
-import { bondSchema, unBondSchema } from '../Gopdb/client';
+/* 通知PHP后端接口
+* 这个文件专门用于同PHP运营网站通信
+* */
+
+/* 通用方法导入 */
 import request from '../../../utils/request';
-import { allPackages, groupAreas, indexGroups } from './client';
 import sleep, { finish } from '../utils/asyncutils';
+/* 数据库绑定接口 */
+import { bondSchema, unBondSchema } from '../Gopdb/client';
+
+import { ENDPOINTNAME, GAMESERVER, GMSERVER, notifyPrepare } from './configs';
+import { allPackages, groupAreas, indexGroups } from './client';
+
 
 /* 前端绑定数据库说明字段 */
 const BONDER = 'PHPWEB';
@@ -44,6 +51,7 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
   const body = {
     entity: entity.entity,
     area_id: entity.area_id ? entity.area_id : null,
+    opentime: entity.opentime ? entity.opentime : null,
     objtype: entity.objtype,
     datadb: null,
     logdb: null,

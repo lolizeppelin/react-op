@@ -488,44 +488,44 @@ class Groups extends React.Component {
           </Tab>
           <Tab label="创建新组" onActive={() => { this.setState({ create: CREATEBASE, created: null }); }}>
             {this.state.created === null &&
-              <div style={{ width: '500px', maxWidth: '30%' }}>
-                <br />
-                <h1 style={{ fontSize: 30 }}>
-                  填写创建组所需信息
-                </h1>
-                <TextField
-                  floatingLabelText="组名"
-                  hintText="组名由26个英文字母以及数字组成"
-                  value={this.state.create.name}
-                  fullWidth
-                  errorText={(this.state.create.name.length === 0) ? '请输入组名(必要)' : ''}
-                  onChange={(event, value) => {
-                    const create = Object.assign({}, this.state.create);
-                    create.name = value.trim();
-                    this.setState({ create });
-                  }}
+            <div style={{ width: '500px', maxWidth: '30%' }}>
+              <br />
+              <h1 style={{ fontSize: 30 }}>
+                填写创建组所需信息
+              </h1>
+              <TextField
+                floatingLabelText="组名"
+                hintText="组名由26个英文字母以及数字组成"
+                value={this.state.create.name}
+                fullWidth
+                errorText={(this.state.create.name.length === 0) ? '请输入组名(必要)' : ''}
+                onChange={(event, value) => {
+                  const create = Object.assign({}, this.state.create);
+                  create.name = value.trim();
+                  this.setState({ create });
+                }}
+              />
+              <TextField
+                floatingLabelText="说明"
+                hintText="组相关说明信息"
+                value={this.state.create.desc}
+                fullWidth
+                onChange={(event, value) => {
+                  const create = Object.assign({}, this.state.create);
+                  create.desc = value;
+                  this.setState({ create });
+                }}
+              />
+              <div style={{ marginTop: '3%' }}>
+                <FlatButton
+                  label="创建"
+                  primary
+                  keyboardFocused
+                  disabled={this.state.create.name.length === 0}
+                  onClick={this.create}
                 />
-                <TextField
-                  floatingLabelText="说明"
-                  hintText="组相关说明信息"
-                  value={this.state.create.desc}
-                  fullWidth
-                  onChange={(event, value) => {
-                    const create = Object.assign({}, this.state.create);
-                    create.desc = value;
-                    this.setState({ create });
-                  }}
-                />
-                <div style={{ marginTop: '3%' }}>
-                  <FlatButton
-                    label="创建"
-                    primary
-                    keyboardFocused
-                    disabled={this.state.create.name.length === 0}
-                    onClick={this.create}
-                  />
-                </div>
               </div>
+            </div>
             }
           </Tab>
         </Tabs>

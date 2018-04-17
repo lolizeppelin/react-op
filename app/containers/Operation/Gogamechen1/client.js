@@ -133,6 +133,20 @@ function entityDatabases(user, objtype, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
+function entitysAsyncrequest(user, action, method,
+                            groupId, objtype, entitys, body, successCallback, failCallback) {
+  const path = urlPrepare('entitys', action, { objtype, group_id: groupId, entity: entitys });
+  const url = `${baseurl}${path}`;
+  console.log('aaaa')
+  console.log(url)
+  console.log(method)
+  console.log('aaaa')
+  return http(url, method, user.token, body)
+    .then((result) => waitAsyncRequestFinish(user, result, true, successCallback, failCallback))
+    .catch((error) => { failCallback(error.message); });
+}
+
+
 /* objfile api 接口 */
 function indexObjfiles(user, successCallback, failCallback) {
   const path = urlPrepare('objfiles', null, null);
@@ -265,6 +279,7 @@ export {
   entityOpentime,
   entityAgents,
   entityDatabases,
+  entitysAsyncrequest,
   indexObjfiles,
   createObjfile,
   showObjfile,

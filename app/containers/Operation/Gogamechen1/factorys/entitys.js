@@ -18,6 +18,10 @@ import { makeSelectGlobal } from '../../../App/selectors';
 import makeSelectGogamechen1 from '../GroupPage/selectors';
 import IndexEntitys from './list';
 import CreateEntity from './create';
+import StatusTab from './status';
+import StartTab from './start';
+import StopTab from './stop';
+import UpgradeTab from './upgrade';
 import { SubmitDialogs } from '../../factorys/dialogs';
 
 /* gogamechen1 程序主页面 */
@@ -94,7 +98,7 @@ class EntitysPage extends React.Component {
             />
             <Tabs>
               <Tab
-                label={`${objtype}列表`}
+                label={`${objtype} 列表`}
                 onActive={() => this.setState({ active: 'list' })}
               >
                 <IndexEntitys
@@ -108,10 +112,66 @@ class EntitysPage extends React.Component {
                 />
               </Tab>
               <Tab
-                label={`创建${objtype}`}
+                label={`创建 ${objtype}`}
                 onActive={() => this.setState({ active: 'create' })}
               >
                 <CreateEntity
+                  active={this.state.active}
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`状态查询 ${objtype}`}
+                onActive={() => this.setState({ active: 'status' })}
+              >
+                <StatusTab
+                  active={this.state.active}
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`启动 ${objtype}`}
+                onActive={() => this.setState({ active: 'start' })}
+              >
+                <StartTab
+                  active={this.state.active}
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`关闭 ${objtype}`}
+                onActive={() => this.setState({ active: 'stop' })}
+              >
+                <StopTab
+                  active={this.state.active}
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`更新升级 ${objtype}`}
+                onActive={() => this.setState({ active: 'upgrade' })}
+              >
+                <UpgradeTab
                   active={this.state.active}
                   objtype={objtype}
                   gameStore={this.props.gameStore}
