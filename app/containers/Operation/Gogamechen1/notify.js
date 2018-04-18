@@ -48,9 +48,12 @@ function notifyGroups(user, failCallback) {
 async function notifyAddEntity(user, groupId, entity, failCallback) {
   const objtype = entity.objtype;
   const errData = [];
+  const areas = [];
+  if (entity.area_id) areas.push(entity.area_id);
+  if (entity.areas) entity.areas.map((id) => areas.push(id));
   const body = {
     entity: entity.entity,
-    area_id: entity.area_id ? entity.area_id : null,
+    areas,
     opentime: entity.opentime ? entity.opentime : null,
     objtype: entity.objtype,
     connection: entity.connection,

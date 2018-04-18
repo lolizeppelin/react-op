@@ -161,9 +161,14 @@ class Groups extends React.Component {
     this.setState({ showed: result.data[0] });
   };
   handleDelete = (result) => {
+    const { appStore } = this.props;
+    const group = Object.assign({}, appStore.group);
+    const groups = Object.assign([], this.state.groups);
+    const target = groups.filter((g) => g.group_id === group.group_id)[0];
+    groups.splice(groups.indexOf(target), 1);
+    this.setState({ groups });
     this.handleLoadingClose(result.result);
     this.props.actions.selectGroup(null);
-    this.index();
     this.nodify();
   };
   handleAreas = (result) => {
