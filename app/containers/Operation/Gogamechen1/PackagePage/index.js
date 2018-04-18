@@ -24,6 +24,7 @@ import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
 import FontIcon from 'material-ui/FontIcon';
 import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
 
 /* ui框架引用部分  */
 import PageBase from '../../../../components/PageBase';
@@ -31,10 +32,8 @@ import { makeSelectGlobal } from '../../../App/selectors';
 
 /* 私人代码引用部分 */
 import makeSelectGogamechen1 from '../GroupPage/selectors';
-import { requestBodyBase, waitAsyncRequestFinish } from '../../Goperation/utils/async'
+import { requestBodyBase } from '../../Goperation/utils/async';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import kvTable from '../../factorys/kvtable';
-import KvIputInDialogs from '../../factorys/kvinput';
 import { DEFAULTUPGRADE, UpgradeDialog } from '../../Gopcdn/factorys/upgrade';
 import {
   resourcesTable,
@@ -76,6 +75,7 @@ class PackageGogame extends React.Component {
       pfile: null,
       resources: [],
       resource: null,
+      reviews: [],
       version: null,
       create: CREATEBASE,
       upgrade: DEFAULTUPGRADE,
@@ -127,6 +127,10 @@ class PackageGogame extends React.Component {
     const { appStore } = this.props;
     notifyRequest.notifyPackages(appStore.user,
       (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
+  };
+  reviews = () => {
+    this.handleLoading();
+    notifyRequest.getReviews(this.handleReviews, this.handleLoadingClose);
   };
   index = () => {
     const { appStore, gameStore } = this.props;
@@ -204,6 +208,10 @@ class PackageGogame extends React.Component {
       this.handleUgrade, this.handleLoadingClose);
   };
   /* handle action result */
+  handleReviews = (result) => {
+    this.handleLoadingClose();
+    this.setState({ reviews: result.data });
+  };
   handleIndex = (result) => {
     this.handleLoadingClose();
     this.setState({ packages: result.data });
@@ -251,7 +259,9 @@ class PackageGogame extends React.Component {
   handleResources = (result) => {
     this.handleLoadingClose(result.result);
     // 过滤不必要的资源类型
-    const resources = result.data.filter((r) => { return (r.etype === 'ios' || r.etype === 'android') && !r.cdndomain.internal; });
+    const resources = result.data.filter((r) => {
+      return ((r.etype === 'ios' || r.etype === 'android') && !r.cdndomain.internal);
+    });
     this.setState({ resources });
   };
   handleResource = (result) => {
@@ -263,11 +273,33 @@ class PackageGogame extends React.Component {
       this.setState({ package: null });
     } else {
       const index = rows[0];
-      const p = this.state.packages[index];
+      const p = Object.assign({}, this.state.packages[index]);
       this.setState({ package: p });
     }
   };
   /* util function */
+  selectReview= (rows) => {
+    const p = Object.assign({}, this.state.package);
+    if (rows.length === 0) {
+      if (p.magic !== null) {
+        const magic = Object.assign({}, p.magic);
+        delete magic.version;
+        if (Object.keys(magic).length > 0) p.magic = magic;
+        else p.magic = null;
+        this.setState({ package: p });
+      }
+    } else {
+      const index = rows[0];
+      const review = this.state.reviews[index];
+      if (p.magic !== null) {
+        p.magic = {};
+      } else {
+        p.magic = Object.assign({}, p.magic);
+      }
+      p.magic.version = review.id;
+      this.setState({ package: p });
+    }
+  };
   selectPfile = (rows) => {
     if (rows.length === 0) {
       this.setState({ pfile: null });
@@ -325,6 +357,43 @@ class PackageGogame extends React.Component {
           // onSubmit: this.delete,
           onSubmit: () => {
             this.delete();
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'review': {
+        const body = { magic: this.state.package.magic };
+        const review = this.state.reviews.filter((r) => r.id === this.state.package.magic.version)[0];
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>提审版本ID更改为:</span>
+              <span style={{ marginLeft: '5%' }}>{this.state.package.magic.version}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>提审版本更改为:</span>
+              <span style={{ marginLeft: '5%' }}>{review.reviewVersion}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>提审服位置:</span>
+              <span style={{ marginLeft: '5%' }}>{review.reviewServer}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '包提审服务更改',
+          onSubmit: () => {
+            this.update(body);
+            // 更新显示内容
+            this.index();
             this.handleSumbitDialogs(null);
           },
           data: line,
@@ -477,7 +546,7 @@ class PackageGogame extends React.Component {
     const { gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
-
+    console.log(this.state);
     return (
       <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
         <Dialog
@@ -712,8 +781,80 @@ class PackageGogame extends React.Component {
                   </div>
                 )}
             </Tab>
-            <Tab label="包属性管理">
-              <div>功能未开放</div>
+            <Tab label="包属性管理" onActive={this.reviews}>
+              <div>
+                <div style={{ width: '70%', float: 'left' }}>
+                  {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource,
+                    { width: 1200, tableLayout: 'auto' })}
+                </div>
+                {this.state.reviews.length > 0 ? (
+                  <div>
+                    {this.state.package ? (
+                      <div>
+                        <Table
+                          height="500px"
+                          multiSelectable={false}
+                          fixedHeader={false}
+                          selectable
+                          bodyStyle={{ overflow: 'auto' }}
+                          style={{ tableLayout: 'auto', width: 600 }}
+                          onRowSelection={this.selectReview}
+                        >
+                          <TableHeader
+                            displaySelectAll={false}
+                            adjustForCheckbox
+                            enableSelectAll={false}
+                          >
+                            <TableRow>
+                              <TableHeaderColumn>识标ID</TableHeaderColumn>
+                              <TableHeaderColumn>提审服名</TableHeaderColumn>
+                              <TableHeaderColumn>提审版本</TableHeaderColumn>
+                              <TableHeaderColumn>提审服地址</TableHeaderColumn>
+                              <TableHeaderColumn>说明</TableHeaderColumn>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody
+                            deselectOnClickaway={false}
+                            displayRowCheckbox
+                          >
+                            {this.state.reviews.map((row) => (
+                              <TableRow
+                                key={`reviews-${row.id}`}
+                                selected={(this.state.package.magic && row.id === this.state.package.magic.version) ? true : null}
+                              >
+                                <TableRowColumn>{row.id}</TableRowColumn>
+                                <TableRowColumn>{row.name}</TableRowColumn>
+                                <TableRowColumn>{row.reviewVersion}</TableRowColumn>
+                                <TableRowColumn>{row.reviewserver}</TableRowColumn>
+                                <TableRowColumn>{row.desc}</TableRowColumn>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        <RaisedButton
+                          label="更改提审核服版本"
+                          disabled={this.state.package.magic === null}
+                          style={{ marginLeft: '3%', marginTop: '2%' }}
+                          value="review"
+                          onClick={this.openDialog}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ display: 'inline-block', marginTop: '5%', marginLeft: '3%' }}>
+                        <p>
+                          <span style={{ fontSize: 30 }}>请先选包</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: 'inline-block', marginTop: '5%', marginLeft: '3%' }}>
+                    <p>
+                      <span style={{ fontSize: 30 }}>没有提审服可以设置</span>
+                    </p>
+                  </div>
+                )}
+              </div>
             </Tab>
             <Tab label="包标记管理">
               <div>功能未开放</div>

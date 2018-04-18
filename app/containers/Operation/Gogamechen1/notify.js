@@ -210,6 +210,14 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
   return notifyAreas(user, groupId, failCallback);
 }
 
+function getReviews(successCallback, failCallback) {
+  const path = notifyPrepare('reviews');
+  const options = { method: 'GET' };
+  // const options = { method: 'GET', credentials: 'include' };
+  return request(path, options)
+    .then((result) => successCallback(result))
+    .catch((error) => { failCallback(`获取提审服务器列表失败~~${error.message}`); });
+}
 
 export {
   notifyPackages,
@@ -217,4 +225,5 @@ export {
   notifyGroups,
   notifyAddEntity,
   notifyDeleteEntity,
+  getReviews,
 };

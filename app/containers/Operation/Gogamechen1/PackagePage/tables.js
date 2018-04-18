@@ -31,6 +31,7 @@ function packagesTable(data, onSelect = null, selected = null, getResource = nul
       multiSelectable={false}
       fixedHeader={false}
       selectable={selectable}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
       onRowSelection={onSelect}
     >
