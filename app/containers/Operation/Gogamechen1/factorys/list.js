@@ -20,6 +20,7 @@ import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
 /* 私人代码引用部分 */
 import * as goGameRequest from '../client';
+import * as notifyRequest from '../notify';
 import * as agentRequest from '../../Goperation/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 
@@ -174,6 +175,7 @@ class IndexEntitys extends React.Component {
   handleDelete = (result) => {
     this.props.handleLoadingClose(result.result);
     this.index();
+    this.notify(this.state.target);
   };
   handleClean = (result) => {
     this.props.handleLoadingClose(result.result);
@@ -274,6 +276,12 @@ class IndexEntitys extends React.Component {
     }
   };
 
+  notify = (entity = null) => {
+    const { gameStore, appStore } = this.props;
+    const group = gameStore.group;
+    if (entity) notifyRequest.notifyDeleteEntity(appStore.user, group.group_id, entity, this.props.handleLoadingClose);
+    else notifyRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
+  };
 
   render() {
     const { objtype } = this.props;

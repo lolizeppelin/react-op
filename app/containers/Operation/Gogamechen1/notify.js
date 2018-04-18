@@ -61,11 +61,6 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
   };
   const step = (objtype === GMSERVER || objtype === GAMESERVER) ? 2 : 1;
 
-  console.log('11111111111111111111');
-  console.log(body);
-  console.log(entity);
-  console.log('11111111111111111111');
-
   /* 绑定数据库 */
   await new Promise((resolve) => {
     /* 完成步骤计数器 */
@@ -174,10 +169,49 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
   return notifyAreas(user, groupId, failCallback);
 }
 
+async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) {
+  const errData = [];
+
+  const qoutes = [];
+
+  /* 通知php后台删除 */
+  await new Promise((resolve) => {
+    const path = `${notifyPrepare('entity')}?group=${groupId}&entity=${entity.entity}&action=del`;
+    const options = { method: 'POST', credentials: 'include' };
+
+    const isFinish = finish(1, resolve);
+    request(path, options)
+      .then((result) => { result.qoutes.map((id) => qoutes.push(id)); isFinish.next(); })
+      .catch((err) => {
+        errData.push(`通知PHP后台删除实体错误: ${err.message}`);
+        isFinish.next();
+      });
+  });
+
+  if (qoutes.length > 0) {
+    /* 绑定数据库 */
+    await new Promise((resolve) => {
+      const isFinish = finish(qoutes.length, resolve);
+      qoutes.map((id) => unBondSchema(user, id,
+        () => isFinish.next(),
+        (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); }))
+    });
+  }
+
+  if (errData.length > 0) {
+    failCallback(errData.join('\n'));
+    /* 给点时间看错误 防止通知条覆盖 */
+    await sleep(3000);
+  }
+  /* areas通知 */
+  return notifyAreas(user, groupId, failCallback);
+}
+
 
 export {
   notifyPackages,
   notifyAreas,
   notifyGroups,
   notifyAddEntity,
+  notifyDeleteEntity,
 };
