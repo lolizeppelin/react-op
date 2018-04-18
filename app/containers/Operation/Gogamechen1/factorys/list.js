@@ -49,7 +49,7 @@ class IndexEntitys extends React.Component {
       agent: null,
       target: null,
       choice: null,
-      clean: 'unquote',
+      clean: 'delete',
       opentime: OPENTIMEDEFAULT,
     };
   }
@@ -131,7 +131,7 @@ class IndexEntitys extends React.Component {
       this.props.handleLoading();
       goGameRequest.entityClean(user, group.group_id, objtype, this.state.target.entity,
         this.state.clean, this.handleClean, this.handleRequestError);
-      this.setState({ clean: 'unquote' });
+      this.setState({ clean: 'delete' });
     }
   };
   opentime = () => {

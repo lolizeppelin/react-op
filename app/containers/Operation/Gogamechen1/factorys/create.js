@@ -260,8 +260,12 @@ class CreateEntity extends React.Component {
       this.handleCreate, this.props.handleLoadingClose);
   };
   handleCreate = (result) => {
-    this.props.handleLoadingClose('新实体已经创建,通知后台绑定中');
-    this.notify(result.data[0]);
+    if (result.resultcode !== 0) {
+      this.props.handleLoadingClose(`错误码: ${result.resultcode} 原因: ${result.result}`);
+    } else {
+      this.props.handleLoadingClose('新实体已经创建,通知后台绑定中');
+      this.notify(result.data[0]);
+    }
   };
 
   notify = (entity = null) => {
@@ -582,7 +586,8 @@ class CreateEntity extends React.Component {
                 <h1 style={{ marginLeft: '30%', marginTop: '5%' }}>
                   <p style={{ fontSize: 30 }}>
                     <span>{objtype} 程序</span>
-                    <span style={{ marginLeft: '1%' }}>没有额外参数</span>
+                    <span style={{ marginLeft: '1%' }}>不需要额外参数</span>
+                    <span style={{ marginLeft: '1%' }}>请点击下一步</span>
                   </p>
                 </h1>
               )}

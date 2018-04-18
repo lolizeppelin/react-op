@@ -42,9 +42,9 @@ class UpgradeParameter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      appfile: null,
-      datadb: null,
-      logdb: null,
+      appfile: OBJFILEBASE,
+      datadb: OBJFILEBASE,
+      logdb: OBJFILEBASE,
       timeout: 15,
       target: BASECHIOCE,
     };
@@ -81,10 +81,10 @@ class UpgradeParameter extends React.Component {
 
 
   paramOK = () => {
-    switch (this.state.stepIndex) {
-      default:
-        return true;
-    }
+    if (this.state.target.appfile) return !(this.state.appfile.md5.length === 0);
+    if (this.state.target.datadb) return !(this.state.datadb.md5.length === 0);
+    if (this.state.target.logdb) return !(this.state.logdb.md5.length === 0);
+    return !(!this.state.target.appfile && !this.state.target.datadb && !this.state.target.logdb);
   };
 
   render() {
@@ -93,8 +93,7 @@ class UpgradeParameter extends React.Component {
 
 
 
-    console.log(this.state)
-    console.log(this.state)
+
     console.log(this.state)
     console.log(this.state)
 
@@ -141,18 +140,44 @@ class UpgradeParameter extends React.Component {
               }}
             />
           </div>
+          <div style={{ float: 'left', width: 150 }}>
+            <FlatButton
+              label="后退"
+              secondary
+              disabled={stepIndex === 0}
+              onClick={this.handlePrev}
+              style={{ marginRight: 12 }}
+            />
+          </div>
+          <div style={{ float: 'left', width: 150 }}>
+            <RaisedButton
+              disabled={!this.paramOK()}
+              label={stepIndex === 0 ? '确认参数' : '下一步'}
+              primary
+              onClick={this.handleNext}
+            />
+          </div>
         </div>
 
-        <div style={{ width: '100%', maxWidth: '100%', marginTop: '1%', display: 'inline-block'}}>
-          <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
-            啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦
-          </div>
-          <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
-            啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊
-          </div>
-          <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
-            杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀
-          </div>
+        <div style={{ width: '100%', maxWidth: '100%', marginTop: '1%', display: 'inline-block' }}>
+          {this.state.target.appfile && (
+            <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
+              <p>程序更新！！！</p>
+              啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦
+            </div>
+          )}
+          {this.state.target.datadb && (
+            <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
+              <p>游戏库更新！！！</p>
+              啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊
+            </div>
+          )}
+          {this.state.target.logdb && (
+            <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
+              <p>日志库更新！！！</p>
+              杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀杀
+            </div>
+          )}
         </div>
 
       </div>

@@ -53,11 +53,18 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
     area_id: entity.area_id ? entity.area_id : null,
     opentime: entity.opentime ? entity.opentime : null,
     objtype: entity.objtype,
+    connection: entity.connection,
+    ports: entity.ports,
     datadb: null,
     logdb: null,
     gmdb: null,
   };
   const step = (objtype === GMSERVER || objtype === GAMESERVER) ? 2 : 1;
+
+  console.log('11111111111111111111');
+  console.log(body);
+  console.log(entity);
+  console.log('11111111111111111111');
 
   /* 绑定数据库 */
   await new Promise((resolve) => {
