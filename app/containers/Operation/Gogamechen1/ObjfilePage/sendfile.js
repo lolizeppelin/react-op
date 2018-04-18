@@ -2,9 +2,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/* material-ui 引用部分  */
 import Slider from 'material-ui/Slider';
 
-
+/* 私人代码引用部分 */
 import exponential from '../../utils/math';
 
 
