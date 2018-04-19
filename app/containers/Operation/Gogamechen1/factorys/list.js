@@ -40,6 +40,8 @@ const styles = {
 
 const OPENTIMEDEFAULT = { date: null, time: null };
 
+const DEFAULTCLEANACTION = 'delete';
+
 class IndexEntitys extends React.Component {
   constructor(props) {
     super(props);
@@ -50,7 +52,7 @@ class IndexEntitys extends React.Component {
       agent: null,
       target: null,
       choice: null,
-      clean: 'delete',
+      clean: DEFAULTCLEANACTION,
       opentime: OPENTIMEDEFAULT,
     };
   }
@@ -65,7 +67,7 @@ class IndexEntitys extends React.Component {
 
 
   handleRequestError = (error) => {
-    this.setState({ clean: 'unquote', opentime: OPENTIMEDEFAULT });
+    this.setState({ clean: DEFAULTCLEANACTION, opentime: OPENTIMEDEFAULT });
     this.props.handleLoadingClose(error);
   };
 
@@ -132,7 +134,6 @@ class IndexEntitys extends React.Component {
       this.props.handleLoading();
       goGameRequest.entityClean(user, group.group_id, objtype, this.state.target.entity,
         this.state.clean, this.handleClean, this.handleRequestError);
-      this.setState({ clean: 'delete' });
     }
   };
   opentime = () => {
@@ -179,7 +180,7 @@ class IndexEntitys extends React.Component {
   };
   handleClean = (result) => {
     this.props.handleLoadingClose(result.result);
-    this.setState({ clean: 'unquote' });
+    this.setState({ clean: DEFAULTCLEANACTION });
     this.index();
   };
   handleOpentime = (result) => {
@@ -231,7 +232,7 @@ class IndexEntitys extends React.Component {
           </div>
         ),
         onCancel: () => {
-          this.setState({ clean: 'unquote' });
+          this.setState({ clean: DEFAULTCLEANACTION });
           handleSumbitDialogs(null);
         },
       };
