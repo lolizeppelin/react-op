@@ -38,7 +38,6 @@ export function* appSaga() {
 }
 
 export function* fetchSignIn(action) {
-
   try {
     const headers = { 'Content-Type': 'application/json' };
     const options = { headers, method: 'POST', credentials: 'include' };

@@ -66,7 +66,7 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   componentDidMount() {
-    setTimeout(() => { this.signIn(); }, 3000);
+    setTimeout(() => { this.signInPHP(); }, 3000);
   }
 
   componentWillReceiveProps(newProps) {
