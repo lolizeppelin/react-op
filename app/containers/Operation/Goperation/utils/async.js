@@ -28,7 +28,8 @@ export function waitAsyncRequestFinish(user, result, details = false, successCal
 
       let interval = parseInt(Number(wait / 10), 0);
       if (interval < 1500) interval = 1500;
-      if (interval > 5000) interval = 5000;
+      else if (interval > 5000 && interval < 10000) interval = 5000;
+      else interval = 10000;
 
       const loop = setInterval(() => {
         showAsyncRequest(user, requestId, details,
