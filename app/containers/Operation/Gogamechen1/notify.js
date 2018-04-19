@@ -16,14 +16,20 @@ import { allPackages, groupAreas, indexGroups } from './client';
 const BONDER = 'PHPWEB';
 
 function notifyPackages(user, failCallback) {
-  return allPackages(user, (result) => {
-    const path = notifyPrepare('packages');
-    const options = { method: 'POST', credentials: 'include', body: JSON.stringify(result.data) };
-    return request(path, options)
-      .catch((error) => {
-        failCallback(`packages调用外部通知失败~~${error.message}`);
-      });
-  }, failCallback);
+  return allPackages(user,
+    (result) => {
+      if (result.data.length === 0) {
+        failCallback('packages列表为空,没有调用通知');
+        return null;
+      }
+      const path = notifyPrepare('packages');
+      const options = { method: 'POST', credentials: 'include', body: JSON.stringify(result.data) };
+      return request(path, options)
+        .catch((error) => {
+          failCallback(`packages调用外部通知失败~~${error.message}`);
+        });
+    },
+    failCallback);
 }
 
 async function notifyAreas(user, groupId, failCallback) {
