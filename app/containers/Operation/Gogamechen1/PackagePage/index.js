@@ -1,5 +1,6 @@
 /* react相关引用部分  */
 import React from 'react';
+import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { createStructuredSelector } from 'reselect';
@@ -44,13 +45,14 @@ import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as cdnRequest from '../../Gopcdn/client';
 import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
-import { SMALL_PACKAGE, FULL_PACKAGE } from '../configs';
+import { SMALL_PACKAGE, FULL_PACKAGE, BASEPATH } from '../configs';
 
 const CREATEBASE = {
   package_name: '',
   mark: 'unkonwn',
   desc: '',
 };
+
 
 const ERRORPACKAGERESOURCE = {
   etype: '包资源错误',
@@ -546,7 +548,6 @@ class PackageGogame extends React.Component {
     const { gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
-    console.log(this.state);
     return (
       <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
         <Dialog
@@ -564,9 +565,14 @@ class PackageGogame extends React.Component {
         { group === null ? (
           <div>
             <br />
-            <h1 style={{ fontSize: 50 }}>
+            <h1 style={{ fontSize: 50, marginTop: '1%', float: 'left' }}>
               请先选择游戏组
             </h1>
+            <Link to={BASEPATH}>
+              <FlatButton style={{ marginTop: '1.2%' }}>
+                <FontIcon className="material-icons">reply</FontIcon>
+              </FlatButton>
+            </Link>
           </div>
         ) : (
           <Tabs>

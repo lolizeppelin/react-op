@@ -3,7 +3,8 @@ const BASEPATH = '/op';
 
 /* php站点通知接口 */
 const NOTIFY = {
-  login: '/token.php',
+  login: '/index.php?m=Admin&c=Login&a=index',
+  token: '/index.php?m=Admin&c=Token&a=fetch',
   packages: '/notify_package.php',
   areas: '/notify_areas.php',
   groups: '/notify_areagroups.php',

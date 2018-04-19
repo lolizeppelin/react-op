@@ -2,6 +2,8 @@
 const OPBASECONFIG = window.OPBASECONFIG;
 const notifys = OPBASECONFIG.NOTIFY;
 
+export const BASEPATH = OPBASECONFIG.BASEPATH;
+
 /* 游戏相关常量 */
 export const ENDPOINTNAME = 'gogamechen1';
 export const GAMESERVER = 'gamesvr';
