@@ -41,6 +41,7 @@ import { MuiDataTable } from 'mui-data-table';
 
 
 /* 私人代码引用部分 */
+import AsyncResponses from '../../Goperation/AsyncRequest/factorys/showResult';
 import { requestBodyBase } from '../../Goperation/utils/async';
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';
@@ -255,6 +256,7 @@ class AsyncRequest extends React.Component {
             height="600px"
             multiSelectable
             fixedHeader
+            allRowsSelected={this.state.type === 'all'}
             bodyStyle={{ tableLayout: 'auto', overflow: 'auto' }}
             onRowSelection={this.selectTargets}
           >
@@ -287,9 +289,7 @@ class AsyncRequest extends React.Component {
         {stepIndex >= 2 && (
           <div>
             {this.state.result ? (
-              <div>
-                {JSON.stringify(this.state.result)}
-              </div>
+              <AsyncResponses result={this.state.result} />
             ) : (
               <div>
                 输出确认参数

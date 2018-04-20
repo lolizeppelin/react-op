@@ -334,7 +334,7 @@ class CdnResources extends React.Component {
   render() {
     const submit = this.state.submit;
     return (
-      <PageBase title="文件管理" navigation="Gogamechen1 / 文件管理" minHeight={180} noWrapContent>
+      <PageBase title="CDN资源管理" navigation="Gopcdn / 资源管理" minHeight={180} noWrapContent>
         <Dialog
           title="请等待"
           titleStyle={{ textAlign: 'center' }}

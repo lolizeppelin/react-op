@@ -8,7 +8,28 @@ import 'whatwg-fetch';
  * @return {object}          The parsed JSON from the request
  */
 function parseJSON(response) {
-  return response.json();
+  return response.json()
+    .catch((err) => {
+      const error = new Error(`parse json error ${err.message}`);
+      error.response = response;
+      throw error;
+    });
+}
+
+/* 用于打印json解析错误*/
+function parseJSONDebug(response) {
+  const clone = response.clone();
+  return response.json()
+    .catch((err) => {
+      clone.text().then((r) => {
+        console.log('-----------错误的json----------');
+        console.log(r);
+        console.log('-----------错误的json----------');
+      });
+      const error = new Error(`parse json error ${err.message}`);
+      error.response = response;
+      throw error;
+    });
 }
 
 /*  原始方法
@@ -90,9 +111,10 @@ export default function request(url, options, timeout = null) {
       if (timer) clearTimeout(timer);
       return checkStatus(response);
     })
-    .then(parseJSON)
+    .then(parseJSONDebug)
     .catch((err) => {
       if (err.name !== 'AbortError' && timer) clearTimeout(timer);
+      console.log(err);
       throw err;
     });
 }

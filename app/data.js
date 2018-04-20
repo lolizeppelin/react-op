@@ -22,7 +22,7 @@ const data = {
       text: 'CDN管理',
       icon: <FontIcon className="material-icons">web</FontIcon>,
       children: [
-        { id: 'gopcdn-domain-page', text: '域管理', icon: <FontIcon className="material-icons">view_quilt</FontIcon>, url: `${BASEPATH}/domains`, index: 10 },
+        { id: 'gopcdn-domain-page', text: '域管理', icon: <FontIcon className="material-icons">view_quilt</FontIcon>, url: `${BASEPATH}/cdndomains`, index: 10 },
         { id: 'gopcdn-resource-page', text: '资源管理', icon: <FontIcon className="material-icons">view_quilt</FontIcon>, url: `${BASEPATH}/cdnresources`, index: 11 },
       ],
     },

@@ -135,6 +135,22 @@ export default function createRoutes(store) {
         importModules.catch(errorLoading);
       },
     }, {
+      path: `${BASEPATH}/cdndomains`,
+      name: 'CdnDomainPage',
+      getComponent(nextState, cb) {
+        const importModules = Promise.all([
+          System.import('containers/Operation/Gopcdn/DomainPage'),
+        ]);
+
+        const renderRoute = loadModule(cb);
+
+        importModules.then(([component]) => {
+          renderRoute(component);
+        });
+
+        importModules.catch(errorLoading);
+      },
+    }, {
       path: `${BASEPATH}/icons`,
       name: 'iconsPage',
       type: 'public',

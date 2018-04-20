@@ -15,6 +15,20 @@ import { allPackages, groupAreas, indexGroups } from './client';
 /* 前端绑定数据库说明字段 */
 const BONDER = 'PHPWEB';
 
+/* Cookie 携带参数
+"omit",            不带
+"same-origin",     同域携带
+"include"。        携带
+ */
+
+
+function notifyResultFail(result) {
+  if (result.status === 0) {
+    return { fail: false, data: result.data, result: result.info ? result.info : 'unkonwn' };
+  }
+  return { fail: true, result: result.info ? result.info : 'unkonwn' };
+}
+
 function notifyPackages(user, failCallback) {
   return allPackages(user,
     (result) => {
@@ -23,8 +37,14 @@ function notifyPackages(user, failCallback) {
         return null;
       }
       const path = notifyPrepare('packages');
-      const options = { method: 'POST', credentials: 'include', body: JSON.stringify(result.data) };
+      const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify(result.data) };
       return request(path, options)
+        .then((r) => {
+          const formated = notifyResultFail(r);
+          if (formated.fail) {
+            failCallback(`packages调用外部通知失败~~${formated.info}`);
+          }
+        })
         .catch((error) => {
           failCallback(`packages调用外部通知失败~~${error.message}`);
         });
@@ -36,8 +56,14 @@ async function notifyAreas(user, groupId, failCallback) {
   await sleep(5000);
   return groupAreas(user, groupId, (result) => {
     const path = `${notifyPrepare('areas')}?group=${groupId}`;
-    const options = { method: 'POST', credentials: 'include', body: JSON.stringify(result.data[0]) };
+    const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify(result.data[0]) };
     return request(path, options)
+      .then((r) => {
+        const formated = notifyResultFail(r);
+        if (formated.fail) {
+          failCallback(`packages调用外部通知失败~~${formated.info}`);
+        }
+      })
       .catch((error) => { failCallback(`areas调用外部通知失败~~${error.message}`); });
   }, failCallback);
 }
@@ -45,8 +71,14 @@ async function notifyAreas(user, groupId, failCallback) {
 function notifyGroups(user, failCallback) {
   return indexGroups(user, (result) => {
     const path = notifyPrepare('groups');
-    const options = { method: 'POST', credentials: 'include', body: JSON.stringify(result.data) };
+    const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify(result.data) };
     return request(path, options)
+      .then((r) => {
+        const formated = notifyResultFail(r);
+        if (formated.fail) {
+          failCallback(`packages调用外部通知失败~~${formated.info}`);
+        }
+      })
       .catch((error) => { failCallback(`groups调用外部通知失败~~${error.message}`); });
   }, failCallback);
 }
@@ -88,7 +120,8 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
           passwd: bondInfo.passwd,
           schema: bondInfo.schema,
           quote_id: bondInfo.quote_id };
-        isFinish.next(); },
+        isFinish.next();
+      },
       (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); });
 
     if (objtype === GAMESERVER) {
@@ -105,7 +138,8 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
             passwd: bondInfo.passwd,
             schema: bondInfo.schema,
             quote_id: bondInfo.quote_id };
-          isFinish.next(); },
+          isFinish.next();
+        },
         (msg) => { errData.push(`日志读绑定错误: ${msg}`); isFinish.next(); });
     }
 
@@ -120,28 +154,34 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
             passwd: bondInfo.passwd,
             schema: bondInfo.schema,
             quote_id: bondInfo.quote_id };
-          isFinish.next(); },
+          isFinish.next();
+        },
         (msg) => { errData.push(`GM写绑定错误: ${msg}`); isFinish.next(); });
     }
   });
 
-  let notifyFail = false;
-  const path = `${notifyPrepare('entity')}?group=${groupId}&action=add`;
-  const options = { method: 'POST', credentials: 'include', body: JSON.stringify(body) };
+  if (errData.length === 0) {
+    const path = `${notifyPrepare('entity')}?group=${groupId}&action=add`;
+    const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify(body) };
+    /* 通知php后台 */
+    await new Promise((resolve) => {
+      const isFinish = finish(1, resolve);
+      request(path, options)
+        .then((r) => {
+          const formated = notifyResultFail(r);
+          isFinish.next();
+          if (formated.fail) {
+            throw new Error(`接口回复失败: ${formated.info}`);
+          } else isFinish.next();
+        })
+        .catch((err) => {
+          errData.push(`通知PHP后台错误: ${err.message}`);
+          isFinish.next();
+        });
+    });
+  }
 
-  /* 通知php后台 */
-  await new Promise((resolve) => {
-    const isFinish = finish(1, resolve);
-    request(path, options)
-      .then(() => isFinish.next())
-      .catch((err) => {
-        notifyFail = true;
-        errData.push(`通知PHP后台错误: ${err.message}`);
-        isFinish.next();
-      });
-  });
-
-  if (notifyFail) {
+  if (errData.length > 0) {
     /* 通知失败,解绑数据库 */
     await new Promise((resolve) => {
       const isFinish = finish(step, resolve);
@@ -186,11 +226,20 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
   /* 通知php后台删除 */
   await new Promise((resolve) => {
     const path = `${notifyPrepare('entity')}?group=${groupId}&entity=${entity.entity}&action=del`;
-    const options = { method: 'POST', credentials: 'include' };
+    const options = { method: 'POST', credentials: 'same-origin' };
 
     const isFinish = finish(1, resolve);
     request(path, options)
-      .then((result) => { result.qoutes.map((id) => qoutes.push(id)); isFinish.next(); })
+      .then((r) => {
+        const formated = notifyResultFail(r);
+        isFinish.next();
+        if (formated.fail) {
+          throw new Error(`接口回复失败: ${formated.info}`);
+        } else {
+          r.qoutes.map((id) => qoutes.push(id));
+          isFinish.next();
+        }
+      })
       .catch((err) => {
         errData.push(`通知PHP后台删除实体错误: ${err.message}`);
         isFinish.next();
@@ -203,7 +252,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
       const isFinish = finish(qoutes.length, resolve);
       qoutes.map((id) => unBondSchema(user, id,
         () => isFinish.next(),
-        (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); }))
+        (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); }));
     });
   }
 
@@ -218,8 +267,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
 
 function getReviews(successCallback, failCallback) {
   const path = notifyPrepare('reviews');
-  const options = { method: 'GET' };
-  // const options = { method: 'GET', credentials: 'include' };
+  const options = { method: 'GET', credentials: 'same-origin' };
   return request(path, options)
     .then((result) => successCallback(result))
     .catch((error) => { failCallback(`获取提审服务器列表失败~~${error.message}`); });
