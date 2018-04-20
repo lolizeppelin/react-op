@@ -377,7 +377,7 @@ class CreateEntity extends React.Component {
                     const type = Object.assign({}, this.state.type);
                     const agent = chiose === 'auto' ? null : this.state.agent;
                     type.appfile = chiose;
-                    if (this.state.agents.length === 0) this.indexAgents();
+                    chiose === 'specify' && this.indexAgents();
                     this.setState({ type, agent });
                   }}
                 >

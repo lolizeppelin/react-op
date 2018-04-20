@@ -69,7 +69,7 @@ class AsyncResponses extends React.Component {
 
 
   render() {
-    const { detailResultFormat, detailStyleFormat, result } = this.props;
+    const { detailFormat, result } = this.props;
     const respones = result.respones;
 
     return (
@@ -92,6 +92,7 @@ class AsyncResponses extends React.Component {
           const key = `agent-${respone.agent_id}`;
           return (
             <List
+              key={key}
               style={styles.agent}
             >
               <Subheader
@@ -103,13 +104,20 @@ class AsyncResponses extends React.Component {
                 </p>
               </Subheader>
               {this.state[key]
-              && respone.details.map((detail) => (
-                <ListItem
-                  innerDivStyle={detailStyleFormat ? detailStyleFormat(Object.assign({}, styles.detail), detail) : styles.detail}
-                >
-                  <p style={{ marginTop: 8, marginBottom: 8 }}>{detailResultFormat ? detailResultFormat(detail) : resultDefault(detail)}</p>
-                </ListItem>)
-              )}
+              && respone.details.map((detail) => {
+                let formated = null;
+                const style = Object.assign({}, styles.detail);
+                if (detailFormat) formated = detailFormat(style, detail);
+                return (
+                  <ListItem
+                    key={detail.detail_id}
+                    innerDivStyle={formated ? formated.style : styles.detail}
+                    // innerDivStyle={styles.detail}
+                  >
+                    <p style={{ marginTop: 8, marginBottom: 8 }}>{formated ? formated.result : resultDefault(detail)}</p>
+                  </ListItem>
+                );
+              })}
             </List>
           );
         })}
@@ -121,13 +129,11 @@ class AsyncResponses extends React.Component {
 
 /*
 result asyncrequest 数据
-detailStyleFormat  用于转换detial部分的Style
-detailResultFormat 用于转化detial输出内容文字
+detailFormat  用于转换detial部分的Style和输出内容
 * */
 AsyncResponses.propTypes = {
   result: PropTypes.object,
-  detailStyleFormat: PropTypes.func,
-  detailResultFormat: PropTypes.func,
+  detailFormat: PropTypes.func,
 };
 
 export default AsyncResponses;

@@ -173,7 +173,10 @@ async function notifyAddEntity(user, groupId, entity, callBack) {
           isFinish.next();
           if (formated.fail) {
             throw new Error(`接口回复失败: ${formated.result}`);
-          } else isFinish.next();
+          } else {
+            callBack('通知绑定成功');
+            isFinish.next();
+          }
         })
         .catch((err) => {
           errData.push(`通知PHP后台错误: ${err.message}`);

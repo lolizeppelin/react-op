@@ -50,11 +50,33 @@ import BASEPARAMETER from './parameter';
 const contentStyle = { margin: '0 16px' };
 
 
+function resultFormat(action, objtype) {
+  return (style, detail) => {
+    console.log(objtype)
+    const details = detail.result.split('|');
+    const entity = detail.detail_id;
+    const resultcode = detail.resultcode;
+    if (Object.keys(details).length !== 3) return { style, result: `entity: ${entity} 结果码: ${resultcode} 请求结果: ${detail.result}` };
+    const pid = details[1];
+    const result = details[2];
+    const areas = (objtype === goGameConfig.GAMESERVER) ? `区服: [${details[0]}]` : '';
+    return { style, result: `实体:${entity} ${areas} PID: ${pid} 结果码:${resultcode} ${result}` };
+  };
+}
+
 const ACTIONSMAP = {
-  start: { name: '启动', method: 'POST' },
-  stop: { name: '关闭', method: 'POST' },
-  status: { name: '状态查询', method: 'GET' },
-  upgrade: { name: '升级更新', method: 'POST' },
+  start: {
+    name: '启动',
+    method: 'POST' },
+  stop: {
+    name: '关闭',
+    method: 'POST' },
+  status: {
+    name: '状态查询',
+    method: 'GET' },
+  upgrade: {
+    name: '升级更新',
+    method: 'POST' },
 };
 
 const PARAMETERBASE = Object.assign({}, BASEPARAMETER);
@@ -288,7 +310,7 @@ class AsyncRequest extends React.Component {
         {stepIndex >= 2 && (
           <div>
             {this.state.result ? (
-              <AsyncResponses result={this.state.result} />
+              <AsyncResponses result={this.state.result} detailFormat={resultFormat(action, objtype)} />
             ) : (
               <div>
                 输出确认参数
