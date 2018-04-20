@@ -100,6 +100,7 @@ class CreateEntity extends React.Component {
     const logdbs = [];
     const datadbs = [];
     result.data.map((dbinfo) => {
+      /* eslint no-bitwise: ["error", { "allow": ["&"] }] */
       if (dbinfo.databases.length > 0 && (dbinfo.affinity & goGameConfig.DBAFFINITYS[objtype][goGameConfig.DATADB])) {
         dbinfo.databases.map((db) => datadbs.push(db));
       }
@@ -107,6 +108,7 @@ class CreateEntity extends React.Component {
     });
     if (this.isPrivate) {
       result.data.map((dbinfo) => {
+        /* eslint no-bitwise: ["error", { "allow": ["&"] }] */
         if (dbinfo.databases.length > 0 && (dbinfo.affinity & goGameConfig.DBAFFINITYS[objtype][goGameConfig.LOGDB])) {
           dbinfo.databases.map((db) => logdbs.push(db));
         }

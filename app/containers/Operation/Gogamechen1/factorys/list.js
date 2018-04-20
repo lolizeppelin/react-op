@@ -104,7 +104,7 @@ class IndexEntitys extends React.Component {
     }
   };
   update = (event) => {
-    const status = Number(event.currentTarget.value);
+    const status = parseInt(Number(event.currentTarget.value), 0);
     if (this.state.target !== null) {
       const { objtype, gameStore, appStore } = this.props;
       const user = appStore.user;
