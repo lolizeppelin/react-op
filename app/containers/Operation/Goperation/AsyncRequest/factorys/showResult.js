@@ -93,9 +93,11 @@ class AsyncResponses extends React.Component {
           return (
             <List
               style={styles.agent}
-              onClick={() => this.setState({ [key]: !this.state[key] })}
             >
-              <Subheader style={{ marginTop: 0, marginBottom: 0, padding: '0px 0px 0px 0px' }}>
+              <Subheader
+                style={{ marginTop: 0, marginBottom: 0, padding: '0px 0px 0px 0px' }}
+                onClick={() => this.setState({ [key]: !this.state[key] })}
+              >
                 <p style={{ marginTop: 0, marginBottom: 0, height: 30, padding: '0px' }}>
                   {`服务器ID: ${respone.agent_id} 结果码: ${respone.resultcode} 请求结果: ${respone.result} `}
                 </p>
