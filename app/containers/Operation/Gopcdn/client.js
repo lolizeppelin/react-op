@@ -79,7 +79,6 @@ function showResource(user, resourceId, metadata, successCallback, failCallback)
 function createResource(user, body, successCallback, failCallback) {
   const path = urlPrepare('resources');
   const url = `${baseurl}${path}`;
-  console.log(body);
   return http(url, 'POST', user.token, body)
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });

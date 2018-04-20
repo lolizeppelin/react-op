@@ -80,7 +80,6 @@ class IndexEntitys extends React.Component {
     } else {
       const index = rows[0];
       const targets = this.state.entitys.filter((entity) => entity.status === this.state.filter);
-      // console.log(targets[index].areas.length);
       if (targets.length > 0 && targets.length > index) {
         this.setState({ entity: null, target: targets[index], agent: null });
       }
@@ -100,13 +99,12 @@ class IndexEntitys extends React.Component {
       const user = appStore.user;
       const group = gameStore.group;
       this.props.handleLoading();
-      goGameRequest.entityShow(user, group.group_id, objtype, this.state.target.entity,
+      goGameRequest.entityShow(user, group.group_id, objtype, this.state.target.entity, 'list',
         this.handleShow, this.handleRequestError);
     }
   };
   update = (event) => {
     const status = Number(event.currentTarget.value);
-    // console.log('wtf')
     if (this.state.target !== null) {
       const { objtype, gameStore, appStore } = this.props;
       const user = appStore.user;

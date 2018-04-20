@@ -181,7 +181,6 @@ class AsyncRequest extends React.Component {
     const { objtype, action, paramTab } = this.props;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
-    console.log(this.state);
 
     return (
       <div>

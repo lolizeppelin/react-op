@@ -82,13 +82,11 @@ class UploadsFile extends React.Component {
               })
               .catch((err) => {
                 console.log('websocket错误?');
-                console.log(err);
                 handleLoadingClose(err.message);
                 this.setState({ precent: 100 });
               });
           },
           (err) => {
-            // console.log(err)
             handleLoadingClose(`获取websocket上传地址失败:${err}`);
           });
         break;
@@ -142,7 +140,6 @@ class UploadsFile extends React.Component {
             const { handleLoadingClose } = this.props;
             this.setState({ precent: 100 });
             handleLoadingClose(`获取文件MD5失败:${err.message}`);
-            // console.log(err);
           }
         );
     }

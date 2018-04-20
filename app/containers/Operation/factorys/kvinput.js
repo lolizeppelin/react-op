@@ -32,21 +32,7 @@ class KvIputInDialogs extends React.Component {
       ext: [], // ext中存放扩展的kv对
     };
   }
-  /*
-  componentDidMount() {
-    console.log('next');
-    this.index();
-  }
 
-  componentWillReceiveProps(nextProps) {
-    console.log('next');
-    if (nextProps.open !== this.props.open) {
-      this.setState({
-        open: nextProps.open,
-      });
-    }
-  }
-  */
   output = () => {
     const dict = Object.assign({}, this.state.dict);
     this.state.ext.map((kv) => {

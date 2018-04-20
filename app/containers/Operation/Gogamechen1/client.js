@@ -77,10 +77,10 @@ function entityCreate(user, groupId, objtype, body, successCallback, failCallbac
     .catch((error) => { failCallback(error.message); });
 }
 
-function entityShow(user, groupId, objtype, entity, successCallback, failCallback) {
+function entityShow(user, groupId, objtype, entity, format, successCallback, failCallback) {
   const path = urlPrepare('entitys', null, { group_id: groupId, objtype, entity });
   const url = `${baseurl}${path}`;
-  return http(url, 'GET', user.token)
+  return http(url, 'GET', user.token, { format })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

@@ -172,7 +172,6 @@ class Groups extends React.Component {
     this.nodify();
   };
   handleAreas = (result) => {
-    console.log(result);
     this.handleLoadingClose(result.result);
     this.setState({ areas: result.data[0].areas });
   };
@@ -182,7 +181,6 @@ class Groups extends React.Component {
   };
   selectGroup = (rows) => {
     if (rows.length === 0) {
-      console.log('no!!!')
       this.props.actions.selectGroup(null);
     } else {
       const index = rows[0];
@@ -220,7 +218,6 @@ class Groups extends React.Component {
       if (showed.entitys[goGameConfig.CROSSSERVER]) cross = showed.entitys[goGameConfig.CROSSSERVER];
       if (showed.entitys[goGameConfig.GAMESERVER]) games = showed.entitys[goGameConfig.GAMESERVER];
     }
-    // console.log(group.group_id)
     return (
       <PageBase title="组" navigation="Gogamechen1 / 组" minHeight={180} noWrapContent>
         <Dialog
