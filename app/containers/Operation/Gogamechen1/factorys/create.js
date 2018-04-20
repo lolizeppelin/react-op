@@ -252,7 +252,7 @@ class CreateEntity extends React.Component {
     if (Object.keys(databases).length > 0) body.databases = databases;
     if (objtype === goGameConfig.GAMESERVER) {
       body.areaname = this.state.exts.areasname;
-      body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time)/1000), 0);
+      body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
       if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
     }
     this.props.handleLoading();
@@ -377,7 +377,7 @@ class CreateEntity extends React.Component {
                     const type = Object.assign({}, this.state.type);
                     const agent = chiose === 'auto' ? null : this.state.agent;
                     type.appfile = chiose;
-                    chiose === 'specify' && this.indexAgents();
+                    if (chiose === 'specify') this.indexAgents();
                     this.setState({ type, agent });
                   }}
                 >
