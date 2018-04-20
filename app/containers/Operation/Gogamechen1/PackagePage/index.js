@@ -874,7 +874,7 @@ class PackageGogame extends React.Component {
                         </Table>
                         <RaisedButton
                           label="更改提审核服版本"
-                          disabled={this.state.package.magic === null}
+                          disabled={this.state.package.magic === null || this.state.package.magic.version === null}
                           style={{ marginLeft: '3%', marginTop: '2%' }}
                           value="review"
                           onClick={this.openDialog}
