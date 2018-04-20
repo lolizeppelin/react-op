@@ -75,7 +75,7 @@ function packagesTable(data, onSelect = null, selected = null, getResource = nul
 function packageTable(data, getResource = null, style = null) {
   return (
     <Table
-      height="600px"
+      height="500px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}

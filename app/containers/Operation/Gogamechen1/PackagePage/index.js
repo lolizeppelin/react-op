@@ -261,9 +261,7 @@ class PackageGogame extends React.Component {
   handleResources = (result) => {
     this.handleLoadingClose(result.result);
     // 过滤不必要的资源类型
-    const resources = result.data.filter((r) => {
-      return ((r.etype === 'ios' || r.etype === 'android') && !r.cdndomain.internal);
-    });
+    const resources = result.data.filter((r) => ((r.etype === 'ios' || r.etype === 'android') && !r.cdndomain.internal));
     this.setState({ resources });
   };
   handleResource = (result) => {
@@ -472,6 +470,35 @@ class PackageGogame extends React.Component {
         };
         break;
       }
+      case 'cleanDefault': {
+        const body = { gversion: null, rversion: null };
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+          </div>);
+        submit = {
+          title: '清空包默认属性(删除前操作)',
+          onSubmit: () => {
+            this.update(body);
+            const p = Object.assign({}, this.state.package);
+            const show = Object.assign({}, this.state.show);
+            p.gversion = null;
+            p.rversion = null;
+            show.gversion = null;
+            show.rversion = null;
+            this.setState({ show, package: p });
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
       case 'deletePfile': {
         const line = (
           <div>
@@ -592,7 +619,7 @@ class PackageGogame extends React.Component {
                     secondary
                     label="删除包"
                     value="delete"
-                    disabled={this.state.package === null}
+                    disabled={this.state.package === null || this.state.package.rversion !== null || this.state.package.gversion !== null}
                     onClick={this.openDialog}
                     icon={<FontIcon className="material-icons">delete</FontIcon>}
                   />
@@ -635,6 +662,14 @@ class PackageGogame extends React.Component {
                   <div style={{ float: 'left' }}>
                     {packageTable(this.state.show, this.presource,
                       { marginLeft: '1%', overflow: 'auto', width: '200px', maxWidth: '30%', tableLayout: 'auto' })}
+                    <FlatButton
+                      secondary
+                      label="清空默认引用"
+                      value="cleanDefault"
+                      disabled={this.state.package === null || (this.state.package.rversion === null && this.state.package.gversion === null)}
+                      onClick={this.openDialog}
+                      icon={<FontIcon className="material-icons">lock_open</FontIcon>}
+                    />
                   </div>
                   <div style={{ float: 'left', marginLeft: '1%', width: '1000px', overflow: 'auto' }}>
                     {pfilesTable(this.state.show.files, this.selectPfile, this.state.pfile,

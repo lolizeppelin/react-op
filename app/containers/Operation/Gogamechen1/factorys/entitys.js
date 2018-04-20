@@ -1,5 +1,6 @@
 /* react相关引用部分  */
 import React from 'react';
+import { Link } from 'react-router';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
@@ -9,6 +10,8 @@ import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 import Snackbar from 'material-ui/Snackbar';
 import { Tabs, Tab } from 'material-ui/Tabs';
+import FontIcon from 'material-ui/FontIcon';
+import FlatButton from 'material-ui/FlatButton';
 
 /* ui框架引用部分  */
 import PageBase from '../../../../components/PageBase';
@@ -23,6 +26,7 @@ import StartTab from './start';
 import StopTab from './stop';
 import UpgradeTab from './upgrade';
 import { SubmitDialogs } from '../../factorys/dialogs';
+import {BASEPATH} from "../configs";
 
 /* gogamechen1 程序主页面 */
 class EntitysPage extends React.Component {
@@ -77,10 +81,14 @@ class EntitysPage extends React.Component {
         { group === null ? (
           <div>
             <br />
-            <h1 style={{ fontSize: 50 }}>
+            <h1 style={{ fontSize: 50, marginTop: '1%', float: 'left' }}>
               请先选择游戏组
             </h1>
-
+            <Link to={BASEPATH}>
+              <FlatButton style={{ marginTop: '1.2%' }}>
+                <FontIcon className="material-icons">reply</FontIcon>
+              </FlatButton>
+            </Link>
           </div>
         ) : (
           <div>

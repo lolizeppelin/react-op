@@ -23,17 +23,18 @@ const BONDER = 'PHPWEB';
 
 
 function notifyResultFail(result) {
-  if (result.status === 0) {
+  if (result.status === 1) {
     return { fail: false, data: result.data, result: result.info ? result.info : 'unkonwn' };
   }
   return { fail: true, result: result.info ? result.info : 'unkonwn' };
 }
 
-function notifyPackages(user, failCallback) {
+async function notifyPackages(user, callBack) {
+  await sleep(3000);
   return allPackages(user,
     (result) => {
       if (result.data.length === 0) {
-        failCallback('packages列表为空,没有调用通知');
+        callBack('packages列表为空,没有调用通知');
         return null;
       }
       const path = notifyPrepare('packages');
@@ -42,17 +43,17 @@ function notifyPackages(user, failCallback) {
         .then((r) => {
           const formated = notifyResultFail(r);
           if (formated.fail) {
-            failCallback(`packages调用外部通知失败~~${formated.info}`);
-          }
+            callBack(`packages调用外部通知回复失败~~${formated.result}`);
+          } else callBack('Packages变更通知成功');
         })
         .catch((error) => {
-          failCallback(`packages调用外部通知失败~~${error.message}`);
+          callBack(`packages调用外部通知失败~~${error.message}`);
         });
     },
-    failCallback);
+    callBack);
 }
 
-async function notifyAreas(user, groupId, failCallback) {
+async function notifyAreas(user, groupId, callBack) {
   await sleep(5000);
   return groupAreas(user, groupId, (result) => {
     const path = `${notifyPrepare('areas')}?group=${groupId}`;
@@ -61,14 +62,14 @@ async function notifyAreas(user, groupId, failCallback) {
       .then((r) => {
         const formated = notifyResultFail(r);
         if (formated.fail) {
-          failCallback(`packages调用外部通知失败~~${formated.info}`);
-        }
+          callBack(`packages调用外部通知失败~~${formated.result}`);
+        } else callBack('Areas变更通知成功');
       })
-      .catch((error) => { failCallback(`areas调用外部通知失败~~${error.message}`); });
-  }, failCallback);
+      .catch((error) => { callBack(`areas调用外部通知失败~~${error.message}`); });
+  }, callBack);
 }
 
-function notifyGroups(user, failCallback) {
+function notifyGroups(user, callBack) {
   return indexGroups(user, (result) => {
     const path = notifyPrepare('groups');
     const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify(result.data) };
@@ -76,14 +77,14 @@ function notifyGroups(user, failCallback) {
       .then((r) => {
         const formated = notifyResultFail(r);
         if (formated.fail) {
-          failCallback(`packages调用外部通知失败~~${formated.info}`);
-        }
+          callBack(`group调用外部通知失败~~${formated.result}`);
+        } else callBack('Groups变更通知成功');
       })
-      .catch((error) => { failCallback(`groups调用外部通知失败~~${error.message}`); });
-  }, failCallback);
+      .catch((error) => { callBack(`groups调用外部通知失败~~${error.message}`); });
+  }, callBack);
 }
 
-async function notifyAddEntity(user, groupId, entity, failCallback) {
+async function notifyAddEntity(user, groupId, entity, callBack) {
   const objtype = entity.objtype;
   const errData = [];
   const areas = [];
@@ -171,7 +172,7 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
           const formated = notifyResultFail(r);
           isFinish.next();
           if (formated.fail) {
-            throw new Error(`接口回复失败: ${formated.info}`);
+            throw new Error(`接口回复失败: ${formated.result}`);
           } else isFinish.next();
         })
         .catch((err) => {
@@ -210,15 +211,15 @@ async function notifyAddEntity(user, groupId, entity, failCallback) {
   }
 
   if (errData.length > 0) {
-    failCallback(errData.join('\n'));
+    callBack(errData.join('\n'));
     /* 给点时间看错误 防止通知条覆盖 */
     await sleep(3000);
   }
   /* areas通知 */
-  return notifyAreas(user, groupId, failCallback);
+  return notifyAreas(user, groupId, callBack);
 }
 
-async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) {
+async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
   const errData = [];
 
   const qoutes = [];
@@ -234,7 +235,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
         const formated = notifyResultFail(r);
         isFinish.next();
         if (formated.fail) {
-          throw new Error(`接口回复失败: ${formated.info}`);
+          throw new Error(`接口回复失败: ${formated.result}`);
         } else {
           r.qoutes.map((id) => qoutes.push(id));
           isFinish.next();
@@ -247,22 +248,25 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, failCallback) 
   });
 
   if (qoutes.length > 0) {
-    /* 绑定数据库 */
+    /* 删除数据库绑定 */
     await new Promise((resolve) => {
       const isFinish = finish(qoutes.length, resolve);
       qoutes.map((id) => unBondSchema(user, id,
-        () => isFinish.next(),
+        () => {
+          callBack('删除绑定完成');
+          isFinish.next();
+        },
         (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); }));
     });
   }
 
   if (errData.length > 0) {
-    failCallback(errData.join('\n'));
+    callBack(errData.join('\n'));
     /* 给点时间看错误 防止通知条覆盖 */
     await sleep(3000);
   }
   /* areas通知 */
-  return notifyAreas(user, groupId, failCallback);
+  return notifyAreas(user, groupId, callBack);
 }
 
 function getReviews(successCallback, failCallback) {
