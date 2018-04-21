@@ -39,16 +39,20 @@ export function* appSaga() {
 
 export function* fetchSignIn(action) {
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    const options = { headers, method: 'POST', credentials: 'include' };
-
-    const result = yield call(request, action.payload.url, options, 5);
+    let result;
+    if (action.payload.token) {
+      result = action.payload;
+    } else {
+      const headers = { 'Content-Type': 'application/json' };
+      const options = { headers, method: 'POST', credentials: 'include' };
+      result = yield call(request, action.payload.url, options, 5);
+    }
 
     yield put({ type: AUTHENTICATED,
       user: {
         name: result.name,
         email: result.email,
-        imgUrl: 'http://www.material-ui.com/images/ok-128.jpg',
+        imgUrl: result.imgUrl ? result.imgUrl : 'http://www.material-ui.com/images/ok-128.jpg',
         token: result.token,
       },
     });

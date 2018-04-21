@@ -13,11 +13,6 @@ import OPBASECONFIG from '../../configs';
 import { makeSelectGlobal } from '../App/selectors';
 import ThemeDefault from '../../themes/theme-default';
 import * as appActions from '../../containers/App/actions';
-import Login from '../../components/Auth/Login';
-import Register from '../../components/Auth/Register';
-import ForgotPassword from '../../components/Auth/ForgotPassword';
-import {delayLoadingComponentTime} from "../../config";
-
 
 
 class AuthPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
@@ -66,7 +61,7 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   componentDidMount() {
-    setTimeout(() => { this.signInPHP(); }, 3000);
+    setTimeout(() => { this.signIn(); }, 500);
   }
 
   componentWillReceiveProps(newProps) {
@@ -79,20 +74,19 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   signIn() {
-    const payload = {
-      email: this.state.login.email,
-      password: this.state.login.password,
-      rememberMe: true,
-    };
-
+    let payload;
+    if (OPBASECONFIG.NOTIFY.token) {
+      payload = { url: OPBASECONFIG.NOTIFY.token };
+    } else {
+      payload = {
+        email: this.state.login.email,
+        password: this.state.login.password,
+        rememberMe: true,
+        token: 'goperation-trusted-token',
+      };
+    }
     this.props.actions.signIn(payload);
   }
-
-  signInPHP() {
-    const payload = { url: OPBASECONFIG.NOTIFY.token };
-    this.props.actions.signIn(payload);
-  }
-
 
   signInFacebook() {
     // validations goes here

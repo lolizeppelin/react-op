@@ -20,7 +20,7 @@ function getQueryString(params) {
 function http(url, method, token, body = null, timeout = null) {
   let URL = url;
   const headers = { 'Content-Type': 'application/json' };
-  if (token !== null) headers.token = token;
+  if (token !== null) headers['Auth-Token'] = token;
   const options = { method, headers };
   if (method.toLowerCase() === 'get' && body !== null) {
     options.method = 'post';
