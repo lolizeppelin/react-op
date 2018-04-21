@@ -1,5 +1,4 @@
 import React from 'react';
-import { getFileStatus } from '../../configs';
 
 import {
   Table,
@@ -10,7 +9,63 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 
+import { getFileStatus } from '../../configs';
+
 const MB = 1024 * 1024;
+
+function agentsTable(data, onSelect = null, selected = null, style = null) {
+  const selectable = onSelect !== null;
+  return (
+    <Table
+      height="400px"
+      multiSelectable={false}
+      fixedHeader={false}
+      selectable={selectable}
+      bodyStyle={{ overflow: 'auto' }}
+      style={style}
+      onRowSelection={onSelect}
+    >
+      <TableHeader
+        displaySelectAll={false}
+        adjustForCheckbox={selectable}
+        enableSelectAll={false}
+      >
+        <TableRow>
+          <TableHeaderColumn colSpan="7" style={{ textAlign: 'center' }}>
+            服务器列表
+          </TableHeaderColumn>
+        </TableRow>
+        <TableRow>
+          <TableHeaderColumn>服务器ID</TableHeaderColumn>
+          <TableHeaderColumn>host</TableHeaderColumn>
+          <TableHeaderColumn>类型</TableHeaderColumn>
+          <TableHeaderColumn>状态</TableHeaderColumn>
+          <TableHeaderColumn>CPU</TableHeaderColumn>
+          <TableHeaderColumn>内存</TableHeaderColumn>
+          <TableHeaderColumn>磁盘</TableHeaderColumn>
+          <TableHeaderColumn>创建时间</TableHeaderColumn>
+          <TableHeaderColumn>endpoints</TableHeaderColumn>
+        </TableRow>
+      </TableHeader>
+      <TableBody deselectOnClickaway={false} displayRowCheckbox={selectable}>
+        {data.map((row) => (
+          <TableRow key={row.agent_id} selected={(selected && row.agent_id === selected.agent_id) ? true : null}>
+            <TableRowColumn>{row.agent_id}</TableRowColumn>
+            <TableRowColumn>{row.host ? '是' : '否'}</TableRowColumn>
+            <TableRowColumn>{row.agent_type}</TableRowColumn>
+            <TableRowColumn>{row.status}</TableRowColumn>
+            <TableRowColumn>{row.cpu}</TableRowColumn>
+            <TableRowColumn>{row.memory}</TableRowColumn>
+            <TableRowColumn>{row.disk}</TableRowColumn>
+            <TableRowColumn>{new Date(row.create_time).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
+            <TableRowColumn>{row.endpoints.join(',')}</TableRowColumn>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 
 function agentTable(data, style = null) {
   const metadata = data.metadata;
@@ -146,4 +201,4 @@ function fileTable(data, style = null) {
   );
 }
 
-export { agentTable, fileTable };
+export { agentTable, agentsTable, fileTable };

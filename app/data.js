@@ -16,7 +16,7 @@ const data = {
         { id: 'gogamechen1-crosssvr-page', text: '战场程序管理', url: `${BASEPATH}/crosssvrs`, index: 8 },
         { id: 'gogamechen1-gamesvr-page', text: '区服程序管理', url: `${BASEPATH}/gamesvrs`, index: 9 },
         { id: 'gogamechen1-page', text: '包管理', url: `${BASEPATH}/packages`, index: 10 },
-        { id: 'gogamechen1-noitfy', text: '通知PHP', url: `${BASEPATH}/notifys`, index: 11 },
+        { id: 'gogamechen1-noitfy', text: '通知接口调用', url: `${BASEPATH}/notifys`, index: 11 },
       ],
     },
     { id: 'gopcdn-page',

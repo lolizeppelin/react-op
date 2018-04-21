@@ -383,7 +383,9 @@ class UploadsFile extends React.Component {
                       errorText={(!this.state.fileinfo.size) ? '外部文件大小未填写(必要/数值)' : ''}
                       onChange={(event, value) => {
                         const fileinfo = Object.assign({}, this.state.fileinfo);
-                        if (!isNaN(Number(value.trim() || value === ''))) {
+                        if (value.trim() === '') {
+                          fileinfo.size = null;
+                        } else if (!isNaN(Number(value.trim()))) {
                           fileinfo.size = value.trim();
                           this.setState({ fileinfo });
                         }

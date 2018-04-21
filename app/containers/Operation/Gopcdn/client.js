@@ -40,7 +40,7 @@ function deleteDomain(user, entity, successCallback, failCallback) {
 
 
 function addDomainName(user, entity, domains, successCallback, failCallback) {
-  const path = urlPrepare('domains', 'domain', { entity });
+  const path = urlPrepare('domains', 'domains', { entity });
   const url = `${baseurl}${path}`;
   return http(url, 'POST', user.token, { domains })
     .then((result) => { successCallback(result); })
@@ -48,10 +48,10 @@ function addDomainName(user, entity, domains, successCallback, failCallback) {
 }
 
 
-function removeDomainName(user, entity, successCallback, failCallback) {
-  const path = urlPrepare('domains', 'domain', { entity });
+function removeDomainName(user, entity, domains, successCallback, failCallback) {
+  const path = urlPrepare('domains', 'domains', { entity });
   const url = `${baseurl}${path}`;
-  return http(url, 'DELETE', user.token)
+  return http(url, 'DELETE', user.token, { domains })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

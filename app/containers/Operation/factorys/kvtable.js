@@ -16,6 +16,7 @@ function kvTable(object, title = null, style = null, height = '400px') {
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
     >
       <TableHeader

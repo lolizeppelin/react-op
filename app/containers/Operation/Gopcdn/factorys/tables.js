@@ -63,6 +63,7 @@ function domainTable(data, style = null) {
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
     >
       <TableHeader
@@ -116,12 +117,16 @@ function domainTable(data, style = null) {
 
 function resourcesTable(data, onSelect = false, selected, style = null) {
   const selectable = onSelect !== null;
+
+  const withDomain = data.length > 0 && data[0].entity !== undefined;
+
   return (
     <Table
       height="600px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={selectable}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
       onRowSelection={onSelect}
     >
@@ -136,11 +141,11 @@ function resourcesTable(data, onSelect = false, selected, style = null) {
           <TableHeaderColumn>资源名称</TableHeaderColumn>
           <TableHeaderColumn>默认更新方式</TableHeaderColumn>
           <TableHeaderColumn>默认引用</TableHeaderColumn>
-          <TableHeaderColumn>域名实体ID</TableHeaderColumn>
-          <TableHeaderColumn>内部域</TableHeaderColumn>
-          <TableHeaderColumn>域名</TableHeaderColumn>
-          <TableHeaderColumn>端口</TableHeaderColumn>
-          <TableHeaderColumn>所在服务器ID</TableHeaderColumn>
+          {withDomain && <TableHeaderColumn>域名实体ID</TableHeaderColumn>}
+          {withDomain && <TableHeaderColumn>内部域</TableHeaderColumn>}
+          {withDomain && <TableHeaderColumn>域名</TableHeaderColumn>}
+          {withDomain && <TableHeaderColumn>端口</TableHeaderColumn>}
+          {withDomain && <TableHeaderColumn>所在服务器ID</TableHeaderColumn>}
         </TableRow>
       </TableHeader>
       <TableBody deselectOnClickaway={false} displayRowCheckbox={selectable}>
@@ -154,11 +159,11 @@ function resourcesTable(data, onSelect = false, selected, style = null) {
             <TableRowColumn>{row.name}</TableRowColumn>
             <TableRowColumn>{row.impl}</TableRowColumn>
             <TableRowColumn>{row.quotes}</TableRowColumn>
-            <TableRowColumn>{row.entity}</TableRowColumn>
-            <TableRowColumn>{row.cdndomain.internal ? '是' : '否'}</TableRowColumn>
-            <TableRowColumn>{row.cdndomain.domains.join(',')}</TableRowColumn>
-            <TableRowColumn>{row.cdndomain.port}</TableRowColumn>
-            <TableRowColumn>{row.cdndomain.agent_id}</TableRowColumn>
+            {withDomain && <TableRowColumn>{row.entity}</TableRowColumn>}
+            {withDomain && <TableRowColumn>{row.cdndomain.internal ? '是' : '否'}</TableRowColumn>}
+            {withDomain && <TableRowColumn>{row.cdndomain.domains.join(',')}</TableRowColumn>}
+            {withDomain && <TableRowColumn>{row.cdndomain.port}</TableRowColumn>}
+            {withDomain && <TableRowColumn>{row.cdndomain.agent_id}</TableRowColumn>}
           </TableRow>
         ))}
       </TableBody>
