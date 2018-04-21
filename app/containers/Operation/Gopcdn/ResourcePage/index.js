@@ -53,7 +53,7 @@ const CREATEBASE = {
   desc: '',
 };
 
-const SVNAUTH = { uri: null, username: null, passwd: null };
+const SVNAUTH = { uri: null, username: null, password: null };
 
 class CdnResources extends React.Component {
   constructor(props) {
