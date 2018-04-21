@@ -147,7 +147,8 @@ function resourcesTable(data, onSelect = false, selected, style = null) {
         {data.map((row) => (
           <TableRow
             key={row.resource_id}
-            selected={(selected && row.resource_id === selected.resource_id) ? true : null}>
+            selected={(selected && row.resource_id === selected.resource_id) ? true : null}
+          >
             <TableRowColumn>{row.resource_id}</TableRowColumn>
             <TableRowColumn>{row.etype}</TableRowColumn>
             <TableRowColumn>{row.name}</TableRowColumn>
