@@ -52,7 +52,6 @@ const contentStyle = { margin: '0 16px' };
 
 function resultFormat(action, objtype) {
   return (style, detail) => {
-    console.log(objtype)
     const details = detail.result.split('|');
     const entity = detail.detail_id;
     const resultcode = detail.resultcode;

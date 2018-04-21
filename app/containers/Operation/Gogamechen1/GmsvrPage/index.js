@@ -5,12 +5,8 @@ import React from 'react';
 import EntitysPage from '../factorys/entitys';
 import { GMSERVER } from '../configs';
 
-
-class Gmsvrs extends React.Component {
-
-  render() {
-    return <EntitysPage objtype={GMSERVER} />;
-  }
+function Gmsvrs() {
+  return <EntitysPage objtype={GMSERVER} />;
 }
 
 export default Gmsvrs;

@@ -5,12 +5,8 @@ import React from 'react';
 import EntitysPage from '../factorys/entitys';
 import { GAMESERVER } from '../configs';
 
-
-class Gamesvrs extends React.Component {
-
-  render() {
-    return <EntitysPage objtype={GAMESERVER} />;
-  }
+function Gamesvrs() {
+  return <EntitysPage objtype={GAMESERVER} />;
 }
 
 export default Gamesvrs;
