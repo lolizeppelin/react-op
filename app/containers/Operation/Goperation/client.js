@@ -37,8 +37,6 @@ function showAsyncRequest(user, requestId, details, successCallback, failCallbac
     .catch((error) => { failCallback(error.message); });
 }
 
-
-
 export {
   indexAgents,
   showAgent,

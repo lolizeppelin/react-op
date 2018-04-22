@@ -174,7 +174,7 @@ function resourcesTable(data, onSelect = false, selected, style = null) {
 function resourceTable(data, style = null) {
   return (
     <Table
-      height="500px"
+      height="400px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}

@@ -33,7 +33,8 @@ import { makeSelectGlobal } from '../../../App/selectors';
 
 /* 私人代码引用部分 */
 import makeSelectGogamechen1 from '../GroupPage/selectors';
-import { BASEPATH } from '../configs';
+import { BASEPATH, GAMESERVER, GMSERVER, CROSSSERVER } from '../configs';
+import { entitysTable } from '../factorys/tables';
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 
@@ -42,6 +43,7 @@ class NotifyPHP extends React.Component {
     super(props);
 
     this.state = {
+      objtype: null,
       entitys: [],
       entity: null,
       loading: false,
@@ -76,18 +78,65 @@ class NotifyPHP extends React.Component {
   /* action */
   notifyPackages = () => {
     const { appStore } = this.props;
+    this.handleLoading();
     notifyRequest.notifyPackages(appStore.user, this.handleLoadingClose);
   };
 
   notifyAreas = () => {
     const { appStore, gameStore } = this.props;
     const group = gameStore.group;
+    this.handleLoading();
     notifyRequest.notifyAreas(appStore.user, group.group_id, this.handleLoadingClose);
   };
 
   notifyGroups = () => {
     const { appStore } = this.props;
+    this.handleLoading();
     notifyRequest.notifyGroups(appStore.user, this.handleLoadingClose);
+  };
+
+  notifyAddEntity = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    const entity = this.state.entity;
+    this.handleLoading();
+    notifyRequest.notifyAddEntity(appStore.user, group.group_id, entity, this.handleLoadingClose);
+  };
+
+  handleFilter = (event, index, objtype) => {
+    if (objtype && objtype !== this.state.objtype) {
+      const { appStore, gameStore } = this.props;
+      const group = gameStore.group;
+      this.handleLoading();
+      goGameRequest.entitysIndex(appStore.user, group.group_id, objtype, false,
+        (result) => {
+          this.handleLoadingClose(result.result);
+          this.setState({ objtype, entitys: result.data, entity: null });
+        },
+        (msg) => {
+          this.handleLoadingClose(msg);
+          this.setState({ objtype, entitys: [], entity: null });
+        });
+    } else this.setState({ objtype, entitys: [], entity: null });
+  };
+  selectEntity = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ entity: null });
+    } else {
+      const index = rows[0];
+      const entity = this.state.entitys[index];
+      const { appStore, gameStore } = this.props;
+      const group = gameStore.group;
+
+      this.handleLoading();
+      goGameRequest.entityShow(appStore.user, group.group_id,
+        this.state.objtype, entity.entity, 'dict',
+        (result) => {
+          this.setState({ entity: result.data[0] });
+          this.handleLoadingClose('获取实体详细信息完成');
+        },
+        (msg) => this.handleLoadingClose(msg));
+    }
   };
 
 
@@ -114,7 +163,7 @@ class NotifyPHP extends React.Component {
                 primary
                 style={{ marginTop: '1%' }}
                 label="主动更新"
-                onClick={this.notifyPackage}
+                onClick={this.notifyPackages}
                 icon={<FontIcon className="material-icons">swap_vertical_circle</FontIcon>}
               />
             </div>
@@ -133,7 +182,7 @@ class NotifyPHP extends React.Component {
               />
             </div>
           </Tab>
-          <Tab label="区域变更通知">
+          <Tab label="区服变更通知">
             {group === null ? (
               <div>
                 <br />
@@ -158,6 +207,52 @@ class NotifyPHP extends React.Component {
                   onClick={this.notifyAreas}
                   icon={<FontIcon className="material-icons">swap_vertical_circle</FontIcon>}
                 />
+              </div>
+            )}
+          </Tab>
+          <Tab label="实体变更通知">
+            {group === null ? (
+              <div>
+                <br />
+                <h1 style={{ fontSize: 50, marginTop: '1%', float: 'left' }}>
+                  请先选择游戏组
+                </h1>
+                <Link to={BASEPATH}>
+                  <FlatButton style={{ marginTop: '1.2%' }}>
+                    <FontIcon className="material-icons">reply</FontIcon>
+                  </FlatButton>
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <p>
+                  <span style={{ fontSize: 30 }}>{`这个按钮将调用Entity通知接口,更新组 [ ID: ${group.group_id} 名: ${group.name} ] Entity添加信息`}</span>
+                </p>
+                <div>
+                  <DropDownMenu
+                    style={{ width: 140, display: 'iline-block', float: 'left' }}
+                    autoWidth={false}
+                    value={this.state.objtype}
+                    onChange={this.handleFilter}
+                  >
+                    <MenuItem value={null} primaryText="选择类型" />
+                    <MenuItem value={GAMESERVER} primaryText="游戏服" />
+                    <MenuItem value={GMSERVER} primaryText="GM服" />
+                    <MenuItem value={CROSSSERVER} primaryText="战场服" />
+                  </DropDownMenu>
+                  <FlatButton
+                    primary
+                    disabled={this.state.entity === null}
+                    style={{ marginTop: '0.6%', display: 'inline-block' }}
+                    label="主动更新"
+                    onClick={this.notifyAddEntity}
+                    icon={<FontIcon className="material-icons">swap_vertical_circle</FontIcon>}
+                  />
+                </div>
+                {this.state.objtype && <p style={{ marginLeft: '1%' }}>{`${this.state.objtype}列表`}</p>}
+                <div style={{ display: 'iline-block' }}>
+                  {this.state.entitys.length > 0 && entitysTable(this.state.entitys, this.selectEntity, this.state.entity)}
+                </div>
               </div>
             )}
           </Tab>

@@ -37,6 +37,7 @@ import * as goGameConfig from '../configs';
 import { SubmitDialogs } from '../../factorys/dialogs';
 
 import UploadsFile from '../../Gopcdn/factorys/upload';
+import AsyncResponses from '../../Goperation/AsyncRequest/factorys/showResult'
 import { fileTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { resourceTable } from '../../Gopcdn/factorys/tables';
 import { requestBodyBase } from '../../Goperation/utils/async';
@@ -55,6 +56,7 @@ class Objfiles extends React.Component {
 
     this.state = {
       sendTimeout,
+      result: null,
       show: null,
       parameters: DEFALUTPARAM,
       paramOK: false,
@@ -142,10 +144,8 @@ class Objfiles extends React.Component {
     objfileRequest.sendObjfile(appStore.user, objfile.md5, body, this.handleSend, this.handleLoadingClose);
   };
   handleSend = (result) => {
-    const agentRespones = result.data[0].respones;
-    const failAgents = agentRespones.filter((r) => r.resultcode !== 0);
-    if (failAgents.length > 0) this.handleLoadingClose('部分Agent没有成功获取服务器');
-    else this.handleLoadingClose('所有目标Agent完成文件拉取');
+    this.handleLoadingClose('文件发送命令执行完毕');
+    this.setState({ result: result.data[0] });
   };
   selectFile = (rows) => {
     if (rows.length === 0) {
@@ -227,96 +227,114 @@ class Objfiles extends React.Component {
         />
         <Tabs>
           <Tab label="文件列表" onActive={this.index}>
-            <div>
-              <div style={{ display: 'inline-block' }}>
-                <div style={{ float: 'left' }}>
-                  <DropDownMenu
-                    autoWidth={false}
-                    value={this.state.filter}
-                    onChange={this.handleFilter}
-                  >
-                    <MenuItem value={null} primaryText="所有类型" />
-                    <MenuItem value={goGameConfig.GAMESERVER} primaryText="游戏服" />
-                    <MenuItem value={goGameConfig.GMSERVER} primaryText="GM服" />
-                    <MenuItem value={goGameConfig.CROSSSERVER} primaryText="战场服" />
-                  </DropDownMenu>
+            {this.state.result ? (
+              <div>
+                <div style={{ display: 'inline-block' }}>
+                  <FlatButton
+                    style={{ marginTop: '2%' }}
+                    primary
+                    label="返回列表页面"
+                    onClick={() => this.setState({ result: null })}
+                    icon={<FontIcon className="material-icons">reply</FontIcon>}
+                  />
                 </div>
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  primary
-                  label="详细"
-                  disabled={this.state.objfile == null}
-                  onClick={this.show}
-                  icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
-                />
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  primary
-                  label="资源信息"
-                  disabled={this.state.objfile == null}
-                  onClick={this.resource}
-                  icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
-                />
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  secondary
-                  label="发送"
-                  value="send"
-                  disabled={this.state.objfile == null}
-                  onClick={this.openDialog}
-                  icon={<FontIcon className="material-icons">file_upload</FontIcon>}
-                />
-                <FlatButton
-                  style={{ marginTop: '2%' }}
-                  secondary
-                  label="删除"
-                  value="delete"
-                  disabled={this.state.objfile == null}
-                  onClick={this.openDialog}
-                  icon={<FontIcon className="material-icons">delete</FontIcon>}
-                />
+                <AsyncResponses result={this.state.result} />
               </div>
-            </div>
-            <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '55%' }}>
-              <Table
-                height="600px"
-                multiSelectable={false}
-                fixedHeader={false}
-                style={{ width: '600px', maxWidth: '70%', tableLayout: 'auto' }}
-                onRowSelection={this.selectFile}
-              >
-                <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                  <TableRow>
-                    <TableHeaderColumn>程序类型</TableHeaderColumn>
-                    <TableHeaderColumn>文件类型</TableHeaderColumn>
-                    <TableHeaderColumn>版本</TableHeaderColumn>
-                    <TableHeaderColumn>归属资源</TableHeaderColumn>
-                  </TableRow>
-                </TableHeader>
-                <TableBody deselectOnClickaway={false}>
-                  {this.state.objfiles.filter((v) => v.objtype === this.state.filter || this.state.filter === null)
-                    .map((row, index) => (
-                      <TableRow key={`objfile-${index}`} selected={(objfile && row.md5 === objfile.md5) ? true : null}>
-                        <TableRowColumn >{row.objtype}</TableRowColumn>
-                        <TableRowColumn>{row.subtype}</TableRowColumn>
-                        <TableRowColumn>{row.version}</TableRowColumn>
-                        <TableRowColumn>{row.resource_id}</TableRowColumn>
+
+            ) : (
+              <div>
+                <div>
+                  <div style={{ display: 'inline-block' }}>
+                    <div style={{ float: 'left' }}>
+                      <DropDownMenu
+                        autoWidth={false}
+                        value={this.state.filter}
+                        onChange={this.handleFilter}
+                      >
+                        <MenuItem value={null} primaryText="所有类型" />
+                        <MenuItem value={goGameConfig.GAMESERVER} primaryText="游戏服" />
+                        <MenuItem value={goGameConfig.GMSERVER} primaryText="GM服" />
+                        <MenuItem value={goGameConfig.CROSSSERVER} primaryText="战场服" />
+                      </DropDownMenu>
+                    </div>
+                    <FlatButton
+                      style={{ marginTop: '2%' }}
+                      primary
+                      label="详细"
+                      disabled={this.state.objfile == null}
+                      onClick={this.show}
+                      icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
+                    />
+                    <FlatButton
+                      style={{ marginTop: '2%' }}
+                      primary
+                      label="资源信息"
+                      disabled={this.state.objfile == null}
+                      onClick={this.resource}
+                      icon={<FontIcon className="material-icons">zoom_in</FontIcon>}
+                    />
+                    <FlatButton
+                      style={{ marginTop: '2%' }}
+                      secondary
+                      label="发送"
+                      value="send"
+                      disabled={this.state.objfile == null}
+                      onClick={this.openDialog}
+                      icon={<FontIcon className="material-icons">file_upload</FontIcon>}
+                    />
+                    <FlatButton
+                      style={{ marginTop: '2%' }}
+                      secondary
+                      label="删除"
+                      value="delete"
+                      disabled={this.state.objfile == null}
+                      onClick={this.openDialog}
+                      icon={<FontIcon className="material-icons">delete</FontIcon>}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '55%' }}>
+                  <Table
+                    height="600px"
+                    multiSelectable={false}
+                    fixedHeader={false}
+                    style={{ width: '600px', maxWidth: '70%', tableLayout: 'auto' }}
+                    onRowSelection={this.selectFile}
+                  >
+                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                      <TableRow>
+                        <TableHeaderColumn>程序类型</TableHeaderColumn>
+                        <TableHeaderColumn>文件类型</TableHeaderColumn>
+                        <TableHeaderColumn>版本</TableHeaderColumn>
+                        <TableHeaderColumn>归属资源</TableHeaderColumn>
                       </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div style={{ display: 'inline-block' }}>
-              {this.state.show &&
-              <div>
-                {fileTable(this.state.show, { marginLeft: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
-              </div>}
-              {this.state.resource &&
-              <div>
-                {resourceTable(this.state.resource,
-                  { marginLeft: '1%', marginTop: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
-              </div>}
-            </div>
+                    </TableHeader>
+                    <TableBody deselectOnClickaway={false}>
+                      {this.state.objfiles.filter((v) => v.objtype === this.state.filter || this.state.filter === null)
+                        .map((row, index) => (
+                          <TableRow key={`objfile-${index}`} selected={(objfile && row.md5 === objfile.md5) ? true : null}>
+                            <TableRowColumn >{row.objtype}</TableRowColumn>
+                            <TableRowColumn>{row.subtype}</TableRowColumn>
+                            <TableRowColumn>{row.version}</TableRowColumn>
+                            <TableRowColumn>{row.resource_id}</TableRowColumn>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div style={{ marginLeft: '1%', display: 'inline-block' }}>
+                  {this.state.show &&
+                  <div>
+                    {fileTable(this.state.show, { marginLeft: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
+                  </div>}
+                  {this.state.resource &&
+                  <div>
+                    {resourceTable(this.state.resource,
+                      { marginLeft: '1%', marginTop: '1%', width: '600px', maxWidth: '70%', tableLayout: 'auto' })}
+                  </div>}
+                </div>
+              </div>
+            )}
           </Tab>
           <Tab label="添加文件" onActive={this.claneParams}>
             {this.state.paramOK

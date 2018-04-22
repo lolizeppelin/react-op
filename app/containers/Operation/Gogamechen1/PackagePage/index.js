@@ -40,6 +40,7 @@ import {
   resourcesTable,
   resourceVersionsTable,
 } from '../../Gopcdn/factorys/tables';
+import AsyncResponses  from '../../Goperation/AsyncRequest/factorys/showResult';
 import UploadsFile from '../../Gopcdn/factorys/upload';
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
@@ -247,16 +248,16 @@ class PackageGogame extends React.Component {
     this.notify();
   };
   handleUgrade = (result) => {
-    const asyncRespone = result.data[0];
-    let msg;
-    if (asyncRespone.resultcode !== 0) {
-      msg = ` ${asyncRespone.request_id} 异步请求失败`;
-    } else {
-      const agentRespone = result.data[0].respones[0];
-      msg = agentRespone.resultcode === 0 ? '更新成功' : `失败结果码: ${agentRespone.resultcode} 结果:${agentRespone.result}`;
-    }
-    this.handleLoadingClose(msg);
-    if (this.state.show) this.show();
+    this.handleLoadingClose(result.result);
+    const submit = {
+      title: '资源更新结果',
+      data: <AsyncResponses result={result.data[0]} />,
+      onCancel: () => {
+        this.handleSumbitDialogs(null);
+        if (this.state.show) this.show();
+      },
+    };
+    this.handleSumbitDialogs(submit);
   };
   handleResources = (result) => {
     this.handleLoadingClose(result.result);
@@ -899,20 +900,6 @@ class PackageGogame extends React.Component {
             </Tab>
             <Tab label="包标记管理">
               <div>功能未开放</div>
-            </Tab>
-            <Tab label="主动通知更新">
-              <div>
-                <p>
-                  <span>这个按钮将调用packages的通知接口,本接口与组信息无关</span>
-                </p>
-                <FlatButton
-                  primary
-                  style={{ marginTop: '1%' }}
-                  label="主动更新"
-                  onClick={this.notify}
-                  icon={<FontIcon className="material-icons">swap_vertical_circle</FontIcon>}
-                />
-              </div>
             </Tab>
           </Tabs>
         )

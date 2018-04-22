@@ -160,7 +160,7 @@ function agentTable(data, style = null) {
 function fileTable(data, style = null) {
   return (
     <Table
-      height="400px"
+      height="300px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}

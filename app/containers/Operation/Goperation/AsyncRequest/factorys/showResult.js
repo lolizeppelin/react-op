@@ -73,7 +73,7 @@ class AsyncResponses extends React.Component {
     const respones = result.respones;
 
     return (
-      <div>
+      <div style={{ overflow: 'auto' }}>
         <List
           style={styles.async}
           onClick={() => {
@@ -86,7 +86,7 @@ class AsyncResponses extends React.Component {
             this.setState(state);
           }}
         >
-          {`结果码: ${result.resultcode} 请求结果: ${result.result}  请求时间: ${result.request_time}`}
+          {`结果码: ${result.resultcode} 请求结果: ${result.result}  请求时间: ${new Date(result.request_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}`}
         </List>
         {respones.map((respone) => {
           const key = `agent-${respone.agent_id}`;
@@ -99,8 +99,8 @@ class AsyncResponses extends React.Component {
                 style={{ marginTop: 0, marginBottom: 0, padding: '0px 0px 0px 0px' }}
                 onClick={() => this.setState({ [key]: !this.state[key] })}
               >
-                <p style={{ marginTop: 0, marginBottom: 0, height: 30, padding: '0px' }}>
-                  {`服务器ID: ${respone.agent_id} 结果码: ${respone.resultcode} 请求结果: ${respone.result} `}
+                <p style={{ marginTop: 0, marginBottom: 0, height: 30, padding: '0px', overflow: 'auto' }}>
+                  {`服务器: ${respone.agent_id} 结果码: ${respone.resultcode} ${respone.result} 结束时间 ${new Date(respone.agent_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}`}
                 </p>
               </Subheader>
               {this.state[key]

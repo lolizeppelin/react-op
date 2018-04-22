@@ -421,7 +421,7 @@ class CdnDomains extends React.Component {
                   value="removeDomainNames"
                   disabled={this.state.domain == null}
                   onClick={this.openDialog}
-                  icon={<FontIcon className="material-icons">delete</FontIcon>}
+                  icon={<FontIcon className="material-icons">remove</FontIcon>}
                 />
                 <FlatButton
                   secondary
