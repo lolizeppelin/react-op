@@ -386,7 +386,7 @@ class IndexEntitys extends React.Component {
                   key={row.entity}
                   selected={(this.state.target !== null && this.state.target.entity === row.entity) ? true : null}
                 >
-                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.area_id)).join(',') }</TableRowColumn> }
+                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.show_id)).join(',') }</TableRowColumn> }
                   { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
                   <TableRowColumn>{row.agent_id}</TableRowColumn>
                   <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
@@ -452,7 +452,8 @@ class IndexEntitys extends React.Component {
                 displaySelectAll={false}
               >
                 <TableRow>
-                  <TableHeaderColumn style={styles.id}>区服ID</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.id}>区服识标ID</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.id}>区服显示ID</TableHeaderColumn>
                   <TableHeaderColumn>区服名称</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
@@ -460,6 +461,7 @@ class IndexEntitys extends React.Component {
                 {this.state.entity !== null && this.state.entity.areas.map((row) => (
                   <TableRow key={row.area_id}>
                     <TableRowColumn style={styles.id}>{row.area_id}</TableRowColumn>
+                    <TableRowColumn style={styles.id}>{row.show_id}</TableRowColumn>
                     <TableRowColumn>{row.areaname}</TableRowColumn>
                   </TableRow>
                 ))}

@@ -98,6 +98,7 @@ class AsyncRequest extends React.Component {
     };
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
+    this.tableBody = null;
   }
 
 
@@ -302,8 +303,8 @@ class AsyncRequest extends React.Component {
               multiSelectable ref={(node) => { this.tableBody = node; }}
             >
               {this.state.entitys.length > 0 && this.state.entitys.map((row) => (
-                <TableRow key={row.entity} selected={this.isSelect(row)}>
-                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.area_id)).join(',') }</TableRowColumn> }
+                <TableRow key={row.entity} selected={(this.state.type === 'all' || this.state.targets.indexOf(row.entity) >= 0) ? true : null}>
+                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.show_id)).join(',') }</TableRowColumn> }
                   { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
                   <TableRowColumn>{row.agent_id}</TableRowColumn>
                   <TableRowColumn>{row.ports.join(',')}</TableRowColumn>

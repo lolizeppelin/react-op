@@ -271,10 +271,11 @@ class Groups extends React.Component {
                   />
                 </div>
               </div>
-              <div style={{ float: 'left', width: '300px', marginLeft: '2%', maxWidth: '40%' }}>
+              <div style={{ float: 'left', width: '500px', marginLeft: '2%', maxWidth: '40%' }}>
                 <Table
-                  // fixedHeader={true}
-                  height="500px" style={{ maxWidth: '85%' }}
+                  height="500px"
+                  fixedHeader={false}
+                  style={{ width: 400, tableLayout: 'auto' }}
                   selectable={false}
                 >
                   <TableHeader
@@ -282,15 +283,17 @@ class Groups extends React.Component {
                     displaySelectAll={false}
                   >
                     <TableRow>
-                      <TableHeaderColumn>区服</TableHeaderColumn>
+                      <TableHeaderColumn>区服显示ID</TableHeaderColumn>
                       <TableHeaderColumn>名称</TableHeaderColumn>
+                      <TableHeaderColumn>区服识标ID</TableHeaderColumn>
                     </TableRow>
                   </TableHeader>
                   <TableBody displayRowCheckbox={false}>
                     {(group !== null) && group.areas.map((row) => (
                       <TableRow key={`group-area-${row.area_id}`}>
-                        <TableRowColumn >{row.area_id}</TableRowColumn>
+                        <TableRowColumn >{row.show_id}</TableRowColumn>
                         <TableRowColumn>{row.areaname}</TableRowColumn>
+                        <TableRowColumn>{row.area_id}</TableRowColumn>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -425,7 +428,8 @@ class Groups extends React.Component {
                 </TableRow>
                 <TableRow>
                   <TableHeaderColumn>实体ID</TableHeaderColumn>
-                  <TableHeaderColumn>区服ID</TableHeaderColumn>
+                  <TableHeaderColumn>区服识标ID</TableHeaderColumn>
+                  <TableHeaderColumn>区服显示ID</TableHeaderColumn>
                   <TableHeaderColumn>区服名</TableHeaderColumn>
                   <TableHeaderColumn>端口</TableHeaderColumn>
                   <TableHeaderColumn>DNS地址</TableHeaderColumn>
@@ -437,6 +441,7 @@ class Groups extends React.Component {
                   <TableRow key={row.area_id}>
                     <TableRowColumn>{row.entity}</TableRowColumn>
                     <TableRowColumn >{row.area_id}</TableRowColumn>
+                    <TableRowColumn >{row.show_id}</TableRowColumn>
                     <TableRowColumn>{row.areaname}</TableRowColumn>
                     <TableRowColumn>{row.port}</TableRowColumn>
                     <TableRowColumn>{ row.dnsnames.join(',') }</TableRowColumn>
