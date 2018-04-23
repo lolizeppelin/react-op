@@ -131,19 +131,6 @@ class AsyncRequest extends React.Component {
     this.setState({ result: asyncResult });
   };
 
-  selectTargets = (rows) => {
-    if (rows === 'all') {
-      this.setState({ type: 'all', targets: [] });
-    } else if (rows === 'none') {
-      this.setState({ type: 'specify', targets: [] });
-    } else if (rows.length === 0) {
-      this.setState({ type: 'specify', targets: [] });
-    } else {
-      const targets = [];
-      rows.map((index) => targets.push(this.state.entitys[index].entity));
-      this.setState({ targets });
-    }
-  };
 
   handleParameter = (parameter) => this.setState({ parameter });
 
@@ -194,6 +181,25 @@ class AsyncRequest extends React.Component {
       }
       default:
         return true;
+    }
+  };
+
+  selectTargets = (rows) => {
+    if (rows === 'all') {
+      this.setState({ type: 'all', targets: [] });
+    } else if (rows === 'none') {
+      this.setState({ type: 'specify', targets: [] });
+    } else if (rows.length === 0) {
+      this.setState({ type: 'specify', targets: [] });
+    } else {
+      const targets = [];
+      rows.map((index) => targets.push(this.state.entitys[index].entity));
+      this.setState({ type: 'specify', targets });
+      if (this.state.type === 'all') {
+        this.setState({ type: 'specify', targets }, () => this.tableBody.setState({ selectedRows: rows }));
+      } else {
+        this.setState({ type: 'specify', targets });
+      }
     }
   };
 
@@ -280,7 +286,7 @@ class AsyncRequest extends React.Component {
             bodyStyle={{ tableLayout: 'auto', overflow: 'auto' }}
             onRowSelection={this.selectTargets}
           >
-            <TableHeader enableSelectAll displaySelectAll >
+            <TableHeader enableSelectAll displaySelectAll selectAllSelected >
               <TableRow>
                 { isPrivate && <TableHeaderColumn>区服</TableHeaderColumn> }
                 { !isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
@@ -291,9 +297,12 @@ class AsyncRequest extends React.Component {
                 { isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
               </TableRow>
             </TableHeader>
-            <TableBody deselectOnClickaway={false}>
+            <TableBody
+              deselectOnClickaway={false}
+              multiSelectable ref={(node) => { this.tableBody = node; }}
+            >
               {this.state.entitys.length > 0 && this.state.entitys.map((row) => (
-                <TableRow key={row.entity} selected={(this.state.type === 'all' || this.state.targets.indexOf(row.entity) >= 0) ? true : null}>
+                <TableRow key={row.entity} selected={this.isSelect(row)}>
                   { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.area_id)).join(',') }</TableRowColumn> }
                   { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
                   <TableRowColumn>{row.agent_id}</TableRowColumn>
