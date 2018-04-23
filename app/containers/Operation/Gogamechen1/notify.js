@@ -89,17 +89,7 @@ async function notifyAddEntity(user, groupId, entity, callBack) {
   const errData = [];
   const areas = [];
 
-  if (entity.area_id) areas.push(entity.area_id);
-  else if (entity.areas) {
-    entity.areas.map((area) => {
-      if (!isNaN(area) && area) {
-        areas.push(area);
-      } else {
-        areas.push(area.area_id);
-      }
-      return null;
-    });
-  }
+  entity.areas.map((area) => areas.push(area.area_id));
 
   const body = {
     entity: entity.entity,

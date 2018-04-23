@@ -130,7 +130,7 @@ class Groups extends React.Component {
   };
   handleIndex = (result) => {
     this.handleLoadingClose();
-    const groups =  result.data;
+    const groups = result.data;
     this.setState({ groups });
     const { gameStore } = this.props;
     const lastGroup = gameStore.group;
@@ -288,9 +288,9 @@ class Groups extends React.Component {
                   </TableHeader>
                   <TableBody displayRowCheckbox={false}>
                     {(group !== null) && group.areas.map((row) => (
-                      <TableRow key={row}>
-                        <TableRowColumn >{row}</TableRowColumn>
-                        <TableRowColumn>{row}</TableRowColumn>
+                      <TableRow key={`group-area-${row.area_id}`}>
+                        <TableRowColumn >{row.area_id}</TableRowColumn>
+                        <TableRowColumn>{row.areaname}</TableRowColumn>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -384,7 +384,6 @@ class Groups extends React.Component {
                       <TableRow>
                         <TableHeaderColumn>实体ID</TableHeaderColumn>
                         <TableHeaderColumn>状态</TableHeaderColumn>
-                        <TableHeaderColumn>所有区服</TableHeaderColumn>
                       </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
@@ -392,7 +391,6 @@ class Groups extends React.Component {
                         <TableRow key={`${goGameConfig.GAMESERVER}-${row.entity}`}>
                           <TableRowColumn >{row.entity}</TableRowColumn>
                           <TableRowColumn>{getStatus(row.status)}</TableRowColumn>
-                          <TableRowColumn >{row.areas.join(',')}</TableRowColumn>
                         </TableRow>
                       ))}
                     </TableBody>
