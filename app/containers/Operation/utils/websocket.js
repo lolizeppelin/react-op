@@ -12,7 +12,7 @@ function sendfile(uri, blob, cbProgress) {
       } catch (err) {
         const error = new Error('webcoket连接失败');
         error.err = err;
-        throw error;
+        reject(error);
       }
 
       if (ws !== null) {
@@ -36,6 +36,7 @@ function sendfile(uri, blob, cbProgress) {
             default:
               break;
           }
+          reject(new Error(msg));
         };
 
         ws.onopen = () => {

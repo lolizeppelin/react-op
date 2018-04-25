@@ -213,7 +213,7 @@ class IndexEntitys extends React.Component {
           <div style={{ marginLeft: '10%' }}>
             <RadioButtonGroup
               name="delete-database"
-              defaultSelected="delete"
+              valueSelected={this.state.clean}
               onChange={(ev, value) => { this.setState({ clean: value }); }}
             >
               <RadioButton

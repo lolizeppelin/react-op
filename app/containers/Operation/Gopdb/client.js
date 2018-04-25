@@ -2,10 +2,54 @@ import baseurl from '../config';
 import http from '../utils/httpclient';
 import urlPrepare from './configs';
 
-function showDatabase(user, databaseId, successCallback, failCallback) {
-  const path = urlPrepare('databases', null, { database_id: databaseId });
+
+function agentsDatabase(user, body, successCallback, failCallback) {
+  const path = urlPrepare('agents');
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function indexDatabases(user, databaseId, successCallback, failCallback) {
+  const path = urlPrepare('databases');
   const url = `${baseurl}${path}`;
   return http(url, 'GET', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function showDatabase(user, databaseId, quotes, successCallback, failCallback) {
+  const path = urlPrepare('databases', null, { database_id: databaseId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token, { quotes })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function createDatabase(user, databaseId, body, successCallback, failCallback) {
+  const path = urlPrepare('databases', null, { database_id: databaseId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'POST', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function deleteDatabase(user, databaseId, successCallback, failCallback) {
+  const path = urlPrepare('databases', null, { database_id: databaseId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'DELETE', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function updateDatabase(user, databaseId, status, successCallback, failCallback) {
+  const path = urlPrepare('databases', null, { database_id: databaseId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'PUT', user.token, { status })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -29,7 +73,12 @@ function unBondSchema(user, quoteId, successCallback, failCallback) {
 
 
 export {
+  agentsDatabase,
+  indexDatabases,
   showDatabase,
+  createDatabase,
+  deleteDatabase,
+  updateDatabase,
   bondSchema,
   unBondSchema,
 };

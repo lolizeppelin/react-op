@@ -39,7 +39,7 @@ function deleteGroup(user, groupId, successCallback, failCallback) {
 function groupAreas(user, groupId, successCallback, failCallback) {
   const path = urlPrepare('groups', 'areas', { group_id: groupId });
   const url = `${baseurl}${path}`;
-  return http(url, 'GET', user.token)
+  return http(url, 'GET', user.token, { need_ok: false })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

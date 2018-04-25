@@ -374,7 +374,7 @@ class CreateEntity extends React.Component {
                 <RadioButtonGroup
                   style={{ marginLeft: '5%', marginTop: '3%' }}
                   name="agent"
-                  defaultSelected={this.state.type.appfile}
+                  valueSelected={this.state.type.appfile}
                   onChange={(event, chiose) => {
                     const type = Object.assign({}, this.state.type);
                     const agent = chiose === 'auto' ? null : this.state.agent;
@@ -435,7 +435,7 @@ class CreateEntity extends React.Component {
                 <RadioButtonGroup
                   style={{ marginLeft: '5%', marginTop: '5%' }}
                   name="datadb"
-                  defaultSelected={this.state.type.datadb}
+                  valueSelected={this.state.type.datadb}
                   onChange={(event, chiose) => {
                     const type = Object.assign({}, this.state.type);
                     const datadb = chiose === 'auto' ? null : this.state.datadb;
@@ -488,7 +488,7 @@ class CreateEntity extends React.Component {
                   <RadioButtonGroup
                     style={{ marginLeft: '5%', marginTop: '5%' }}
                     name="logdb"
-                    defaultSelected={this.state.type.logdb}
+                    valueSelected={this.state.type.logdb}
                     onChange={(event, chiose) => {
                       const type = Object.assign({}, this.state.type);
                       const logdb = chiose === 'auto' ? null : this.state.logdb;

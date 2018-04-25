@@ -245,7 +245,7 @@ class UploadsFile extends React.Component {
           <div>
             <RadioButtonGroup
               name="uploadType"
-              defaultSelected={this.state.type}
+              valueSelected={this.state.type}
               onChange={(event, type) => {
                 this.setState({ type, fileinfo: DEFAULTFILEINFO, file: null, local: LOCALDEFAULT, address: null });
               }}

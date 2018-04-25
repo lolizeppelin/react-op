@@ -152,7 +152,13 @@ class Objfiles extends React.Component {
       this.setState({ objfile: null, resource: null, show: null });
     } else {
       const index = rows[0];
-      const objfile = this.state.objfiles[index];
+      let targets;
+      if (this.state.filter) {
+        targets = this.state.objfiles.filter((o) => o.objtype === this.state.filter);
+      } else {
+        targets = this.state.objfiles;
+      }
+      const objfile = targets[index];
       this.setState({ objfile, resource: null, show: null });
     }
   };

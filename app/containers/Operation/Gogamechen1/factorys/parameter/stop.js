@@ -135,7 +135,7 @@ class GamesvrStopParameter extends React.Component {
           <RadioButtonGroup
             style={{ marginLeft: '5%', marginTop: '3%' }}
             name="notify"
-            defaultSelected={this.state.notify}
+            valueSelected={this.state.notify}
             onChange={(event, chiose) => {
               this.setState({ notify: chiose, delay: 10, message: '' });
             }}
