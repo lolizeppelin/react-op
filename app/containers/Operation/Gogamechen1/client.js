@@ -101,10 +101,10 @@ function entityDelete(user, groupId, objtype, entity, successCallback, failCallb
     .catch((error) => { failCallback(error.message); });
 }
 
-function entityClean(user, groupId, objtype, entity, clean, successCallback, failCallback) {
+function entityClean(user, groupId, objtype, entity, clean, ignores, successCallback, failCallback) {
   const path = urlPrepare('entitys', 'clean', { group_id: groupId, objtype, entity });
   const url = `${baseurl}${path}`;
-  return http(url, 'DELETE', user.token, { clean })
+  return http(url, 'DELETE', user.token, { clean, ignores })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

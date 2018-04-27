@@ -241,7 +241,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
         if (formated.fail) {
           throw new Error(`接口回复失败: ${formated.result}`);
         } else {
-          r.qoutes.map((id) => qoutes.push(id));
+          r.data.map((id) => qoutes.push(id));
           isFinish.next();
         }
       })
@@ -260,8 +260,10 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
           callBack('删除绑定完成');
           isFinish.next();
         },
-        (msg) => { errData.push(`主库读绑定错误: ${msg}`); isFinish.next(); }));
+        (msg) => { errData.push(`数据库解绑错误: ${msg}`); isFinish.next(); }));
     });
+  } else {
+    errData.push('数据库解绑错误: PHP没有返回引用ID');
   }
 
   if (errData.length > 0) {

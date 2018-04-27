@@ -18,6 +18,7 @@ import MenuItem from 'material-ui/MenuItem';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
+import Checkbox from 'material-ui/Checkbox';
 
 /* 私人代码引用部分 */
 import * as goGameRequest from '../client';
@@ -131,8 +132,10 @@ class IndexEntitys extends React.Component {
       const user = appStore.user;
       const group = gameStore.group;
       this.props.handleLoading();
-      goGameRequest.entityClean(user, group.group_id, objtype, this.state.target.entity,
-        this.state.clean, this.handleClean, this.handleRequestError);
+      goGameRequest.entityClean(user,
+        group.group_id, objtype, this.state.target.entity,
+        this.state.clean, [notifyRequest.BONDER],
+        this.handleClean, this.handleRequestError);
     }
   };
   opentime = () => {
@@ -218,11 +221,18 @@ class IndexEntitys extends React.Component {
             >
               <RadioButton
                 style={{ marginTop: '1%' }}
-                labelStyle={{ color: '#F44336' }}
+                labelStyle={{ color: '#1935f4' }}
                 value="delete"
                 label="删除数据库(不可恢复)"
               />
               <RadioButton
+                style={{ marginTop: '1%' }}
+                labelStyle={{ color: '#F44336' }}
+                value="force"
+                label="强制删除数据库(不可恢复,忽略错误)"
+              />
+              <RadioButton
+                style={{ marginTop: '1%' }}
                 value="unquote"
                 labelStyle={{ color: '#4CAF50' }}
                 label="解除数据库引用"
@@ -277,10 +287,12 @@ class IndexEntitys extends React.Component {
   };
 
   notify = (entity = null) => {
-    const { gameStore, appStore } = this.props;
+    const { gameStore, appStore, objtype } = this.props;
     const group = gameStore.group;
-    if (entity) notifyRequest.notifyDeleteEntity(appStore.user, group.group_id, entity, this.props.handleLoadingClose);
-    else notifyRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
+    if (entity) {
+      notifyRequest.notifyDeleteEntity(appStore.user, group.group_id, objtype, entity,
+        this.props.handleLoadingClose);
+    } else notifyRequest.notifyAreas(appStore.user, group.group_id, this.props.handleLoadingClose);
   };
 
   render() {
@@ -406,9 +418,8 @@ class IndexEntitys extends React.Component {
             <Table
               fixedHeader={false}
               height="200px"
-              style={{ maxWidth: '500%' }}
-              // bodyStyle={{ tableLayout: 'automatic' }}
-              bodyStyle={{ tableLayout: 'fixed', overflow: 'auto' }}
+              bodyStyle={{ overflow: 'auto' }}
+              style={{ maxWidth: '500%', tableLayout: 'fixed' }}
               selectable={false}
             >
               <TableHeader
@@ -443,8 +454,10 @@ class IndexEntitys extends React.Component {
           { isPrivate && this.state.entity !== null &&
           <div>
             <Table
-              fixedHeader
-              height="200px" style={{ width: '200px' }}
+              fixedHeader={false}
+              height="400px"
+              bodyStyle={{ overflow: 'auto' }}
+              style={{ width: '400px', tableLayout: 'auto' }}
               selectable={false}
             >
               <TableHeader

@@ -16,7 +16,7 @@ function databasesTable(data, onSelect = null, selected = null, style = null) {
   const selectable = onSelect !== null;
   return (
     <Table
-      height="400px"
+      height="800px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={selectable}

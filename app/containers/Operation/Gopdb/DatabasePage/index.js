@@ -48,7 +48,7 @@ const CREATEBASE = {
   affinity: 0,
   slave: 0,
   bond: 0,
-  dess: '',
+  desc: '',
 };
 
 
@@ -81,6 +81,7 @@ class GopDatabases extends React.Component {
       database: null,
       agents: [],
       agent: null,
+      slave: null,
       show: null,
       loading: false,
       showSnackbar: false,
@@ -123,7 +124,7 @@ class GopDatabases extends React.Component {
   index = () => {
     const { appStore } = this.props;
     this.handleLoading();
-    dbRequest.indexDatabases(appStore.user, null, this.handleIndex, this.handleLoadingClose);
+    dbRequest.indexDatabases(appStore.user, this.handleIndex, this.handleLoadingClose);
   };
   handleIndex = (result) => {
     this.handleLoadingClose();
@@ -146,13 +147,46 @@ class GopDatabases extends React.Component {
     this.setState({ show: null });
   };
 
-  create = (dnsnames) => {
+  slave = () => {
+    const { appStore } = this.props;
+    if (this.state.database !== null) {
+      this.handleLoading();
+      dbRequest.showDatabase(appStore.user, this.state.database.database_id, false,
+        this.handleSlave, this.handleLoadingClose);
+    }
+  };
+  handleSlave = (result) => {
+    this.handleLoadingClose();
+    this.setState({ slave: result.data[0] });
+  };
+  closeSlave = () => {
+    this.setState({ slave: null });
+  };
+
+  create = () => {
     const { appStore } = this.props;
     const body = {
-      domains: dnsnames,
-      agent_id: this.state.agent.agent_id,
-      internal: this.state.create.internal,
+      impl: this.state.create.impl,
+      dbtype: this.state.create.dbtype,
+      user: this.state.create.user,
+      passwd: this.state.create.passwd,
+      slave: this.state.create.slave,
     };
+
+    switch (this.state.create.impl) {
+      case 'local': {
+        body.agent_id = this.state.create.agent;
+        if (this.state.create.bond) body.bond = this.state.create.bond;
+        break;
+      }
+      case 'record': {
+        body.host = this.state.create.host;
+        body.port = this.state.create.port;
+        break;
+      }
+      default:break;
+    }
+
     if (this.state.create.ipaddr) body.ipaddr = this.state.create.ipaddr;
     if (this.state.create.port) body.port = this.state.create.port;
     if (this.state.create.desc) body.desc = this.state.create.desc;
@@ -161,14 +195,31 @@ class GopDatabases extends React.Component {
   };
   handleCreate = (result) => {
     this.handleLoadingClose(result.result);
-    this.index();
-    this.setState({ create: CREATEBASE });
+
+    let CREATEDBBASE;
+    switch (this.state.create.impl) {
+      case 'local': {
+        CREATEDBBASE = CREATELOCALBASE;
+        break;
+      }
+      case 'record': {
+        CREATEDBBASE = CREATERECORDBASE;
+        break;
+      }
+      default:{
+        CREATEDBBASE = CREATEBASE;
+        break;
+      }
+    }
+
+    this.setState({ create: CREATEDBBASE, agent: null });
   };
 
   delete = () => {
     const { appStore } = this.props;
     this.handleLoading();
-    dbRequest.deleteDatabase(appStore.user, this.state.database.database_id,
+    dbRequest.deleteDatabase(appStore.user,
+      this.state.database.database_id, this.state.database.slave === 0,
       this.handleDelete, this.handleLoadingClose);
   };
   handleDelete = (result) => {
@@ -239,14 +290,28 @@ class GopDatabases extends React.Component {
   selectAgent = (rows) => {
     const create = Object.assign({}, this.state.create);
     if (rows.length === 0) {
-      create.agent_id = 0;
+      create.agent = -1;
+      this.setState({ create, agent: null });
     } else {
       const index = rows[0];
       const agent = this.state.agents[index];
-      create.agent_id = agent;
-      this.showAgent(agent);
+      create.agent = agent;
+      this.setState({ create }, () => this.showAgent(agent));
     }
-    this.setState({ create });
+  };
+
+  selectSlave = (rows) => {
+    const create = Object.assign({}, this.state.create);
+    if (rows.length === 0) {
+      create.bond = -1;
+      this.setState({ create, database: null, slave: null });
+    } else {
+      const databases = this.state.databases.filter((d) => d.slave > 0 && d.impl === 'local' && d.dbtype === this.state.create.dbtype);
+      const index = rows[0];
+      const database = databases[index];
+      create.bond = database.database_id;
+      this.setState({ create, database }, () => this.slave());
+    }
   };
 
   openDialog = (event) => {
@@ -278,9 +343,7 @@ class GopDatabases extends React.Component {
 
   render() {
     const submit = this.state.submit;
-
     console.log(this.state)
-
 
     return (
       <PageBase title="数据库资源管理" navigation="Gopdb / 数据库管理" minHeight={180} noWrapContent>
@@ -438,8 +501,10 @@ class GopDatabases extends React.Component {
                     onChange={(event, value) => {
                       const create = Object.assign({}, this.state.create);
                       create.slave = value;
-                      create.bond = 0;
-                      this.setState({ create }, () => {
+                      create.affinity = 0;
+                      if (create.bond !== 0) create.bond = -1;
+                      if (create.agent !== 0) create.agent = -1;
+                      this.setState({ create, agent: null, slave: null, database: null }, () => {
                         if (this.state.create.agent !== 0) this.indexAgents();
                       });
                     }}
@@ -457,7 +522,7 @@ class GopDatabases extends React.Component {
                   <RadioButtonGroup
                     style={{ marginTop: '3%', float: 'left', width: 140 }}
                     name="agent"
-                    valueSelected={this.state.create.agent}
+                    valueSelected={this.state.create.agent === 0 ? 0 : -1}
                     onChange={(event, chiose) => {
                       const create = Object.assign({}, this.state.create);
                       create.agent = chiose;
@@ -471,7 +536,7 @@ class GopDatabases extends React.Component {
                       style={{ marginBottom: '0.5%' }}
                     />
                     <RadioButton
-                      value={this.state.create.agent === 0 ? -1 : this.state.create.agent}
+                      value={-1}
                       label="指定服务器"
                     />
                   </RadioButtonGroup>
@@ -508,7 +573,6 @@ class GopDatabases extends React.Component {
                       }}
                     />
                   </div>
-
                 </div>
                 <div style={{ display: 'inline-block', width: 600 }}>
                   {(this.state.create.agent !== 0 && this.state.agent === null) && (
@@ -535,62 +599,119 @@ class GopDatabases extends React.Component {
                   )}
                   {this.state.agent && (
                     <div>
-                      <p style={{ marginLeft: 'auto', marginRight: 'auto' }}>数据库指定安装服务器</p>
+                      <p style={{ marginLeft: '30%' }}>数据库指定安装服务器</p>
                       {agentTable(this.state.agent, { width: '500px', tableLayout: 'auto' })}
                     </div>
                   )}
                 </div>
               </div>
-              <div style={{ width: 600, display: 'inline-block', float: 'left' }}>
-                <Checkbox
-                  style={{ marginTop: '5%' }}
-                  label="选择从库绑定"
-                  disabled={this.state.create.slave > 0}
-                  checked={this.state.create.bond !== 0}
-                  onCheck={(event, value) => {
-                    const create = Object.assign({}, this.state.create);
-                    if (value) create.bond = -1;
-                    else create.bond = 0;
-                    this.setState({ create, database: null, show: null });
-                  }}
+              <div style={{ width: 700, display: 'inline-block', float: 'left' }}>
+                <div style={{ marginLeft: '5%', marginTop: '6%', float: 'left', display: 'inline' }}>
+                  <Checkbox
+                    style={{ width: 150 }}
+                    label="选择从库绑定"
+                    disabled={this.state.create.slave > 0}
+                    checked={this.state.create.bond !== 0}
+                    onCheck={(event, value) => {
+                      const create = Object.assign({}, this.state.create);
+                      if (value) create.bond = -1;
+                      else create.bond = 0;
+                      this.setState({ create, database: null, show: null, slave: null });
+                    }}
+                  />
+                </div>
+                <div style={{ width: 160, marginLeft: '1%', float: 'left', display: 'inline' }}>
+                  <TextField
+                    style={{ width: 150 }}
+                    floatingLabelText="管理员密码"
+                    hintText="数据库远程管理密码"
+                    value={this.state.create.passwd}
+                    fullWidth={false}
+                    errorText={this.state.create.passwd.length === 0 ? '远程管理员密码必须输入' : ''}
+                    onChange={(event, value) => {
+                      const create = Object.assign({}, this.state.create);
+                      create.passwd = value.trim();
+                      this.setState({ create });
+                    }}
+                  />
+
+                </div>
+                <div style={{ width: 120, marginLeft: '1%', float: 'left', display: 'inline' }}>
+                  <TextField
+                    style={{ marginLeft: '1%', width: 100 }}
+                    floatingLabelText="亲和性"
+                    disabled={this.state.create.slave > 0}
+                    hintText="亲和性数值"
+                    value={this.state.create.affinity}
+                    fullWidth={false}
+                    errorText={(this.state.create.slave === 0 && this.state.create.affinity === 0) ? '亲和性一般要填写' : ''}
+                    onChange={(event, value) => {
+                      const create = Object.assign({}, this.state.create);
+                      if (value.trim() === '' ) {
+                        create.affinity = 0;
+                      } else if (!isNaN(Number(value.trim()))) {
+                        create.affinity = parseInt(value.trim(), 0);
+                        this.setState({ create });
+                      }
+                    }}
+                  />
+                </div>
+                <FlatButton
+                  primary
+                  style={{ width: 200, marginTop: '5%' }}
+                  label="创建新实例"
+                  disabled={this.state.create.agent < 0 || this.state.create.bond < 0 || this.state.create.passwd.length <= 0}
+                  onClick={this.create}
+                  icon={<FontIcon className="material-icons">
+                    add
+                  </FontIcon>}
                 />
-                {this.state.create.bond !== 0 && (
-                  <Table
-                    height="600px"
-                    multiSelectable={false}
-                    fixedHeader={false}
-                    style={{ width: '200px', tableLayout: 'auto' }}
-                    onRowSelection={this.selectAgent}
-                  >
-                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                      <TableRow>
-                        <TableHeaderColumn>选择从库</TableHeaderColumn>
-                      </TableRow>
-                      <TableRow>
-                        <TableHeaderColumn>数据库ID</TableHeaderColumn>
-                        <TableHeaderColumn>多源上限</TableHeaderColumn>
-                        <TableHeaderColumn>类型</TableHeaderColumn>
-                        <TableHeaderColumn>状态</TableHeaderColumn>
-                        <TableHeaderColumn>亲和性</TableHeaderColumn>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody deselectOnClickaway={false}>
-                      {this.state.databases.filter((d) => d.salve > 0 && d.dbtype === this.state.create.dbtype)
-                        .map((row) => (
-                          <TableRow
-                            key={`slave-db-${row.database_id}`}
-                            selected={(this.state.create.bond === row.database_id) ? true : null}
-                          >
-                            <TableRowColumn>{row.database_id}</TableRowColumn>
-                            <TableRowColumn>{row.slave}</TableRowColumn>
-                            <TableRowColumn>{row.dbtype}</TableRowColumn>
-                            <TableRowColumn>{row.status}</TableRowColumn>
-                            <TableRowColumn>{row.affinity}</TableRowColumn>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                )}
+
+                <div style={{ marginLeft: '1%', float: 'left', display: 'inline-block' }}>
+                  {(this.state.create.bond !== 0 && this.state.slave === null) && (
+                    <Table
+                      height="600px"
+                      multiSelectable={false}
+                      fixedHeader={false}
+                      bodyStyle={{ overfloat: 'auto' }}
+                      style={{ width: 500, tableLayout: 'auto' }}
+                      onRowSelection={this.selectSlave}
+                    >
+                      <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                        <TableRow>
+                          <TableHeaderColumn colSpan="5" style={{ textAlign: 'center' }}>
+                            选择从库
+                          </TableHeaderColumn>
+                        </TableRow>
+                        <TableRow>
+                          <TableHeaderColumn>数据库ID</TableHeaderColumn>
+                          <TableHeaderColumn>多源上限</TableHeaderColumn>
+                          <TableHeaderColumn>类型</TableHeaderColumn>
+                          <TableHeaderColumn>状态</TableHeaderColumn>
+                          <TableHeaderColumn>亲和性</TableHeaderColumn>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody deselectOnClickaway={false}>
+                        {this.state.databases.filter((d) => d.slave > 0 && d.impl === 'local' && d.dbtype === this.state.create.dbtype)
+                          .map((row) => (
+                            <TableRow
+                              key={`slave-db-${row.database_id}`}
+                              selected={(this.state.create.bond === row.database_id) ? true : null}
+                            >
+                              <TableRowColumn>{row.database_id}</TableRowColumn>
+                              <TableRowColumn>{row.slave}</TableRowColumn>
+                              <TableRowColumn>{row.dbtype}</TableRowColumn>
+                              <TableRowColumn>{row.status}</TableRowColumn>
+                              <TableRowColumn>{row.affinity}</TableRowColumn>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                  {(this.state.create.bond !== 0 && this.state.slave !== null)
+                  && databaseTable(this.state.slave,
+                    { marginLeft: '1%', overflow: 'auto', width: '300px', tableLayout: 'auto' })}
+                </div>
               </div>
             </div>
           </Tab>
