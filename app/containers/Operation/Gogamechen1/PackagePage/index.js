@@ -644,7 +644,9 @@ class PackageGogame extends React.Component {
                     primary
                     label="默认资源版本"
                     value="rversion"
-                    disabled={this.state.version === null || this.state.package.rversion === this.state.version.version}
+                    disabled={this.state.version === null
+                    || this.state.package.rversion === this.state.version.version
+                    || !this.state.version.alias}
                     onClick={this.openDialog}
                     icon={<FontIcon className="material-icons">cloud_download</FontIcon>}
                   />

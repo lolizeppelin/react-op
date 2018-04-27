@@ -35,14 +35,13 @@ export async function waitAsyncRequestFinish(user, result, details = false, succ
       (msg) => console.log(`出现错误: ${msg}`));
     if (finishd) return null;
 
-    /* 根据完成时间,预先等待一段时间 */
-    if (wait > 10000) await sleep(6000);
-    else await sleep(3000);
+    /* 计算间隔 */
+    let interval = parseInt((wait / 10), 0);
+    if (interval < 3000) interval = 3000;
+    else if (interval > 10000) interval = 10000;
 
-    let interval = parseInt(Number(wait / 10), 0);
-    if (interval < 1500) interval = 1500;
-    else if (interval > 5000 && interval < 10000) interval = 5000;
-    else interval = 10000;
+    /* 预先等待一个间隔时间 */
+    await sleep(interval);
 
     const loop = setInterval(() => {
       showAsyncRequest(user, requestId, details,

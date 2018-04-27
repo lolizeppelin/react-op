@@ -100,7 +100,7 @@ class AsyncResponses extends React.Component {
                 onClick={() => this.setState({ [key]: !this.state[key] })}
               >
                 <p style={{ marginTop: 0, marginBottom: 0, height: 30, padding: '0px', overflow: 'auto' }}>
-                  {`服务器: ${respone.agent_id} 结果码: ${respone.resultcode} ${respone.result} 结束时间 ${new Date(respone.agent_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}`}
+                  {`服务器: ${respone.agent_id} 结果码: ${respone.resultcode} ${respone.result} 返回时间 ${new Date(respone.agent_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}`}
                 </p>
               </Subheader>
               {this.state[key]
