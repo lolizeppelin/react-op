@@ -141,17 +141,33 @@ class GopDatabases extends React.Component {
   };
   handleShow = (result) => {
     this.handleLoadingClose();
-    this.setState({ show: result.data[0] });
+    this.setState({ show: result.data[0], slave: null });
   };
   closeShow = () => {
-    this.setState({ show: null });
+    this.setState({ show: null, slave: null });
   };
 
-  slave = () => {
+
+  unbond = (force) => {
     const { appStore } = this.props;
     if (this.state.database !== null) {
       this.handleLoading();
-      dbRequest.showDatabase(appStore.user, this.state.database.database_id, false,
+      dbRequest.uhbondSlaveDatabase(appStore.user,
+        this.state.slave.database_id, this.state.database.database_id, force,
+        this.handleUnbond, this.handleLoadingClose);
+    }
+  };
+  handleUnbond = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ show: null, slave: null }, this.show);
+  };
+
+
+  slave = (databaseId) => {
+    const { appStore } = this.props;
+    if (this.state.database !== null) {
+      this.handleLoading();
+      dbRequest.showDatabase(appStore.user, databaseId, false,
         this.handleSlave, this.handleLoadingClose);
     }
   };
@@ -206,7 +222,7 @@ class GopDatabases extends React.Component {
         CREATEDBBASE = CREATERECORDBASE;
         break;
       }
-      default:{
+      default: {
         CREATEDBBASE = CREATEBASE;
         break;
       }
@@ -279,11 +295,11 @@ class GopDatabases extends React.Component {
 
   selectDatabase = (rows) => {
     if (rows.length === 0) {
-      this.setState({ database: null, show: null });
+      this.setState({ database: null, show: null, slave: null });
     } else {
       const index = rows[0];
       const database = this.state.databases[index];
-      this.setState({ database, show: null });
+      this.setState({ database, show: null, slave: null });
     }
   };
 
@@ -310,7 +326,7 @@ class GopDatabases extends React.Component {
       const index = rows[0];
       const database = databases[index];
       create.bond = database.database_id;
-      this.setState({ create, database }, () => this.slave());
+      this.setState({ create, database }, () => this.slave(database.database_id));
     }
   };
 
@@ -329,6 +345,34 @@ class GopDatabases extends React.Component {
           onSubmit: this.delete,
           data: `数据库实例: ID: ${database.database_id} 类型: ${database.dbtype} ${type}`,
           onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'unbond': {
+        const master = this.state.database;
+        const slave = this.state.slave;
+        let force = false;
+        let box = null;
+        submit = {
+          title: '解除主从绑定',
+          onSubmit: () => { box = null; this.unbond(force); },
+          data:
+            <div>
+              <p>{`主库ID: ${master.database_id} 类型: ${master.dbtype} 位置: ${master.impl} 从库ID: ${slave.database_id}`}</p>
+              <Checkbox
+                ref={(node) => { box = node; }}
+                style={{ width: 150 }}
+                label="强制解除"
+                onCheck={(e, value) => {
+                  force = value;
+                  box.setState({ switched: force });
+                }}
+              />
+            </div>,
+          onCancel: () => {
+            box = null;
             this.handleSumbitDialogs(null);
           },
         };
@@ -394,11 +438,19 @@ class GopDatabases extends React.Component {
                   value={UNACTIVE}
                   icon={<FontIcon className="material-icons">lock</FontIcon>}
                 />
+                <FlatButton
+                  label="解绑从库"
+                  value="unbond"
+                  style={{ display: this.state.database === null || this.state.database.slave > 0 ? 'none' : 'inline' }}
+                  disabled={this.state.database === null || this.state.slave === null}
+                  onClick={this.openDialog}
+                  icon={<FontIcon className="material-icons">remove_circle</FontIcon>}
+                />
               </div>
             </div>
             { this.state.show ? (
               <div>
-                <div style={{ marginTop: '2%', width: '305', float: 'left' }}>
+                <div style={{ marginTop: '2%', width: 305, float: 'left' }}>
                   {databaseTable(this.state.show,
                     { marginLeft: '1%', overflow: 'auto', width: '300px', tableLayout: 'auto' })}
                 </div>
@@ -438,39 +490,64 @@ class GopDatabases extends React.Component {
                   </Table>
                 </div>
                 {this.state.show.slave === 0 && (
-                  <div style={{ marginLeft: '3%', marginTop: '2%', width: '305px', float: 'left' }}>
-                    <Table
-                      height="600px"
-                      multiSelectable={false}
-                      fixedHeader={false}
-                      selectable={false}
-                      bodyStyle={{ overflow: 'auto' }}
-                      style={{ marginLeft: '1%', width: '300px', tableLayout: 'auto' }}
-                    >
-                      <TableHeader
-                        displaySelectAll={false}
-                        adjustForCheckbox={false}
-                        enableSelectAll={false}
+                  <div style={{ marginLeft: '3%', marginTop: '2%', width: '400px', float: 'left' }}>
+                    {this.state.slave ? (
+                      <div>
+                        <FlatButton
+                          primary
+                          label="返回从库列表从库信息"
+                          disabled={this.state.database == null}
+                          onClick={() => this.setState({ slave: null })}
+                          icon={<FontIcon className="material-icons">reply</FontIcon>}
+                        />
+                        {databaseTable(this.state.slave)}
+                      </div>
+                    ) : (
+                      <Table
+                        height="600px"
+                        multiSelectable={false}
+                        fixedHeader={false}
+                        selectable
+                        bodyStyle={{ overflow: 'auto' }}
+                        style={{ marginLeft: '1%', width: '380px', tableLayout: 'auto' }}
+                        onRowSelection={(rows) => {
+                          if (rows.length === 0) {
+                            this.setState({ slave: null });
+                          } else {
+                            const index = rows[0];
+                            const database = this.state.show.slaves[index];
+                            this.slave(database.slave_id);
+                          }
+                        }}
                       >
-                        <TableRow>
-                          <TableHeaderColumn colSpan="2" style={{ textAlign: 'center' }}>
-                            从库实例列表
-                          </TableHeaderColumn>
-                        </TableRow>
-                        <TableRow>
-                          <TableHeaderColumn>从库实例ID</TableHeaderColumn>
-                          <TableHeaderColumn>读写状态</TableHeaderColumn>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
-                        {this.state.show.slaves.map((row) => (
-                          <TableRow >
-                            <TableRowColumn>{row.slave_id}</TableRowColumn>
-                            <TableRowColumn>{row.readonly ? '只读' : '读写'}</TableRowColumn>
+                        <TableHeader
+                          displaySelectAll={false}
+                          adjustForCheckbox
+                          enableSelectAll={false}
+                        >
+                          <TableRow>
+                            <TableHeaderColumn colSpan="2" style={{ textAlign: 'center' }}>
+                              从库实例列表
+                            </TableHeaderColumn>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                          <TableRow>
+                            <TableHeaderColumn>从库实例ID</TableHeaderColumn>
+                            <TableHeaderColumn>就绪</TableHeaderColumn>
+                            <TableHeaderColumn>读写状态</TableHeaderColumn>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody deselectOnClickaway={false} displayRowCheckbox>
+                          {this.state.show.slaves.map((row) => (
+                            <TableRow key={`slave-list-${row.slave_id}`}>
+                              <TableRowColumn>{row.slave_id}</TableRowColumn>
+                              <TableRowColumn>{row.ready ? '是' : '否'}</TableRowColumn>
+                              <TableRowColumn>{row.readonly ? '只读' : '读写'}</TableRowColumn>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+
                   </div>
                 )}
               </div>
@@ -647,7 +724,7 @@ class GopDatabases extends React.Component {
                     errorText={(this.state.create.slave === 0 && this.state.create.affinity === 0) ? '亲和性一般要填写' : ''}
                     onChange={(event, value) => {
                       const create = Object.assign({}, this.state.create);
-                      if (value.trim() === '' ) {
+                      if (value.trim() === '') {
                         create.affinity = 0;
                       } else if (!isNaN(Number(value.trim()))) {
                         create.affinity = parseInt(value.trim(), 0);
@@ -715,7 +792,7 @@ class GopDatabases extends React.Component {
               </div>
             </div>
           </Tab>
-          <Tab label="添加记录实例" onActive={() => { this.setState({ create: CREATERECORDBASE, created: null }); this.indexAgents(); }}>
+          <Tab label="添加记录实例" onActive={() => { this.setState({ create: CREATERECORDBASE, created: null, slave: null }); this.indexAgents(); }}>
             啦啦啦
           </Tab>
         </Tabs>

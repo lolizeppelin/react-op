@@ -5,7 +5,7 @@ import { showAsyncRequest } from '../client';
 
 export function requestBodyBase(body, timeout = null) {
   const asynBody = Object.assign({}, body);
-  asynBody.request_time = parseInt(Number(new Date().getTime() / 1000), 0);
+  asynBody.request_time = parseInt(new Date().getTime() / 1000, 0);
   if (timeout) {
     asynBody.finishtime = asynBody.request_time + timeout;
   }
@@ -32,11 +32,12 @@ export async function waitAsyncRequestFinish(user, result, details = false, succ
         }
         return null;
       },
+      /* eslint-disable no-console */
       (msg) => console.log(`出现错误: ${msg}`));
     if (finishd) return null;
 
     /* 计算间隔 */
-    let interval = parseInt((wait / 10), 0);
+    let interval = parseInt(wait / 10, 0);
     if (interval < 3000) interval = 3000;
     else if (interval > 10000) interval = 10000;
 

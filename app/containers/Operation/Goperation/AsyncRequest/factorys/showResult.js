@@ -34,6 +34,8 @@ const styles = {
     marginBottom: 0,
     height: 30,
     padding: '0px',
+    overflow: 'auto',
+    lineHeight: '30px',
   },
   detail: {
     marginTop: '10px',
@@ -99,7 +101,7 @@ class AsyncResponses extends React.Component {
                 style={{ marginTop: 0, marginBottom: 0, padding: '0px 0px 0px 0px' }}
                 onClick={() => this.setState({ [key]: !this.state[key] })}
               >
-                <p style={{ marginTop: 0, marginBottom: 0, height: 30, padding: '0px', overflow: 'auto' }}>
+                <p style={styles.agentText}>
                   {`服务器: ${respone.agent_id} 结果码: ${respone.resultcode} ${respone.result} 返回时间 ${new Date(respone.agent_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}`}
                 </p>
               </Subheader>

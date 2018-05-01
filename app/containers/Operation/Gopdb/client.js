@@ -51,6 +51,16 @@ function updateDatabase(user, databaseId, status, successCallback, failCallback)
     .catch((error) => { failCallback(error.message); });
 }
 
+
+function uhbondSlaveDatabase(user, slaveId, masterId, force, successCallback, failCallback) {
+  const path = urlPrepare('databases', 'unbond', { database_id: slaveId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'DELETE', user.token, { force, master: masterId })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
 function bondSchema(user, endpoint, entity, databaseId, schema, slave, desc, successCallback, failCallback) {
   const path = urlPrepare('schemas', 'bond', { schema, database_id: databaseId });
   const url = `${baseurl}${path}`;
@@ -75,6 +85,7 @@ export {
   createDatabase,
   deleteDatabase,
   updateDatabase,
+  uhbondSlaveDatabase,
   bondSchema,
   unBondSchema,
 };
