@@ -16,7 +16,6 @@ import {
 } from 'material-ui/Table';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Snackbar from 'material-ui/Snackbar';
-import RaisedButton from 'material-ui/RaisedButton';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
 import CircularProgress from 'material-ui/CircularProgress';
@@ -30,7 +29,6 @@ import PageBase from '../../../../components/PageBase';
 import { makeSelectGlobal } from '../../../App/selectors';
 
 /* 私人代码引用部分 */
-import ListIputInDialogs from '../../factorys/listput';
 import * as dbRequest from '../client';
 import * as gopRequest from '../../Goperation/client';
 
@@ -82,6 +80,8 @@ class GopDatabases extends React.Component {
       agents: [],
       agent: null,
       slave: null,
+      file: '',
+      position: '',
       show: null,
       loading: false,
       showSnackbar: false,
@@ -124,7 +124,7 @@ class GopDatabases extends React.Component {
   index = () => {
     const { appStore } = this.props;
     this.handleLoading();
-    dbRequest.indexDatabases(appStore.user, this.handleIndex, this.handleLoadingClose);
+    dbRequest.indexDatabases(appStore.user, true, this.handleIndex, this.handleLoadingClose);
   };
   handleIndex = (result) => {
     this.handleLoadingClose();
@@ -162,6 +162,20 @@ class GopDatabases extends React.Component {
     this.setState({ show: null, slave: null }, this.show);
   };
 
+  bondSlave = () => {
+    const { appStore } = this.props;
+    if (this.state.database !== null) {
+      this.handleLoading();
+      dbRequest.bondSlaveDatabase(appStore.user,
+        this.state.database.database_id, this.state.slave.database_id,
+        this.state.file, this.state.position,
+        this.handlBondSlave, this.handleLoadingClose);
+    }
+  };
+  handlBondSlave = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ show: null, slave: null, database: null });
+  };
 
   slave = (databaseId) => {
     const { appStore } = this.props;
@@ -175,9 +189,9 @@ class GopDatabases extends React.Component {
     this.handleLoadingClose();
     this.setState({ slave: result.data[0] });
   };
-  closeSlave = () => {
-    this.setState({ slave: null });
-  };
+  // closeSlave = () => {
+  //   this.setState({ slave: null });
+  // };
 
   create = () => {
     const { appStore } = this.props;
@@ -329,7 +343,16 @@ class GopDatabases extends React.Component {
       this.setState({ create, database }, () => this.slave(database.database_id));
     }
   };
-
+  selectBondSlave = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ slave: null });
+    } else {
+      const databases = this.state.databases.filter((d) => d.slave > 0 && d.impl === this.state.database.impl && d.dbtype === this.state.database.dbtype);
+      const index = rows[0];
+      const database = databases[index];
+      this.slave(database.database_id);
+    }
+  };
   openDialog = (event) => {
     const action = event.currentTarget.value;
     let submit = null;
@@ -363,8 +386,8 @@ class GopDatabases extends React.Component {
               <p>{`主库ID: ${master.database_id} 类型: ${master.dbtype} 位置: ${master.impl} 从库ID: ${slave.database_id}`}</p>
               <Checkbox
                 ref={(node) => { box = node; }}
-                style={{ width: 150 }}
-                label="强制解除"
+                style={{ width: 250 }}
+                label="强制解除(忽略IO线程)"
                 onCheck={(e, value) => {
                   force = value;
                   box.setState({ switched: force });
@@ -387,7 +410,7 @@ class GopDatabases extends React.Component {
 
   render() {
     const submit = this.state.submit;
-    console.log(this.state)
+    console.log(this.state);
 
     return (
       <PageBase title="数据库资源管理" navigation="Gopdb / 数据库管理" minHeight={180} noWrapContent>
@@ -404,7 +427,10 @@ class GopDatabases extends React.Component {
           payload={submit}
         />
         <Tabs>
-          <Tab label="数据库实例表" onActive={this.index}>
+          <Tab
+            label="数据库实例表"
+            onActive={() => this.setState({ show: null, database: null, slave: null, file: '', position: '' }, this.index)}
+          >
             <div>
               <div style={{ display: 'inline-block', marginTop: '0.5%' }}>
                 <FlatButton
@@ -495,7 +521,7 @@ class GopDatabases extends React.Component {
                       <div>
                         <FlatButton
                           primary
-                          label="返回从库列表从库信息"
+                          label="返回从库列表"
                           disabled={this.state.database == null}
                           onClick={() => this.setState({ slave: null })}
                           icon={<FontIcon className="material-icons">reply</FontIcon>}
@@ -547,7 +573,6 @@ class GopDatabases extends React.Component {
                         </TableBody>
                       </Table>
                     )}
-
                   </div>
                 )}
               </div>
@@ -579,6 +604,7 @@ class GopDatabases extends React.Component {
                       const create = Object.assign({}, this.state.create);
                       create.slave = value;
                       create.affinity = 0;
+                      if (create.slave !== 0) create.bond = 0;
                       if (create.bond !== 0) create.bond = -1;
                       if (create.agent !== 0) create.agent = -1;
                       this.setState({ create, agent: null, slave: null, database: null }, () => {
@@ -683,7 +709,7 @@ class GopDatabases extends React.Component {
                 </div>
               </div>
               <div style={{ width: 700, display: 'inline-block', float: 'left' }}>
-                <div style={{ marginLeft: '5%', marginTop: '6%', float: 'left', display: 'inline' }}>
+                <div style={{ marginLeft: '5%', marginTop: '6%', float: 'left', display: this.state.create.slave === 0 ? 'inline' : 'none' }}>
                   <Checkbox
                     style={{ width: 150 }}
                     label="选择从库绑定"
@@ -713,7 +739,7 @@ class GopDatabases extends React.Component {
                   />
 
                 </div>
-                <div style={{ width: 120, marginLeft: '1%', float: 'left', display: 'inline' }}>
+                <div style={{ width: 120, marginLeft: '1%', float: 'left', display: this.state.create.slave === 0 ? 'inline' : 'none' }}>
                   <TextField
                     style={{ marginLeft: '1%', width: 100 }}
                     floatingLabelText="亲和性"
@@ -743,7 +769,6 @@ class GopDatabases extends React.Component {
                     add
                   </FontIcon>}
                 />
-
                 <div style={{ marginLeft: '1%', float: 'left', display: 'inline-block' }}>
                   {(this.state.create.bond !== 0 && this.state.slave === null) && (
                     <Table
@@ -792,14 +817,145 @@ class GopDatabases extends React.Component {
               </div>
             </div>
           </Tab>
-          <Tab label="添加记录实例" onActive={() => { this.setState({ create: CREATERECORDBASE, created: null, slave: null }); this.indexAgents(); }}>
+          <Tab label="添加记录实例" onActive={() => { this.setState({ create: CREATERECORDBASE, created: null, slave: null }); }}>
             啦啦啦
+          </Tab>
+          <Tab label="绑定从库" onActive={() => this.setState({ show: null, database: null, slave: null, file: '', position: '' }, this.index)}>
+            <div>
+              <div style={{ display: 'inline-block' }}>
+                <div style={{ width: 700 }}>
+                  <FlatButton
+                    primary
+                    style={{ float: 'left', marginTop: '5%' }}
+                    label={this.state.show ? '返回' : '选择从库'}
+                    disabled={this.state.database == null
+                    || this.state.database.slave > 0
+                    || this.state.database.slaves.length > 0}
+                    onClick={this.state.show ? this.closeShow : this.show}
+                    icon={<FontIcon className="material-icons">
+                      {this.state.show ? 'reply' : 'zoom_in'}
+                    </FontIcon>}
+                  />
+                  <TextField
+                    style={{ width: 150, marginLeft: '1%', float: 'left' }}
+                    floatingLabelText="主库binlog文件名"
+                    disabled={this.state.show === null || this.state.show.schemas.length === 0}
+                    hintText="File"
+                    /* eslint no-nested-ternary: "error" */
+                    errorText={this.state.show === null ? '' : this.state.show.schemas.length > 0 ? this.state.file === '' ? '实例不为空必须输入' : '' : ''}
+                    value={this.state.file}
+                    fullWidth={false}
+                    onChange={(event, file) => {
+                      this.setState({ file });
+                    }}
+                  />
+                  <TextField
+                    style={{ width: 150, marginLeft: '3%', float: 'left' }}
+                    floatingLabelText="主库binlog位置"
+                    disabled={this.state.show === null || this.state.show.schemas.length === 0}
+                    hintText="Position"
+                    /* eslint no-nested-ternary: "error" */
+                    errorText={this.state.show === null ? '' : this.state.show.schemas.length > 0 ? (this.state.position === 0 || this.state.position === '') ? '实例不为空必须输入' : '' : ''}
+                    value={this.state.position}
+                    fullWidth={false}
+                    onChange={(event, value) => {
+                      if (value.trim() === '' || value === '0') {
+                        this.setState({ position: '' });
+                      } else if (!isNaN(Number(value.trim()))) {
+                        this.setState({ position: parseInt(value.trim(), 0) });
+                      }
+                    }}
+                  />
+                  <FlatButton
+                    style={{ float: 'left', marginTop: '5%' }}
+                    primary
+                    label="绑定主从"
+                    disabled={this.state.show === null
+                    || this.state.slave === null
+                    || (this.state.show.schemas.length > 0 && (!this.state.file || !this.state.position))}
+                    onClick={this.bondSlave}
+                    icon={<FontIcon className="material-icons">
+                      group_add
+                    </FontIcon>}
+                  />
+                </div>
+              </div>
+            </div>
+            {this.state.show ? (
+              <div>
+                <div style={{ marginTop: '2%', width: 305, float: 'left' }}>
+                  {databaseTable(this.state.show,
+                    { marginLeft: '1%', overflow: 'auto', width: 300, tableLayout: 'auto' })}
+                </div>
+                <div style={{ marginLeft: '3%', marginTop: '2%', width: 400, float: 'left' }}>
+                  <Table
+                    height="600px"
+                    multiSelectable={false}
+                    fixedHeader={false}
+                    selectable={false}
+                    bodyStyle={{ overflow: 'auto' }}
+                    style={{ marginLeft: '1%', maxWidth: 1, tableLayout: 'auto' }}
+                  >
+                    <TableHeader
+                      displaySelectAll={false}
+                      adjustForCheckbox={false}
+                      enableSelectAll={false}
+                    >
+
+                      <TableRow>
+                        <TableHeaderColumn colSpan="2" style={{ textAlign: 'center' }}>
+                          {`包含Schemas(数据库): ${this.state.show.schemas.length}`}
+                        </TableHeaderColumn>
+                      </TableRow>
+                      <TableRow>
+                        <TableHeaderColumn>结构ID</TableHeaderColumn>
+                        <TableHeaderColumn>结构名</TableHeaderColumn>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
+                      {this.state.show.schemas.map((row) => (
+                        <TableRow >
+                          <TableRowColumn>{row.schema_id}</TableRowColumn>
+                          <TableRowColumn>{row.schema}</TableRowColumn>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div style={{ marginLeft: '0%', marginTop: '2%', width: 500, float: 'left' }}>
+                  {this.state.slave ? (
+                    <div>
+                      <FlatButton
+                        primary
+                        label="返回可选从库列表"
+                        disabled={this.state.database == null}
+                        onClick={() => this.setState({ slave: null })}
+                        icon={<FontIcon className="material-icons">reply</FontIcon>}
+                      />
+                      {databaseTable(this.state.slave)}
+                    </div>
+                  ) : (
+                    databasesTable(this.state.databases.filter((d) => d.slave > 0 && d.impl === this.state.database.impl && d.dbtype === this.state.database.dbtype),
+                      this.selectBondSlave, this.state.slave,
+                      { tableLayout: 'auto', width: 800 })
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                {databasesTable(this.state.databases, this.selectDatabase, this.state.database, { maxWidth: '90%', tableLayout: 'auto' })}
+              </div>
+            ) }
           </Tab>
         </Tabs>
         <Snackbar
           open={this.state.showSnackbar}
-          message={this.state.snackbarMessage}
+          message={this.state.snackbarMessage.substring(0, 50)}
           autoHideDuration={5500}
+          action={this.state.snackbarMessage.length > 50 ? '详情' : ''}
+          onActionTouchTap={() => {
+            alert(`${this.state.snackbarMessage}`);
+          }}
           onRequestClose={this.handleSnackbarClose}
         />
       </PageBase>

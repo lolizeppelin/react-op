@@ -11,10 +11,10 @@ function agentsDatabase(user, body, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-function indexDatabases(user, successCallback, failCallback) {
+function indexDatabases(user, slaves, successCallback, failCallback) {
   const path = urlPrepare('databases');
   const url = `${baseurl}${path}`;
-  return http(url, 'GET', user.token)
+  return http(url, 'GET', user.token, { slaves })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -60,6 +60,19 @@ function uhbondSlaveDatabase(user, slaveId, masterId, force, successCallback, fa
     .catch((error) => { failCallback(error.message); });
 }
 
+function bondSlaveDatabase(user, masterId, slaveId, file, position,
+                           successCallback, failCallback) {
+  const path = urlPrepare('databases', 'slave', { database_id: masterId });
+  const url = `${baseurl}${path}`;
+  const body = { slave: slaveId };
+  if (file) {
+    body.file = file;
+    body.position = position;
+  }
+  return http(url, 'POST', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
 
 function bondSchema(user, endpoint, entity, databaseId, schema, slave, desc, successCallback, failCallback) {
   const path = urlPrepare('schemas', 'bond', { schema, database_id: databaseId });
@@ -86,6 +99,7 @@ export {
   deleteDatabase,
   updateDatabase,
   uhbondSlaveDatabase,
+  bondSlaveDatabase,
   bondSchema,
   unBondSchema,
 };

@@ -256,9 +256,10 @@ class IndexEntitys extends React.Component {
             <DatePicker
               hintText="开服日期" style={{ float: 'left' }}
               onChange={(none, datetime) => {
-                const unixtime = datetime.getTime();
+                const h = datetime.getHours();
+                const m = datetime.getMinutes();
                 const opentime = Object.assign({}, this.state.opentime);
-                opentime.date = unixtime;
+                opentime.date = datetime.getTime() - ((h * 3600 * 1000) + (m * 60 * 1000));
                 this.setState({ opentime });
               }}
             />

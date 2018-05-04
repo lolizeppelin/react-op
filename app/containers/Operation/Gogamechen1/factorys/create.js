@@ -22,6 +22,7 @@ import {
 import RaisedButton from 'material-ui/RaisedButton';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import FlatButton from 'material-ui/FlatButton';
+
 /* 私人代码引用部分 */
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';

@@ -76,6 +76,9 @@ const ACTIONSMAP = {
   upgrade: {
     name: '升级更新',
     method: 'POST' },
+  flushconfig: {
+    name: '配置刷新',
+    method: 'PUT' },
 };
 
 const PARAMETERBASE = Object.assign({}, BASEPARAMETER);

@@ -116,7 +116,7 @@ class AsyncResponses extends React.Component {
                     innerDivStyle={formated ? formated.style : styles.detail}
                     // innerDivStyle={styles.detail}
                   >
-                    <p style={{ marginTop: 8, marginBottom: 8 }}>{formated ? formated.result : resultDefault(detail)}</p>
+                    <p style={{ marginTop: 8, marginBottom: 8, letterSpacing: '0.5px' }}>{formated ? formated.result : resultDefault(detail)}</p>
                   </ListItem>
                 );
               })}

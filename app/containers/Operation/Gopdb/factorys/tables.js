@@ -16,11 +16,11 @@ function databasesTable(data, onSelect = null, selected = null, style = null) {
   const selectable = onSelect !== null;
   return (
     <Table
-      height="800px"
+      height="600px"
       multiSelectable={false}
       fixedHeader={false}
       selectable={selectable}
-      bodyStyle={{ overfloat: 'auto' }}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
       onRowSelection={onSelect}
     >
@@ -36,7 +36,8 @@ function databasesTable(data, onSelect = null, selected = null, style = null) {
         </TableRow>
         <TableRow>
           <TableHeaderColumn>数据库实例ID</TableHeaderColumn>
-          <TableHeaderColumn>主从属性</TableHeaderColumn>
+          <TableHeaderColumn>主从</TableHeaderColumn>
+          <TableHeaderColumn>绑定</TableHeaderColumn>
           <TableHeaderColumn>类型</TableHeaderColumn>
           <TableHeaderColumn>版本</TableHeaderColumn>
           <TableHeaderColumn>状态</TableHeaderColumn>
@@ -53,6 +54,7 @@ function databasesTable(data, onSelect = null, selected = null, style = null) {
           >
             <TableRowColumn>{row.database_id}</TableRowColumn>
             <TableRowColumn>{row.slave === 0 ? '主库' : '从库'}</TableRowColumn>
+            <TableRowColumn>{row.slave === 0 ? row.slaves.length : row.slave}</TableRowColumn>
             <TableRowColumn>{row.dbtype}</TableRowColumn>
             <TableRowColumn>{row.dbversion}</TableRowColumn>
             <TableRowColumn>{getStatus(row.status)}</TableRowColumn>

@@ -25,8 +25,9 @@ import StatusTab from './status';
 import StartTab from './start';
 import StopTab from './stop';
 import UpgradeTab from './upgrade';
+import FlushConfigTab from './flush';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import {BASEPATH} from "../configs";
+import { BASEPATH } from '../configs';
 
 /* gogamechen1 程序主页面 */
 class EntitysPage extends React.Component {
@@ -180,6 +181,20 @@ class EntitysPage extends React.Component {
                 onActive={() => this.setState({ active: 'upgrade' })}
               >
                 <UpgradeTab
+                  active={this.state.active}
+                  objtype={objtype}
+                  gameStore={this.props.gameStore}
+                  appStore={this.props.appStore}
+                  handleLoadingClose={this.handleLoadingClose}
+                  handleLoading={this.handleLoading}
+                  handleSumbitDialogs={this.handleSumbitDialogs}
+                />
+              </Tab>
+              <Tab
+                label={`配置刷新 ${objtype}`}
+                onActive={() => this.setState({ active: 'flushconfig' })}
+              >
+                <FlushConfigTab
                   active={this.state.active}
                   objtype={objtype}
                   gameStore={this.props.gameStore}
