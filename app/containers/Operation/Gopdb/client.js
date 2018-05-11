@@ -38,7 +38,7 @@ function showDatabase(user, databaseId, quotes, successCallback, failCallback) {
 function deleteDatabase(user, databaseId, master, successCallback, failCallback) {
   const path = urlPrepare('databases', null, { database_id: databaseId });
   const url = `${baseurl}${path}`;
-  return http(url, 'DELETE', user.token, { master } )
+  return http(url, 'DELETE', user.token, { master })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -74,6 +74,16 @@ function bondSlaveDatabase(user, masterId, slaveId, file, position,
     .catch((error) => { failCallback(error.message); });
 }
 
+function replicationReady(user, masterId, slaveId, force,
+                          successCallback, failCallback) {
+  const path = urlPrepare('databases', 'ready', { database_id: masterId });
+  const url = `${baseurl}${path}`;
+  const body = { force, slave: slaveId };
+  return http(url, 'PUT', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
 function bondSchema(user, endpoint, entity, databaseId, schema, slave, desc, successCallback, failCallback) {
   const path = urlPrepare('schemas', 'bond', { schema, database_id: databaseId });
   const url = `${baseurl}${path}`;
@@ -100,6 +110,7 @@ export {
   updateDatabase,
   uhbondSlaveDatabase,
   bondSlaveDatabase,
+  replicationReady,
   bondSchema,
   unBondSchema,
 };

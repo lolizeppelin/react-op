@@ -135,7 +135,7 @@ class CreateEntity extends React.Component {
     if (subtype === goGameConfig.LOGDB) handleSuccess = this.handleshowLogDb;
     else handleSuccess = this.handleshowDataDb;
     gopDbRequest.showDatabase(appStore.user,
-      databaseId, handleSuccess, this.props.handleLoadingClose);
+      databaseId, false, handleSuccess, this.props.handleLoadingClose);
   };
   handleshowDataDb = (result) => {
     this.props.handleLoadingClose(result.result);

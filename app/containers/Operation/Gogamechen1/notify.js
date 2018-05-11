@@ -62,7 +62,7 @@ async function notifyAreas(user, groupId, callBack) {
       .then((r) => {
         const formated = notifyResultFail(r);
         if (formated.fail) {
-          callBack(`packages调用外部通知失败~~${formated.result}`);
+          callBack(`Area调用外部通知失败~~${formated.result}`);
         } else callBack('Areas变更通知成功');
       })
       .catch((error) => { callBack(`areas调用外部通知失败~~${error.message}`); });
@@ -89,7 +89,7 @@ async function notifyAddEntity(user, groupId, entity, callBack) {
   const errData = [];
   const areas = [];
 
-  entity.areas.map((area) => areas.push(area.area_id));
+  if (entity.areas) entity.areas.forEach((area) => areas.push(area.area_id));
 
   const body = {
     entity: entity.entity,
@@ -284,6 +284,7 @@ function getReviews(successCallback, failCallback) {
 }
 
 export {
+  BONDER,
   notifyPackages,
   notifyAreas,
   notifyGroups,

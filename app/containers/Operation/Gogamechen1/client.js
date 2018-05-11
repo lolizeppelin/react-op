@@ -60,6 +60,16 @@ function groupPackages(user, groupId, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
+
+function groupArea(user, groupId, body, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'area', { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'PUT', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
 /* entity api 接口 */
 function entitysIndex(user, groupId, objtype, detail, successCallback, failCallback) {
   const path = urlPrepare('entitys', null, { group_id: groupId, objtype });
@@ -72,7 +82,7 @@ function entitysIndex(user, groupId, objtype, detail, successCallback, failCallb
 function entityCreate(user, groupId, objtype, body, successCallback, failCallback) {
   const path = urlPrepare('entitys', null, { objtype, group_id: groupId });
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, body, 3)
+  return http(url, 'POST', user.token, body, 30)
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -109,6 +119,22 @@ function entityClean(user, groupId, objtype, entity, clean, ignores, successCall
     .catch((error) => { failCallback(error.message); });
 }
 
+function entityQuoteVersion(user, groupId, objtype, entity, packageId, version, successCallback, failCallback) {
+  const path = urlPrepare('entitys', 'quote', { group_id: groupId, objtype, entity });
+  const url = `${baseurl}${path}`;
+  return http(url, 'PUT', user.token, { package_id: packageId, rversion: version })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function entityUnQuoteVersion(user, groupId, objtype, entity, packageId, successCallback, failCallback) {
+  const path = urlPrepare('entitys', 'quote', { group_id: groupId, objtype, entity });
+  const url = `${baseurl}${path}`;
+  return http(url, 'DELETE', user.token, { package_id: packageId })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
 function entityOpentime(user, groupId, objtype, entity, opentime, successCallback, failCallback) {
   const path = urlPrepare('entitys', 'opentime', { group_id: groupId, objtype, entity });
   const url = `${baseurl}${path}`;
@@ -116,6 +142,7 @@ function entityOpentime(user, groupId, objtype, entity, opentime, successCallbac
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
+
 
 function entityAgents(user, objtype, successCallback, failCallback) {
   const path = urlPrepare('agents', null, { objtype });
@@ -266,6 +293,7 @@ export {
   groupAreas,
   groupChiefs,
   groupPackages,
+  groupArea,
   entitysIndex,
   entityCreate,
   entityShow,
@@ -273,6 +301,8 @@ export {
   entityDelete,
   entityClean,
   entityOpentime,
+  entityQuoteVersion,
+  entityUnQuoteVersion,
   entityAgents,
   entityDatabases,
   entitysAsyncrequest,

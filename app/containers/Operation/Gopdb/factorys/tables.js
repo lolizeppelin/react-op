@@ -97,6 +97,10 @@ function databaseTable(data, style = null) {
           <TableRowColumn>{data.slave === 0 ? '主库' : '从库'}</TableRowColumn>
         </TableRow>
         <TableRow >
+          <TableRowColumn>{data.slave === 0 ? '从库数' : '复制上限'}</TableRowColumn>
+          <TableRowColumn>{data.slave === 0 ? data.slaves.length : data.slave}</TableRowColumn>
+        </TableRow>
+        <TableRow >
           <TableRowColumn>包含库数量</TableRowColumn>
           <TableRowColumn>{data.schemas.length}</TableRowColumn>
         </TableRow>

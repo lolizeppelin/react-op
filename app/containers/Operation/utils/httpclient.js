@@ -11,7 +11,7 @@ function getQueryString(params) {
           .join('&');
       }
 
-      return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
+      return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`;
     })
     .join('&');
 }

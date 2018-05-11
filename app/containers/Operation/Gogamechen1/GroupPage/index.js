@@ -48,6 +48,7 @@ class Groups extends React.Component {
       create: CREATEBASE,
       groups: [],
       areas: [],
+      area: null,
       chiefs: [],
       created: null,
       showed: null,
@@ -83,6 +84,12 @@ class Groups extends React.Component {
     const { appStore } = this.props;
     notifyRequest.notifyGroups(appStore.user, (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
   };
+  nodifyArea = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    notifyRequest.notifyAreas(appStore.user, group.group_id, (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
+  };
+
   index = () => {
     const { appStore } = this.props;
     this.setState({ loading: true, groups: [] });
@@ -127,6 +134,28 @@ class Groups extends React.Component {
       groupRequest.groupChiefs(appStore.user, lastGroup.group_id,
         this.handleChiefs, this.handleLoadingClose);
     }
+  };
+  area = (showId, areaname) => {
+    if (showId.length === 0 && areaname.length === 0) {
+      this.handleLoadingClose('无修改内容未执行');
+      return null;
+    }
+    if (showId && (isNaN(Number(showId)) || showId.indexOf('.') > 0 || parseInt(showId, 0) < 1)) {
+      this.handleLoadingClose('区服显示ID不是整数或者小于1,未执行');
+      return null;
+    }
+
+    const { gameStore, appStore } = this.props;
+    const lastGroup = gameStore.group;
+    if (lastGroup !== null) {
+      this.setState({ loading: true });
+      const body = { area_id: this.state.area.area_id };
+      if (showId) body.show_id = parseInt(showId, 0);
+      if (areaname) body.areaname = areaname;
+      groupRequest.groupArea(appStore.user, lastGroup.group_id, body,
+        this.handleArea, this.handleLoadingClose);
+    }
+    return null;
   };
   handleIndex = (result) => {
     this.handleLoadingClose();
@@ -173,7 +202,12 @@ class Groups extends React.Component {
   };
   handleAreas = (result) => {
     this.handleLoadingClose(result.result);
-    this.setState({ areas: result.data[0].areas });
+    this.setState({ areas: result.data[0].areas, area: null });
+  };
+  handleArea = (result) => {
+    this.handleLoadingClose(result.result);
+    this.areas();
+    this.nodifyArea();
   };
   handleChiefs = (result) => {
     this.handleLoadingClose(result.result);
@@ -188,6 +222,17 @@ class Groups extends React.Component {
       this.props.actions.selectGroup(group);
     }
   };
+  selectArea = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ area: null });
+    } else {
+      const index = rows[0];
+      const area = this.state.areas[index];
+      this.setState({ area });
+    }
+  };
+
+
   handleDeleteSubmitDialog = () => {
     const { gameStore } = this.props;
     const group = gameStore.group;
@@ -204,6 +249,43 @@ class Groups extends React.Component {
       submit,
     });
   };
+
+  handleAreaSubmitDialog = () => {
+    let areaname = '';
+    let showId = '';
+
+    const submit = {
+      title: '修改区服信息',
+      data: (
+        <div style={{ marginLeft: '10%' }}>
+          <TextField
+            floatingLabelText={`原名: ${this.state.area.areaname}`}
+            hintText="更改区服名称"
+            style={{ width: '250px' }}
+            fullWidth={false}
+            onChange={(event, value) => {
+              areaname = value;
+            }}
+          />
+          <TextField
+            floatingLabelText={`原ID: ${this.state.area.show_id}`}
+            hintText="更改显示ID"
+            style={{ width: '150px', marginLeft: '2%' }}
+            fullWidth={false}
+            onChange={(event, value) => {
+              showId = value;
+            }}
+          />
+        </div>
+      ),
+      onSubmit: () => this.area(showId, areaname),
+      onCancel: () => { this.setState({ submit: null }); },
+    };
+    this.setState({
+      submit,
+    });
+  };
+
 
   render() {
     const { gameStore } = this.props;
@@ -412,15 +494,23 @@ class Groups extends React.Component {
             )}
           </Tab>
           <Tab label="组 / 区服" onActive={this.areas}>
+            <FlatButton
+              label="修改区服信息"
+              style={{ marginTop: '10px' }}
+              onClick={this.handleAreaSubmitDialog}
+              disabled={this.state.area === null}
+              icon={<FontIcon className="material-icons">mode_edit</FontIcon>}
+            />
             <Table
-              height="800px"
+              height="700px"
               multiSelectable={false}
-              selectable={false}
+              selectable
               fixedHeader={false}
+              bodyStyle={{ overflow: 'auto' }}
               style={{ width: 'auto', maxWidth: '95%', tableLayout: 'auto' }}
-              // wrapperStyle={{ width: 'auto', maxWidth: '95%', tableLayout: 'auto' }}
+              onRowSelection={this.selectArea}
             >
-              <TableHeader enableSelectAll={false} displaySelectAll={false} adjustForCheckbox={false}>
+              <TableHeader enableSelectAll={false} displaySelectAll={false}>
                 <TableRow>
                   <TableHeaderColumn colSpan="6" style={{ textAlign: 'center' }}>
                     {group === null ? '请先选择组' : `组ID:${group.group_id}  组名:${group.name}` }
@@ -436,9 +526,9 @@ class Groups extends React.Component {
                   <TableHeaderColumn>外网IP</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
-              <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
+              <TableBody deselectOnClickaway={false}>
                 {this.state.areas.map((row) => (
-                  <TableRow key={row.area_id}>
+                  <TableRow key={row.area_id} selected={(this.state.area && row.area_id === this.state.area.area_id) ? true : null}>
                     <TableRowColumn>{row.entity}</TableRowColumn>
                     <TableRowColumn >{row.area_id}</TableRowColumn>
                     <TableRowColumn >{row.show_id}</TableRowColumn>

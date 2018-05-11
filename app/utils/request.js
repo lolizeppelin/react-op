@@ -100,7 +100,7 @@ export default function request(url, options, timeout = null) {
     try {
       const controller = new AbortController();
       options.signal = controller.signal;
-      timer = setTimeout(() => controller.abort(), timeout);
+      timer = setTimeout(() => controller.abort(), timeout * 1000);
     } catch (err) {
       console.log(`${err.message} 不支持fetch超时设置`);
     }

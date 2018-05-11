@@ -18,13 +18,13 @@ import MenuItem from 'material-ui/MenuItem';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
 import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
-import Checkbox from 'material-ui/Checkbox';
 
 /* 私人代码引用部分 */
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as agentRequest from '../../Goperation/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
+import PackageVersion from './rversion';
 
 import * as goGameConfig from '../configs';
 
@@ -151,6 +151,19 @@ class IndexEntitys extends React.Component {
       this.handleRequestError(this.state.opentime.time ? '未执行: 日期未填入' : '未执行: 时间未填入');
     }
   };
+  quote = (packageId, version) => {
+    const { objtype, gameStore, appStore } = this.props;
+    const user = appStore.user;
+    const group = gameStore.group;
+    this.props.handleLoading();
+    if (version) {
+      goGameRequest.entityQuoteVersion(user, group.group_id, objtype, this.state.target.entity,
+        packageId, version, this.handleQuote, this.handleRequestError);
+    } else {
+      goGameRequest.entityUnQuoteVersion(user, group.group_id, objtype, this.state.target.entity,
+        packageId, this.handleQuote, this.handleRequestError);
+    }
+  };
   agent = () => {
     if (this.state.target !== null) {
       const { appStore } = this.props;
@@ -188,6 +201,10 @@ class IndexEntitys extends React.Component {
   handleOpentime = (result) => {
     this.props.handleLoadingClose(result.result);
     this.setState({ opentime: OPENTIMEDEFAULT });
+    this.index();
+  };
+  handleQuote = (result) => {
+    this.props.handleLoadingClose(result.result);
     this.index();
   };
   openDialog = (event) => {
@@ -284,6 +301,16 @@ class IndexEntitys extends React.Component {
         },
       };
       handleSumbitDialogs(submit);
+    } else if (action === 'rversion') {
+      let packageId = null;
+      let version = null;
+      const submit = {
+        title: '指定包资源版本',
+        onSubmit: () => packageId && this.quote(packageId, version),
+        data: <PackageVersion entity={this.state.target} addVersion={(p, v) => { packageId = p; version = v; }} />,
+        onCancel: () => handleSumbitDialogs(null),
+      };
+      handleSumbitDialogs(submit);
     }
   };
 
@@ -366,6 +393,14 @@ class IndexEntitys extends React.Component {
               onClick={this.openDialog}
               icon={<FontIcon className="material-icons">access_time</FontIcon>}
             />}
+            { isPrivate &&
+            <FlatButton
+              label="指定资源"
+              value="rversion"
+              disabled={this.state.target === null || this.state.filter === goGameConfig.DELETED}
+              onClick={this.openDialog}
+              icon={<FontIcon className="material-icons">cloud</FontIcon>}
+            />}
           </div>
         </div>
         <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '55%' }}>
@@ -374,9 +409,8 @@ class IndexEntitys extends React.Component {
             multiSelectable={false}
             // fixedHeader
             fixedHeader={false}
-            // wrapperStyle={{ width: '800px' }}
-            // style={{ tableLayout: 'fixed', width: '1000px', maxWidth: '200%' }}
-            bodyStyle={{ tableLayout: 'fixed', overflow: 'auto' }}
+            style={{ tableLayout: 'auto' }}
+            bodyStyle={{ overflow: 'auto' }}
             onRowSelection={this.entityChanged}
           >
             <TableHeader enableSelectAll={false} displaySelectAll={false}>
@@ -413,14 +447,13 @@ class IndexEntitys extends React.Component {
             </TableBody>
           </Table>
         </div>
-        <div>
+        <div style={{ display: 'inline-block', marginLeft: '1%', float: 'left', maxWidth: '43%' }}>
           { this.state.entity !== null &&
           <div >
             <Table
               fixedHeader={false}
-              height="200px"
               bodyStyle={{ overflow: 'auto' }}
-              style={{ maxWidth: '500%', tableLayout: 'fixed' }}
+              style={{ tableLayout: 'auto' }}
               selectable={false}
             >
               <TableHeader
@@ -453,12 +486,12 @@ class IndexEntitys extends React.Component {
             </Table>
           </div>}
           { isPrivate && this.state.entity !== null &&
-          <div>
+          <div style={{ marginTop: '5%' }}>
             <Table
               fixedHeader={false}
-              height="400px"
+              height="350"
               bodyStyle={{ overflow: 'auto' }}
-              style={{ width: '400px', tableLayout: 'auto' }}
+              style={{ tableLayout: 'auto' }}
               selectable={false}
             >
               <TableHeader

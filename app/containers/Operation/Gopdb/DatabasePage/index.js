@@ -177,6 +177,22 @@ class GopDatabases extends React.Component {
     this.setState({ show: null, slave: null, database: null });
   };
 
+
+  ready = (force) => {
+    const { appStore } = this.props;
+    if (this.state.database !== null) {
+      this.handleLoading();
+      dbRequest.replicationReady(appStore.user,
+        this.state.database.database_id, this.state.slave.database_id, force,
+        this.handlReady, this.handleLoadingClose);
+    }
+  };
+  handlReady = (result) => {
+    this.handleLoadingClose(result.result);
+    this.setState({ show: null, slave: null, database: null });
+    this.index()
+  };
+
   slave = (databaseId) => {
     const { appStore } = this.props;
     if (this.state.database !== null) {
@@ -401,10 +417,43 @@ class GopDatabases extends React.Component {
         };
         break;
       }
+      case 'ready': {
+        const master = this.state.database;
+        const slave = this.state.slave;
+        let force = false;
+        let box = null;
+        submit = {
+          title: '主从绑定就绪',
+          onSubmit: () => { box = null; this.ready(force); },
+          data:
+            <div>
+              <p>{`主库ID: ${master.database_id} 类型: ${master.dbtype} 位置: ${master.impl} 从库ID: ${slave.database_id}`}</p>
+              <Checkbox
+                ref={(node) => { box = node; }}
+                style={{ width: 250 }}
+                label="强制就绪(忽略IO线程)"
+                onCheck={(e, value) => {
+                  force = value;
+                  box.setState({ switched: force });
+                }}
+              />
+            </div>,
+          onCancel: () => {
+            box = null;
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
       default:
         break;
     }
     this.handleSumbitDialogs(submit);
+  };
+
+  isReady = () => {
+    const repl = this.state.database.slaves.filter((s) => s.slave_id === this.state.slave.database_id)[0];
+    return repl.ready;
   };
 
 
@@ -507,7 +556,7 @@ class GopDatabases extends React.Component {
                     </TableHeader>
                     <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
                       {this.state.show.schemas.map((row) => (
-                        <TableRow >
+                        <TableRow key={`show-master-schema-${row.schema_id}`}>
                           <TableRowColumn>{row.schema_id}</TableRowColumn>
                           <TableRowColumn>{row.schema}</TableRowColumn>
                         </TableRow>
@@ -525,6 +574,15 @@ class GopDatabases extends React.Component {
                           disabled={this.state.database == null}
                           onClick={() => this.setState({ slave: null })}
                           icon={<FontIcon className="material-icons">reply</FontIcon>}
+                        />
+                        <FlatButton
+                          primary
+                          style={(this.state.slave === null || this.isReady()) ? { display: 'none' } : null}
+                          value="ready"
+                          label="ready"
+                          disabled={this.state.slave === null || this.isReady()}
+                          onClick={this.openDialog}
+                          icon={<FontIcon className="material-icons">thumb_up</FontIcon>}
                         />
                         {databaseTable(this.state.slave)}
                       </div>
@@ -914,7 +972,7 @@ class GopDatabases extends React.Component {
                     </TableHeader>
                     <TableBody deselectOnClickaway={false} displayRowCheckbox={false}>
                       {this.state.show.schemas.map((row) => (
-                        <TableRow >
+                        <TableRow key={`master-schema-${row.schema_id}`}>
                           <TableRowColumn>{row.schema_id}</TableRowColumn>
                           <TableRowColumn>{row.schema}</TableRowColumn>
                         </TableRow>
