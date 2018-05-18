@@ -236,6 +236,7 @@ class GopDatabases extends React.Component {
     if (this.state.create.ipaddr) body.ipaddr = this.state.create.ipaddr;
     if (this.state.create.port) body.port = this.state.create.port;
     if (this.state.create.desc) body.desc = this.state.create.desc;
+    if (this.state.create.desc) body.affinity = this.state.create.affinity;
     this.handleLoading();
     dbRequest.createDatabase(appStore.user, body, this.handleCreate, this.handleLoadingClose);
   };
