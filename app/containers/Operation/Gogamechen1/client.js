@@ -39,7 +39,7 @@ function deleteGroup(user, groupId, successCallback, failCallback) {
 function groupAreas(user, groupId, successCallback, failCallback) {
   const path = urlPrepare('groups', 'areas', { group_id: groupId });
   const url = `${baseurl}${path}`;
-  return http(url, 'GET', user.token, { need_ok: false })
+  return http(url, 'GET', user.token, { need_ok: false, packages: true })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -71,10 +71,10 @@ function groupArea(user, groupId, body, successCallback, failCallback) {
 
 
 /* entity api 接口 */
-function entitysIndex(user, groupId, objtype, detail, successCallback, failCallback) {
+function entitysIndex(user, groupId, objtype, detail, packages, successCallback, failCallback) {
   const path = urlPrepare('entitys', null, { group_id: groupId, objtype });
   const url = `${baseurl}${path}`;
-  return http(url, 'GET', user.token, { detail })
+  return http(url, 'GET', user.token, { detail, packages })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

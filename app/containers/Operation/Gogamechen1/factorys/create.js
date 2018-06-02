@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 import TextField from 'material-ui/TextField';
 import DatePicker from 'material-ui/DatePicker';
 import TimePicker from 'material-ui/TimePicker';
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
 import {
   Table,
   TableBody,
@@ -31,10 +33,11 @@ import * as gopRequest from '../../Goperation/client';
 import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { databaseTable } from '../../Gopdb/factorys/tables';
+import { packagesTableTemplate } from '../PackagePage/tables';
 
 const contentStyle = { margin: '0 16px' };
 /* 默认扩展参数 */
-const EXTSBASE = { areasname: '', date: -1, time: -1, cross: 0 };
+const EXTSBASE = { areasname: '', date: -1, time: -1, cross: 0, platform: '' };
 /* 是否自动选择 */
 const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto' };
 
@@ -55,6 +58,11 @@ class CreateEntity extends React.Component {
       datadbs: [],
       logdb: null,
       logdbs: [],
+      platforms: goGameConfig.PLATFORMS,
+
+      packages: [],
+      choices: [],
+      targets: [],
 
       finished: false,
       stepIndex: 0,
@@ -145,7 +153,30 @@ class CreateEntity extends React.Component {
     this.props.handleLoadingClose(result.result);
     this.setState({ logdb: result.data[0] });
   };
+  indexPackages = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    this.props.handleLoading();
+    goGameRequest.indexPackages(appStore.user, group.group_id, this.handleIndexPackages, this.props.handleLoadingClose);
+  };
+  handleIndexPackages = (result) => {
+    this.props.handleLoadingClose(result.result);
 
+    const submit = {
+      title: '按照渠道筛选',
+      onSubmit: () => {
+        this.delete();
+        this.handleSumbitDialogs(null);
+      },
+      data: line,
+      onCancel: () => {
+        this.handleSumbitDialogs(null);
+      },
+    };
+
+
+    this.setState({ packages: result.data, submit });
+  };
 
   selectFile = (rows) => {
     if (rows.length === 0) {
@@ -183,10 +214,15 @@ class CreateEntity extends React.Component {
       this.showDatabase(databaseId, goGameConfig.LOGDB);
     }
   };
-
+  selectTargets = (rows) => {
+    const targets = [];
+    rows.forEach((index) => targets.push(this.state.choices[index].package_id));
+    this.setState({ targets });
+  };
 
   handleNext = () => {
     const { stepIndex } = this.state;
+    const { objtype } = this.props;
     switch (stepIndex) {
       case 0: {
         /* 程序文件及运行服务器参数确认 */
@@ -194,6 +230,7 @@ class CreateEntity extends React.Component {
       }
       case 1: {
         /* 数据库参数确认 */
+        if (objtype === goGameConfig.GAMESERVER) this.indexPackages();
         break;
       }
       case 2: {
@@ -218,7 +255,7 @@ class CreateEntity extends React.Component {
   handlePrev = () => {
     const { stepIndex } = this.state;
     if (stepIndex > 0) {
-      this.setState({ stepIndex: stepIndex - 1, exts: EXTSBASE });
+      this.setState({ stepIndex: stepIndex - 1, exts: EXTSBASE, choices: [], targets: []});
     }
   };
   nextOK = () => {
@@ -234,7 +271,7 @@ class CreateEntity extends React.Component {
       }
       case 2: {
         if (!this.isPrivate) return true;
-        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.areasname.length > 0);
+        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.areasname.length > 0 && this.state.exts.platform.length > 0);
       }
       default:
         return true;
@@ -256,7 +293,9 @@ class CreateEntity extends React.Component {
     if (objtype === goGameConfig.GAMESERVER) {
       body.areaname = this.state.exts.areasname;
       body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
+      body.platform = this.state.exts.platform;
       if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
+      if (this.state.targets.length > 0) body.packages = Object.assign([], this.state.targets);
     }
     this.props.handleLoading();
     goGameRequest.entityCreate(appStore.user, group.group_id, objtype, body,
@@ -283,6 +322,7 @@ class CreateEntity extends React.Component {
     if (active !== 'create') return null;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
+
     return (
       <div>
         <div>
@@ -542,46 +582,72 @@ class CreateEntity extends React.Component {
           <div>
             { isPrivate ? (
               <div>
-                <div style={{ marginLeft: '10%', marginTop: '1%' }}>
-                  <TextField
-                    floatingLabelText="区服名"
-                    hintText="新区服的名称(一般为中文)"
-                    value={this.state.exts.areasname}
-                    fullWidth={false}
-                    errorText={this.state.exts.areasname.length > 0 ? '' : '区服名称未填写(必要)'}
-                    onChange={(event, value) => {
-                      const name = value.trim();
-                      if (name || name === '') {
+                <div style={{ marginLeft: '1%', marginTop: '1%', display: 'inline-block' }}>
+                  <div style={{ float: 'left' }}>
+                    <TextField
+                      floatingLabelText="区服名"
+                      hintText="新区服的名称(一般为中文)"
+                      value={this.state.exts.areasname}
+                      fullWidth={false}
+                      errorText={this.state.exts.areasname.length > 0 ? '' : '区服名称未填写(必要)'}
+                      onChange={(event, value) => {
+                        const name = value.trim();
+                        if (name || name === '') {
+                          const exts = Object.assign({}, this.state.exts);
+                          exts.areasname = name;
+                          this.setState({ exts });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div style={{ float: 'left' }}>
+                    <SelectField
+                      autoWidth
+                      hintText="指定平台(必要)"
+                      style={{ marginLeft: '18%', marginTop: '17%', width: 150 }}
+                      onChange={(event, index, value) => {
                         const exts = Object.assign({}, this.state.exts);
-                        exts.areasname = name;
+                        exts.platform = value;
+                        const choices = this.state.packages.filter((p) => p.platform & goGameConfig.PLATFORMMAP[value]);
+                        this.setState({ exts, choices, targets: [] });
+                      }}
+                      value={this.state.exts.platform}
+                    >
+                      {this.state.platforms.map((platform, index) => (<MenuItem key={`platform-${index}`} value={platform} primaryText={platform} />))}
+                    </SelectField>
+                  </div>
+                  <div style={{ float: 'left' }}>
+                    <DatePicker
+                      hintText="开服日期"
+                      textFieldStyle={{ marginLeft: 50, marginTop: '12.8%', width: 150 }}
+                      onChange={(none, datetime) => {
+                        const unixtime = datetime.getTime();
+                        const exts = Object.assign({}, this.state.exts);
+                        exts.date = unixtime;
                         this.setState({ exts });
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  </div>
+                  <div style={{ float: 'left' }}>
+                    <TimePicker
+                      hintText="具体时间"
+                      textFieldStyle={{ marginLeft: 25, marginTop: '15%', width: 150 }}
+                      format="24hr" minutesStep={10}
+                      onChange={(none, datetime) => {
+                        const h = datetime.getHours();
+                        const m = datetime.getMinutes();
+                        const exts = Object.assign({}, this.state.exts);
+                        exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
+                        this.setState({ exts });
+                      }}
+                    />
+                  </div>
+                  <div style={{ float: 'left' }}>
+                    <p style={{ marginLeft: 30, fontSize: 35 }}>在下方选择新区服可见渠道(多选)</p>
+                  </div>
                 </div>
-                <div style={{ marginLeft: '10%', marginTop: '1%' }}>
-                  <DatePicker
-                    hintText="开服日期" style={{ float: 'left' }}
-                    onChange={(none, datetime) => {
-                      const unixtime = datetime.getTime();
-                      const exts = Object.assign({}, this.state.exts);
-                      exts.date = unixtime;
-                      this.setState({ exts });
-                    }}
-                  />
-                  <TimePicker
-                    hintText="具体时间"
-                    style={{ marginLeft: '5%', float: 'left' }}
-                    format="24hr" minutesStep={10}
-                    onChange={(none, datetime) => {
-                      const h = datetime.getHours();
-                      const m = datetime.getMinutes();
-                      const exts = Object.assign({}, this.state.exts);
-                      exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
-                      this.setState({ exts });
-                    }}
-
-                  />
+                <div>
+                  {packagesTableTemplate(this.state.choices, 2, this.state.targets, this.selectTargets, null, null, '300px')}
                 </div>
               </div>
               )

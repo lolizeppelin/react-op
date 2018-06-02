@@ -27,7 +27,7 @@ class GamesvrStopParameter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      notify: false,
+      notify: true,
       kill: false,
       message: '',
       delay: 10,

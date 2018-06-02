@@ -24,9 +24,10 @@ import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as agentRequest from '../../Goperation/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
+import { entitysTable } from './tables';
 import PackageVersion from './rversion';
-
 import * as goGameConfig from '../configs';
+
 
 const styles = {
   id: { width: '20px' },
@@ -50,10 +51,10 @@ class IndexEntitys extends React.Component {
     this.state = {
       filter: goGameConfig.OK,
       entitys: [],
+      choices: [],
       entity: null,
       agent: null,
       target: null,
-      choice: null,
       clean: DEFAULTCLEANACTION,
       opentime: OPENTIMEDEFAULT,
     };
@@ -74,14 +75,18 @@ class IndexEntitys extends React.Component {
   };
 
   handleFilter = (event, index, filter) => {
-    this.setState({ filter, target: null, entity: null });
+    const choices = [];
+    this.state.entitys.forEach((entity) => {
+      if (entity.status === filter) choices.push(entity);
+    });
+    this.setState({ filter, target: null, entity: null, choices });
   };
   entityChanged = (rows) => {
     if (rows.length === 0) {
       this.setState({ entity: null, target: null, agent: null });
     } else {
       const index = rows[0];
-      const targets = this.state.entitys.filter((entity) => entity.status === this.state.filter);
+      const targets = this.state.choices.filter((entity) => entity.status === this.state.filter);
       if (targets.length > 0 && targets.length > index) {
         this.setState({ entity: null, target: targets[index], agent: null });
       }
@@ -92,7 +97,7 @@ class IndexEntitys extends React.Component {
     const user = appStore.user;
     const group = gameStore.group;
     this.props.handleLoading();
-    goGameRequest.entitysIndex(user, group.group_id, objtype, false,
+    goGameRequest.entitysIndex(user, group.group_id, objtype, false, false,
       this.handleIndex, this.handleRequestError);
   };
   show = () => {
@@ -178,7 +183,12 @@ class IndexEntitys extends React.Component {
   };
   handleIndex = (result) => {
     this.props.handleLoadingClose();
-    this.setState({ entity: null, target: null, entitys: result.data });
+    const entitys = result.data;
+    const choices = [];
+    result.data.forEach((entity) => {
+      if (entity.status === this.state.filter) choices.push(entity);
+    });
+    this.setState({ entity: null, target: null, entitys, choices });
   };
   handleShow = (result) => {
     this.props.handleLoadingClose(result.result);
@@ -403,51 +413,11 @@ class IndexEntitys extends React.Component {
             />}
           </div>
         </div>
-        <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '55%' }}>
-          <Table
-            height="700px"
-            multiSelectable={false}
-            // fixedHeader
-            fixedHeader={false}
-            style={{ tableLayout: 'auto' }}
-            bodyStyle={{ overflow: 'auto' }}
-            onRowSelection={this.entityChanged}
-          >
-            <TableHeader enableSelectAll={false} displaySelectAll={false}>
-              <TableRow>
-                { isPrivate && <TableHeaderColumn style={styles.areas}>区服</TableHeaderColumn> }
-                { !isPrivate && <TableHeaderColumn style={styles.id}>实体ID</TableHeaderColumn>}
-                <TableHeaderColumn style={styles.id}>服务器</TableHeaderColumn>
-                <TableHeaderColumn style={styles.port}>端口</TableHeaderColumn>
-                <TableHeaderColumn style={styles.lan}>内网IP</TableHeaderColumn>
-                <TableHeaderColumn style={styles.wan}>外网IP</TableHeaderColumn>
-                { isPrivate && <TableHeaderColumn style={styles.time}>开服时间</TableHeaderColumn> }
-                <TableHeaderColumn style={styles.status}>状态</TableHeaderColumn>
-                { isPrivate && <TableHeaderColumn style={styles.id}>实体ID</TableHeaderColumn>}
-              </TableRow>
-            </TableHeader>
-            <TableBody deselectOnClickaway={false}>
-              {this.state.entitys.length > 0 && this.state.entitys.map((row) => (
-                row.status === this.state.filter &&
-                <TableRow
-                  key={row.entity}
-                  selected={(this.state.target !== null && this.state.target.entity === row.entity) ? true : null}
-                >
-                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.show_id)).join(',') }</TableRowColumn> }
-                  { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
-                  <TableRowColumn>{row.agent_id}</TableRowColumn>
-                  <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
-                  <TableRowColumn >{row.local_ip === null ? '离线' : row.local_ip }</TableRowColumn>
-                  <TableRowColumn >{row.external_ips === null ? '离线' : row.external_ips.join(',') }</TableRowColumn>
-                  { isPrivate && <TableRowColumn style={styles.id}>{ new Date(row.opentime * 1000).toLocaleString(('zh-CN'), { hour12: false }) }</TableRowColumn> }
-                  <TableRowColumn>{goGameConfig.getStatus(row.status)}</TableRowColumn>
-                  { isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div style={{ display: 'inline-block', marginLeft: '0%', float: 'left', maxWidth: '65%' }}>
+          {entitysTable(objtype, this.state.choices, this.entityChanged, this.state.target ? [this.state.target.entity] : null,
+            { tableLayout: 'auto', width: 1200 }, '680px')}
         </div>
-        <div style={{ display: 'inline-block', marginLeft: '1%', float: 'left', maxWidth: '43%' }}>
+        <div style={{ display: 'inline-block', marginLeft: '1%', float: 'left', maxWidth: '30%' }}>
           { this.state.entity !== null &&
           <div >
             <Table
@@ -499,17 +469,17 @@ class IndexEntitys extends React.Component {
                 displaySelectAll={false}
               >
                 <TableRow>
-                  <TableHeaderColumn style={styles.id}>区服识标ID</TableHeaderColumn>
-                  <TableHeaderColumn style={styles.id}>区服显示ID</TableHeaderColumn>
                   <TableHeaderColumn>区服名称</TableHeaderColumn>
+                  <TableHeaderColumn>实体ID</TableHeaderColumn>
+                  <TableHeaderColumn>区服ID</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
               <TableBody displayRowCheckbox={false}>
                 {this.state.entity !== null && this.state.entity.areas.map((row) => (
                   <TableRow key={row.area_id}>
-                    <TableRowColumn style={styles.id}>{row.area_id}</TableRowColumn>
-                    <TableRowColumn style={styles.id}>{row.show_id}</TableRowColumn>
                     <TableRowColumn>{row.areaname}</TableRowColumn>
+                    <TableRowColumn>{this.state.entity.entity}</TableRowColumn>
+                    <TableRowColumn>{row.area_id}</TableRowColumn>
                   </TableRow>
                 ))}
               </TableBody>

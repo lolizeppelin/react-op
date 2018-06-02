@@ -460,7 +460,6 @@ class GopDatabases extends React.Component {
 
   render() {
     const submit = this.state.submit;
-    console.log(this.state);
 
     return (
       <PageBase title="数据库资源管理" navigation="Gopdb / 数据库管理" minHeight={180} noWrapContent>

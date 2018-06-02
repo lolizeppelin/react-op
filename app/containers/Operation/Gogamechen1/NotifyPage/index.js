@@ -108,7 +108,7 @@ class NotifyPHP extends React.Component {
       const { appStore, gameStore } = this.props;
       const group = gameStore.group;
       this.handleLoading();
-      goGameRequest.entitysIndex(appStore.user, group.group_id, objtype, false,
+      goGameRequest.entitysIndex(appStore.user, group.group_id, objtype, false, false,
         (result) => {
           this.handleLoadingClose(result.result);
           this.setState({ objtype, entitys: result.data, entity: null });
@@ -133,7 +133,7 @@ class NotifyPHP extends React.Component {
         this.state.objtype, entity.entity, 'dict',
         (result) => {
           this.setState({ entity: result.data[0] });
-          this.handleLoadingClose('获取实体详细信息完成');
+          this.handleLoadingClose('获取实体详细信息完成,可以更新数据');
         },
         (msg) => this.handleLoadingClose(msg));
     }
@@ -251,7 +251,8 @@ class NotifyPHP extends React.Component {
                 </div>
                 {this.state.objtype && <p style={{ marginLeft: '1%' }}>{`${this.state.objtype}列表`}</p>}
                 <div style={{ display: 'iline-block' }}>
-                  {this.state.entitys.length > 0 && entitysTable(this.state.entitys, this.selectEntity, this.state.entity)}
+                  {this.state.entitys.length > 0 &&
+                  entitysTable(this.state.objtype, this.state.entitys, this.selectEntity, this.state.entity ? [this.state.entity.entity] : null)}
                 </div>
               </div>
             )}

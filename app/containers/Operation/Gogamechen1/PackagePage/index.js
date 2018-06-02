@@ -15,6 +15,7 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 import TextField from 'material-ui/TextField';
+import SelectField from 'material-ui/SelectField';
 import { Tabs, Tab } from 'material-ui/Tabs';
 import Snackbar from 'material-ui/Snackbar';
 
@@ -40,17 +41,21 @@ import {
   resourcesTable,
   resourceVersionsTable,
 } from '../../Gopcdn/factorys/tables';
-import AsyncResponses  from '../../Goperation/AsyncRequest/factorys/showResult';
+import AsyncResponses from '../../Goperation/AsyncRequest/factorys/showResult';
 import UploadsFile from '../../Gopcdn/factorys/upload';
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as cdnRequest from '../../Gopcdn/client';
 import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
-import { SMALL_PACKAGE, FULL_PACKAGE, BASEPATH } from '../configs';
+import { SMALL_PACKAGE, FULL_PACKAGE, BASEPATH, PLATFORMS, PLATFORMMAP } from '../configs';
+// import { entitysTableTemplate } from '../factorys/tables';
+// {entitysTableTemplate(GAMESERVER, this.state.choices, this.state.type === 'all' ? 4 : 3,
+//   this.state.targets, this.selectTargets, { tableLayout: 'auto', width: 1200, marginTop: '2%' }, '650px')}
 
 const CREATEBASE = {
   package_name: '',
   mark: 'unkonwn',
+  platform: '',
   desc: '',
 };
 
@@ -71,6 +76,12 @@ class PackageGogame extends React.Component {
     super(props);
 
     this.state = {
+      // entitys: [],
+      choices: [],
+      // targets: [],
+      // type: 'specify',
+      platforms: PLATFORMS,
+
       submit: null,
       packages: [],
       package: null,
@@ -147,6 +158,7 @@ class PackageGogame extends React.Component {
     this.handleLoading();
     const body = Object.assign({}, this.state.create);
     body.resource_id = this.state.resource.resource_id;
+    if (this.state.package) body.clone = this.state.package.package_id;
     goGameRequest.createPackage(appStore.user, group.group_id, body,
       this.handleCreate, this.handleLoadingClose);
   };
@@ -210,6 +222,14 @@ class PackageGogame extends React.Component {
     goGameRequest.upgradePackage(appStore.user, gameStore.group.group_id, this.state.package.package_id, body,
       this.handleUgrade, this.handleLoadingClose);
   };
+  // entitys = () => {
+  //   const { gameStore, appStore } = this.props;
+  //   const user = appStore.user;
+  //   const group = gameStore.group;
+  //   this.handleLoading();
+  //   goGameRequest.entitysIndex(user, group.group_id, GAMESERVER, false,
+  //     this.handleEntitys, this.handleLoadingClose);
+  // };
   /* handle action result */
   handleReviews = (result) => {
     this.handleLoadingClose();
@@ -269,6 +289,12 @@ class PackageGogame extends React.Component {
     this.handleLoadingClose(result.result);
     this.setState({ resource: result.data[0] });
   };
+  // handleEntitys = (result) => {
+  //   this.handleLoadingClose(result.result);
+  //   this.setState({ entitys: result.data });
+  // };
+
+  /* select function */
   selectPackage = (rows) => {
     if (rows.length === 0) {
       this.setState({ package: null });
@@ -278,7 +304,15 @@ class PackageGogame extends React.Component {
       this.setState({ package: p });
     }
   };
-  /* util function */
+  selectClonePackage = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ package: null });
+    } else {
+      const index = rows[0];
+      const p = Object.assign({}, this.state.choices[index]);
+      this.setState({ package: p });
+    }
+  };
   selectReview= (rows) => {
     const p = Object.assign({}, this.state.package);
     if (rows.length === 0) {
@@ -311,6 +345,7 @@ class PackageGogame extends React.Component {
     }
   };
   selectResource = (rows) => {
+    // if (this.state.entitys.length === 0) this.entitys();
     if (rows.length === 0) {
       this.setState({ resource: null });
     } else {
@@ -328,6 +363,32 @@ class PackageGogame extends React.Component {
       this.setState({ version });
     }
   };
+  // selectTargets = (rows) => {
+  //   if (rows === 'all') {
+  //     const targets = [];
+  //     this.state.choices.forEach((entity) => targets.push(entity.entity));
+  //     this.setState({ type: 'all', targets });
+  //   } else if (rows === 'none') {
+  //     this.setState({ type: 'specify', targets: [] });
+  //   } else if (rows.length === 0) {
+  //     this.setState({ type: 'specify', targets: [] });
+  //   } else {
+  //     const targets = [];
+  //     rows.forEach((index) => targets.push(this.state.choices[index].entity));
+  //     this.setState({ type: 'specify', targets });
+  //     if (this.state.type === 'all') {
+  //       this.setState({ type: 'specify', targets });
+  //     } else {
+  //       this.setState({ type: 'specify', targets });
+  //     }
+  //   }
+  // };
+  selectPlatform = (platform) => {
+    const platformId = PLATFORMMAP[platform];
+    const choices = this.state.packages.filter((p) => p.platform & platformId);
+    this.setState({ choices })
+  };
+
   closeShow = () => {
     this.setState({ show: null, resource: null, version: null, pfile: null });
   };
@@ -576,6 +637,7 @@ class PackageGogame extends React.Component {
     const { gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
+
     return (
       <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
         <Dialog
@@ -684,84 +746,105 @@ class PackageGogame extends React.Component {
               ) : (
                 <div>
                   {/* 包列表 */}
-                  {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource, null)}
+                  {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource, { tableLayout: 'auto' })}
                 </div>
               ) }
             </Tab>
-            <Tab label="添加包" onActive={() => this.setState({ resource: null })}>
-              <div>
-                <FlatButton
-                  primary
-                  style={{ marginTop: '1%' }}
-                  label="创建新包"
-                  disabled={this.state.create.package_name.length === 0 || this.state.resource === null}
-                  onClick={this.create}
-                  icon={<FontIcon className="material-icons">add_circle</FontIcon>}
-                />
-                <FlatButton
-                  primary
-                  label="返回"
-                  disabled={this.state.resource == null}
-                  onClick={() => this.setState({ resource: null })}
-                  icon={<FontIcon className="material-icons">reply</FontIcon>}
-                />
+            <Tab label="添加包" onActive={() => this.setState({ resource: null, choices: [], package: null, show: null })}>
+              <div style={{ float: 'left', maxWidth: this.state.resource ? '30%' : '90%' }}>
+                <div>
+                  <FlatButton
+                    primary
+                    style={{ marginTop: '1%' }}
+                    label="创建新包"
+                    disabled={(this.state.create.package_name.length * this.state.create.platform.length) === 0 || this.state.resource === null}
+                    onClick={this.create}
+                    icon={<FontIcon className="material-icons">add_circle</FontIcon>}
+                  />
+                  <FlatButton
+                    primary
+                    label="返回"
+                    disabled={this.state.resource == null}
+                    onClick={() => this.setState({ resource: null, choices: [] })}
+                    icon={<FontIcon className="material-icons">reply</FontIcon>}
+                  />
+                </div>
+                <div style={{ display: 'block' }}>
+                  {this.state.resource ? (
+                    <div style={{ display: 'inline-block', width: 380, float: 'left' }}>
+                      {packageResourceTable(this.state.resource, group, null)}
+                      <TextField
+                        floatingLabelText="包名"
+                        hintText="由研发提供的包名(唯一)"
+                        value={this.state.create.package_name}
+                        fullWidth
+                        errorText={this.state.create.package_name.length > 0 ? '' : '资源类型未填写(必要)'}
+                        onChange={(event, value) => {
+                          const name = value.trim();
+                          if (name || name === '') {
+                            const create = Object.assign({}, this.state.create);
+                            create.package_name = name;
+                            this.setState({ create });
+                          }
+                        }}
+                      />
+                      <SelectField
+                        style={{ marginTop: '3%' }}
+                        floatingLabelText="选择平台(必要)"
+                        onChange={(event, index, value) => {
+                          const create = Object.assign({}, this.state.create);
+                          create.platform = value;
+                          this.setState({ create }, () => this.selectPlatform(value));
+                        }}
+                        value={this.state.create.platform}
+                      >
+                        {this.state.platforms.map((platform, index) => (<MenuItem key={`platform-${index}`} value={platform} primaryText={platform} />))}
+                      </SelectField>
+                      <TextField
+                        floatingLabelText="包渠道名"
+                        hintText="包渠道标记名"
+                        value={this.state.create.mark}
+                        fullWidth
+                        onChange={(event, value) => {
+                          const mark = value.trim();
+                          if (mark || mark === '') {
+                            const create = Object.assign({}, this.state.create);
+                            create.mark = mark;
+                            this.setState({ create });
+                          }
+                        }}
+                      />
+                      <TextField
+                        floatingLabelText="包说明"
+                        hintText="用于说明包用途(可以为空)"
+                        value={this.state.create.desc}
+                        fullWidth
+                        onChange={(event, value) => {
+                          const desc = value.trim();
+                          if (desc || desc === '') {
+                            const create = Object.assign({}, this.state.create);
+                            create.desc = desc;
+                            this.setState({ create });
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <h1 style={{ fontSize: 30, marginTop: '3%', marginLeft: '4%' }}>请先选取包引用的资源</h1>
+                      {resourcesTable(this.state.resources, this.selectResource, this.state.resource,
+                        { width: '1000px', marginTop: '2%', tableLayout: 'auto' })}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'block' }}>
-                {this.state.resource ? (
-                  <div style={{ display: 'inline-block', width: '600px', maxWidth: '50%', float: 'left' }}>
-                    {packageResourceTable(this.state.resource, group, null)}
-                    <TextField
-                      floatingLabelText="包名"
-                      hintText="由研发提供的包名(唯一)"
-                      value={this.state.create.package_name}
-                      fullWidth
-                      errorText={this.state.create.package_name.length > 0 ? '' : '资源类型未填写(必要)'}
-                      onChange={(event, value) => {
-                        const name = value.trim();
-                        if (name || name === '') {
-                          const create = Object.assign({}, this.state.create);
-                          create.package_name = name;
-                          this.setState({ create });
-                        }
-                      }}
-                    />
-                    <TextField
-                      floatingLabelText="包标记"
-                      hintText="包渠道标记(暂无作用)"
-                      value={this.state.create.mark}
-                      fullWidth
-                      onChange={(event, value) => {
-                        const mark = value.trim();
-                        if (mark || mark === '') {
-                          const create = Object.assign({}, this.state.create);
-                          create.mark = mark;
-                          this.setState({ create });
-                        }
-                      }}
-                    />
-                    <TextField
-                      floatingLabelText="包说明"
-                      hintText="用于说明包用途(可以为空)"
-                      value={this.state.create.desc}
-                      fullWidth
-                      onChange={(event, value) => {
-                        const desc = value.trim();
-                        if (desc || desc === '') {
-                          const create = Object.assign({}, this.state.create);
-                          create.desc = desc;
-                          this.setState({ create });
-                        }
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <h1 style={{ fontSize: 30, marginTop: '3%', marginLeft: '4%' }}>请先选取包引用的资源</h1>
-                    {resourcesTable(this.state.resources, this.selectResource, this.state.resource,
-                      { width: '1000px', marginTop: '2%', tableLayout: 'auto' })}
-                  </div>
-                )}
-              </div>
+              {this.state.resource && (
+                <div style={{ float: 'left', marginLeft: '1%', marginTop: '2%', maxWidth: '70%' }}>
+                  <h1 style={{ fontSize: 30 }}>选择当克隆渠道（复制目标渠道所有区服）</h1>
+                  {packagesTable(this.state.choices, this.selectClonePackage, this.state.package, this.presource,
+                    { tableLayout: 'auto', width: 1200, marginTop: '2%' })}
+                </div>
+              )}
             </Tab>
             <Tab label="添加包文件" onActive={this.claneParams}>
               {this.state.paramOK

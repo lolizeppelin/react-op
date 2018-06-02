@@ -63,6 +63,8 @@ class SubmitDialogs extends React.Component {
     const formated = defaultProps(payload);
     const actions = [];
 
+    console.log('11111')
+
     if (formated.onCancel !== null) actions.push(<FlatButton primary label="取消" onClick={() => { formated.onCancel(); this.setState({ open: false }); }} disabled={formated.diableCancel} />);
     if (formated.onSubmit !== null) actions.push(<FlatButton secondary label="确定" onClick={() => { formated.onSubmit(); this.setState({ open: false }); }} disabled={formated.diableSubmit} />);
     if (actions.length === 0) {

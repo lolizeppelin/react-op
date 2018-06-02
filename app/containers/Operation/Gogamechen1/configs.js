@@ -32,6 +32,20 @@ export const DISABLE = 0;
 export const ANY = 'any';
 export const ANDROID = 'android';
 export const IOS = 'ios';
+export const PLATFORMS = [ANDROID, IOS];
+export const PLATFORMMAP = { [ANDROID]: 1, [IOS]: 2 };
+
+export function getPlatform(platform) {
+  switch (platform) {
+    case 1:
+      return '安卓';
+    case 2:
+      return '苹果';
+    default:
+      return '混合';
+  }
+}
+
 
 export const SMALL_PACKAGE = 'small';
 export const FULL_PACKAGE = 'full';
@@ -48,7 +62,6 @@ export function getStatus(status) {
       return 'UNACTIVE';
   }
 }
-
 
 function urlPrepare(type, ext, target = null) {
   let baseUrl;

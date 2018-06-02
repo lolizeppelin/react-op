@@ -70,7 +70,7 @@ class AppserverFlushParameter extends React.Component {
     const user = appStore.user;
     const group = gameStore.group;
     this.props.handleLoading();
-    goGameRequest.entitysIndex(user, group.group_id, goGameConfig.GMSERVER, false,
+    goGameRequest.entitysIndex(user, group.group_id, goGameConfig.GMSERVER, false, false,
       this.handleIndexGm, this.props.handleLoadingClose);
   };
   handleIndexGm = (result) => {
@@ -84,7 +84,7 @@ class AppserverFlushParameter extends React.Component {
     const user = appStore.user;
     const group = gameStore.group;
     this.props.handleLoading();
-    goGameRequest.entitysIndex(user, group.group_id, goGameConfig.CROSSSERVER, false,
+    goGameRequest.entitysIndex(user, group.group_id, goGameConfig.CROSSSERVER, false, false,
       this.handleIndexCross, this.props.handleLoadingClose);
   };
   handleIndexCross = (result) => {

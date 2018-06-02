@@ -135,13 +135,9 @@ class Groups extends React.Component {
         this.handleChiefs, this.handleLoadingClose);
     }
   };
-  area = (showId, areaname) => {
-    if (showId.length === 0 && areaname.length === 0) {
+  area = (areaname) => {
+    if (areaname.length === 0) {
       this.handleLoadingClose('无修改内容未执行');
-      return null;
-    }
-    if (showId && (isNaN(Number(showId)) || showId.indexOf('.') > 0 || parseInt(showId, 0) < 1)) {
-      this.handleLoadingClose('区服显示ID不是整数或者小于1,未执行');
       return null;
     }
 
@@ -150,7 +146,6 @@ class Groups extends React.Component {
     if (lastGroup !== null) {
       this.setState({ loading: true });
       const body = { area_id: this.state.area.area_id };
-      if (showId) body.show_id = parseInt(showId, 0);
       if (areaname) body.areaname = areaname;
       groupRequest.groupArea(appStore.user, lastGroup.group_id, body,
         this.handleArea, this.handleLoadingClose);
@@ -238,11 +233,8 @@ class Groups extends React.Component {
     const group = gameStore.group;
     const submit = {
       title: '删除组',
-      data: (group.lastarea > 0) ?
-        '不可删除: 组包含区服' :
-        `删除组  ID:${group.group_id} 名称:${group.name}`,
+      data: `删除组  ID:${group.group_id} 名称:${group.name}`,
       onSubmit: this.delete,
-      diableSubmit: (group.lastarea > 0),
       onCancel: () => { this.setState({ submit: null }); },
     };
     this.setState({
@@ -252,14 +244,13 @@ class Groups extends React.Component {
 
   handleAreaSubmitDialog = () => {
     let areaname = '';
-    let showId = '';
 
     const submit = {
       title: '修改区服信息',
       data: (
         <div style={{ marginLeft: '10%' }}>
           <TextField
-            floatingLabelText={`原名: ${this.state.area.areaname}`}
+            floatingLabelText={`原区服名: ${this.state.area.areaname}`}
             hintText="更改区服名称"
             style={{ width: '250px' }}
             fullWidth={false}
@@ -267,18 +258,9 @@ class Groups extends React.Component {
               areaname = value;
             }}
           />
-          <TextField
-            floatingLabelText={`原ID: ${this.state.area.show_id}`}
-            hintText="更改显示ID"
-            style={{ width: '150px', marginLeft: '2%' }}
-            fullWidth={false}
-            onChange={(event, value) => {
-              showId = value;
-            }}
-          />
         </div>
       ),
-      onSubmit: () => this.area(showId, areaname),
+      onSubmit: () => this.area(areaname),
       onCancel: () => { this.setState({ submit: null }); },
     };
     this.setState({
@@ -329,7 +311,6 @@ class Groups extends React.Component {
                     <TableRow>
                       <TableHeaderColumn>组ID</TableHeaderColumn>
                       <TableHeaderColumn>组名</TableHeaderColumn>
-                      <TableHeaderColumn>新区</TableHeaderColumn>
                       <TableHeaderColumn>注释</TableHeaderColumn>
                     </TableRow>
                   </TableHeader>
@@ -338,7 +319,6 @@ class Groups extends React.Component {
                       <TableRow key={row.group_id} selected={(group && row.group_id === group.group_id) ? true : null}>
                         <TableRowColumn >{row.group_id}</TableRowColumn>
                         <TableRowColumn>{row.name}</TableRowColumn>
-                        <TableRowColumn>{row.lastarea}</TableRowColumn>
                         <TableRowColumn>{row.desc}</TableRowColumn>
                       </TableRow>
                     ))}
@@ -365,7 +345,6 @@ class Groups extends React.Component {
                     displaySelectAll={false}
                   >
                     <TableRow>
-                      <TableHeaderColumn>区服显示ID</TableHeaderColumn>
                       <TableHeaderColumn>名称</TableHeaderColumn>
                       <TableHeaderColumn>区服识标ID</TableHeaderColumn>
                     </TableRow>
@@ -373,7 +352,6 @@ class Groups extends React.Component {
                   <TableBody displayRowCheckbox={false}>
                     {(group !== null) && group.areas.map((row) => (
                       <TableRow key={`group-area-${row.area_id}`}>
-                        <TableRowColumn >{row.show_id}</TableRowColumn>
                         <TableRowColumn>{row.areaname}</TableRowColumn>
                         <TableRowColumn>{row.area_id}</TableRowColumn>
                       </TableRow>
@@ -517,10 +495,10 @@ class Groups extends React.Component {
                   </TableHeaderColumn>
                 </TableRow>
                 <TableRow>
-                  <TableHeaderColumn>实体ID</TableHeaderColumn>
-                  <TableHeaderColumn>区服识标ID</TableHeaderColumn>
-                  <TableHeaderColumn>区服显示ID</TableHeaderColumn>
+                  <TableHeaderColumn>平台</TableHeaderColumn>
                   <TableHeaderColumn>区服名</TableHeaderColumn>
+                  <TableHeaderColumn>实体ID</TableHeaderColumn>
+                  <TableHeaderColumn>区服ID</TableHeaderColumn>
                   <TableHeaderColumn>端口</TableHeaderColumn>
                   <TableHeaderColumn>DNS地址</TableHeaderColumn>
                   <TableHeaderColumn>外网IP</TableHeaderColumn>
@@ -529,10 +507,10 @@ class Groups extends React.Component {
               <TableBody deselectOnClickaway={false}>
                 {this.state.areas.map((row) => (
                   <TableRow key={row.area_id} selected={(this.state.area && row.area_id === this.state.area.area_id) ? true : null}>
+                    <TableRowColumn>{goGameConfig.getPlatform(row.platform)}</TableRowColumn>
+                    <TableRowColumn>{row.areaname}</TableRowColumn>
                     <TableRowColumn>{row.entity}</TableRowColumn>
                     <TableRowColumn >{row.area_id}</TableRowColumn>
-                    <TableRowColumn >{row.show_id}</TableRowColumn>
-                    <TableRowColumn>{row.areaname}</TableRowColumn>
                     <TableRowColumn>{row.port}</TableRowColumn>
                     <TableRowColumn>{ row.dnsnames.join(',') }</TableRowColumn>
                     <TableRowColumn>{ row.external_ips.join(',') }</TableRowColumn>

@@ -4,20 +4,13 @@ import PropTypes from 'prop-types';
 
 /* material-ui 引用部分  */
 import {
-  Table,
-  TableBody,
-  TableHeader,
-  TableHeaderColumn,
-  TableRow,
-  TableRowColumn,
-} from 'material-ui/Table';
-import {
   Step,
   Stepper,
   StepLabel,
 } from 'material-ui/Stepper';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
+
 
 /* mui-data-table 引用部分,弃用,没作用
 import { MuiDataTable } from 'mui-data-table';
@@ -46,6 +39,13 @@ import { requestBodyBase } from '../../Goperation/utils/async';
 import * as goGameConfig from '../configs';
 import * as goGameRequest from '../client';
 import BASEPARAMETER from './parameter';
+import { entitysTableTemplate } from './tables';
+import { SubmitDialogs } from '../../factorys/dialogs';
+import PacakgesDialog  from './parameter/package'
+import {DEFAULTUPGRADE} from "../../Gopcdn/factorys/upgrade";
+import {makeSelectGlobal} from "../../../App/selectors";
+import makeSelectGogamechen1 from "../GroupPage/selectors";
+
 
 const contentStyle = { margin: '0 16px' };
 
@@ -90,10 +90,18 @@ class AsyncRequest extends React.Component {
     const { objtype } = props;
 
     this.state = {
+
+      submit: null,
+
       stepIndex: 0,
       finished: false,
 
+      platform: '',
+      platforms: goGameConfig.PLATFORMS,
+      packages: [],
+
       entitys: [],
+      choices: [],
       targets: [],
       type: 'specify',
       parameter: PARAMETERBASE,
@@ -101,7 +109,6 @@ class AsyncRequest extends React.Component {
     };
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
-    this.tableBody = null;
   }
 
 
@@ -109,12 +116,12 @@ class AsyncRequest extends React.Component {
     const { appStore, gameStore, objtype } = this.props;
     const group = gameStore.group;
     this.props.handleLoading();
-    goGameRequest.entitysIndex(appStore.user, group.group_id, objtype, false,
+    goGameRequest.entitysIndex(appStore.user, group.group_id, objtype, false, true,
       this.handleIndexEntitys, this.props.handleLoadingClose);
   };
   handleIndexEntitys = (result) => {
     const entitys = result.data.filter((e) => e.status === goGameConfig.OK);
-    this.setState({ entitys });
+    this.setState({ entitys, choices: entitys, targets: [] });
     this.props.handleLoadingClose(result.result);
   };
 
@@ -122,7 +129,7 @@ class AsyncRequest extends React.Component {
     const { objtype, action, gameStore, appStore } = this.props;
     const method = ACTIONSMAP[action].method;
     const group = gameStore.group;
-    const entitys = this.state.type === 'all' ? 'all' : this.state.targets.join(',');
+    const entitys = (this.state.type === 'all' && !this.state.platform) ? 'all' : this.state.targets.join(',');
     this.props.handleLoading();
     const body = requestBodyBase(this.state.parameter.body, this.state.parameter.timeout);
     goGameRequest.entitysAsyncrequest(appStore.user, action, method,
@@ -168,9 +175,13 @@ class AsyncRequest extends React.Component {
   handlePrev = () => {
     const { stepIndex } = this.state;
     let parameter = this.state.parameter;
-    if (stepIndex === 1) parameter = PARAMETERBASE;
+    let platform = this.state.platform;
+    if (stepIndex === 1) {
+      parameter = PARAMETERBASE;
+      platform = '';
+    }
     if (stepIndex > 0) {
-      this.setState({ parameter, stepIndex: stepIndex - 1 });
+      this.setState({ parameter, platform, stepIndex: stepIndex - 1 });
     }
   };
   nextOK = () => {
@@ -181,7 +192,7 @@ class AsyncRequest extends React.Component {
         return true;
       }
       case 1: {
-        return !(this.state.type === 'specify' && this.state.targets.length === 0);
+        return !((this.state.type === 'specify' || this.state.platform) && this.state.targets.length === 0);
       }
       default:
         return true;
@@ -190,31 +201,37 @@ class AsyncRequest extends React.Component {
 
   selectTargets = (rows) => {
     if (rows === 'all') {
-      this.setState({ type: 'all', targets: [] });
+      const targets = [];
+      if (this.state.platforms) this.state.choices.forEach((entity) => targets.push(entity.entity));
+      this.setState({ type: 'all', targets });
     } else if (rows === 'none') {
       this.setState({ type: 'specify', targets: [] });
     } else if (rows.length === 0) {
       this.setState({ type: 'specify', targets: [] });
     } else {
       const targets = [];
-      rows.map((index) => targets.push(this.state.entitys[index].entity));
+      rows.forEach((index) => targets.push(this.state.choices[index].entity));
       this.setState({ type: 'specify', targets });
       if (this.state.type === 'all') {
-        this.setState({ type: 'specify', targets }, () => this.tableBody.setState({ selectedRows: rows }));
+        this.setState({ type: 'specify', targets });
       } else {
         this.setState({ type: 'specify', targets });
       }
     }
   };
 
-
   render() {
-    const { objtype, action, paramTab } = this.props;
+    const { appStore, gameStore, objtype, action, paramTab } = this.props;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
+    // console.log(this.state)
 
     return (
       <div>
+        <SubmitDialogs
+          open={this.state.submit !== null}
+          payload={this.state.submit}
+        />
         <div>
           <h1 style={{ textAlign: 'center', fontSize: 30, marginTop: '2%', marginBottom: '1%' }}>
             {`${ACTIONSMAP[action].name}程序: ${objtype}`}
@@ -246,6 +263,7 @@ class AsyncRequest extends React.Component {
                     entitys: [],
                     targets: [],
                     type: 'specify',
+                    platform: '',
                     parameter: PARAMETERBASE,
                     result: null,
                   });
@@ -267,6 +285,31 @@ class AsyncRequest extends React.Component {
                     primary
                     onClick={this.handleNext}
                   />
+                  {isPrivate && stepIndex === 1 && (
+                    <RaisedButton
+                      style={{ marginLeft: '4%' }}
+                      label="渠道筛选"
+                      onClick={() => {
+                        let targets = [];
+                        const submit = {
+                          title: '通过渠道筛选区服',
+                          onSubmit: () => {
+                            this.setState({ submit: null });
+                          },
+                          data:
+                            <PacakgesDialog
+                              selectPackages={(t) => targets = t}
+                              gameStore={gameStore}
+                              appStore={appStore}
+                            />,
+                          onCancel: () => {
+                            this.setState({ submit: null });
+                          },
+                        };
+                        this.setState({ submit });
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -281,44 +324,9 @@ class AsyncRequest extends React.Component {
             )}
           </div>
         )}
-        {stepIndex === 1 && (
-          <Table
-            height="600px"
-            multiSelectable
-            fixedHeader
-            allRowsSelected={this.state.type === 'all'}
-            bodyStyle={{ tableLayout: 'auto', overflow: 'auto' }}
-            onRowSelection={this.selectTargets}
-          >
-            <TableHeader enableSelectAll displaySelectAll selectAllSelected >
-              <TableRow>
-                { isPrivate && <TableHeaderColumn>区服</TableHeaderColumn> }
-                { !isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
-                <TableHeaderColumn>服务器</TableHeaderColumn>
-                <TableHeaderColumn>端口</TableHeaderColumn>
-                <TableHeaderColumn>内网IP</TableHeaderColumn>
-                <TableHeaderColumn>外网IP</TableHeaderColumn>
-                { isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
-              </TableRow>
-            </TableHeader>
-            <TableBody
-              deselectOnClickaway={false}
-              multiSelectable ref={(node) => { this.tableBody = node; }}
-            >
-              {this.state.entitys.length > 0 && this.state.entitys.map((row) => (
-                <TableRow key={row.entity} selected={(this.state.type === 'all' || this.state.targets.indexOf(row.entity) >= 0) ? true : null}>
-                  { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.show_id)).join(',') }</TableRowColumn> }
-                  { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
-                  <TableRowColumn>{row.agent_id}</TableRowColumn>
-                  <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
-                  <TableRowColumn >{row.local_ip === null ? '离线' : row.local_ip }</TableRowColumn>
-                  <TableRowColumn >{row.external_ips === null ? '离线' : row.external_ips.join(',') }</TableRowColumn>
-                  { isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        {stepIndex === 1
+        && entitysTableTemplate(objtype, this.state.choices, this.state.type === 'all' ? 4 : 3, this.state.targets, this.selectTargets,
+          { tableLayout: 'auto' }, '700px')}
         {stepIndex >= 2 && (
           <div>
             {this.state.result ? (

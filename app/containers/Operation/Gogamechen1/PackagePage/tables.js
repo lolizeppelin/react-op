@@ -8,6 +8,8 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 
+import { getPlatform } from '../configs';
+
 
 function getVersionAlias(rversion, versions) {
   if (rversion === null) return '无引用';
@@ -23,25 +25,39 @@ function getGameVersions(gversion, pfiles) {
   return `${matchs[0].gversion}`;
 }
 
-function packagesTable(data, onSelect = null, selected = null, getResource = null, style = null) {
-  const selectable = onSelect !== null;
+
+function packagesTableTemplate(data, select, selected = null, onSelect = null,
+                               getResource = null, style = null, height = '800px') {
+  let enable = select ? select : 0;
+  if (enable === 0) {
+    if (onSelect) enable = 1;
+    if (selected && selected.length > 0) enable = 1;
+    if (selected && selected.length > 1) enable = 2;
+  }
+  let self = null;
   return (
     <Table
-      height="600px"
-      multiSelectable={false}
+      height={height}
+      multiSelectable={enable >= 2}
+      selectable={enable >= 1}
       fixedHeader={false}
-      selectable={selectable}
-      bodyStyle={{ overflow: 'auto' }}
+      allRowsSelected={enable >= 4}
       style={style}
-      onRowSelection={onSelect}
+      bodyStyle={{ overflow: 'auto' }}
+      onRowSelection={onSelect ?
+        (rows) => {
+          onSelect(rows);
+          self.setState({ selectedRows: rows });
+        }
+        : null}
     >
       <TableHeader
-        displaySelectAll={false}
-        adjustForCheckbox={selectable}
-        enableSelectAll={false}
+        enableSelectAll={enable >= 3}
+        displaySelectAll={enable >= 3}
       >
         <TableRow>
           <TableHeaderColumn>包名</TableHeaderColumn>
+          <TableHeaderColumn>平台类型</TableHeaderColumn>
           <TableHeaderColumn>资源类型</TableHeaderColumn>
           <TableHeaderColumn>资源名</TableHeaderColumn>
           <TableHeaderColumn>游戏资源默认版本</TableHeaderColumn>
@@ -51,13 +67,18 @@ function packagesTable(data, onSelect = null, selected = null, getResource = nul
           <TableHeaderColumn>资源ID</TableHeaderColumn>
         </TableRow>
       </TableHeader>
-      <TableBody deselectOnClickaway={false} displayRowCheckbox={selectable}>
+      <TableBody
+        deselectOnClickaway={false}
+        displayRowCheckbox={enable > 0}
+        ref={(node) => { self = node; }}
+      >
         {data.map((row) => (
           <TableRow
             key={row.package_id}
-            selected={(selected && row.package_id === selected.package_id) ? true : null}
+            selected={(selected && selected.indexOf(row.package_id) >= 0) ? true : null}
           >
             <TableRowColumn>{row.package_name}</TableRowColumn>
+            <TableRowColumn>{getPlatform(row.platform)}</TableRowColumn>
             <TableRowColumn>{getResource ? getResource(row.resource_id).etype : '需要查询'}</TableRowColumn>
             <TableRowColumn>{getResource ? getResource(row.resource_id).name : '需要查询'}</TableRowColumn>
             <TableRowColumn>{row.rversion ? row.rversion : '未指定'}</TableRowColumn>
@@ -70,6 +91,11 @@ function packagesTable(data, onSelect = null, selected = null, getResource = nul
       </TableBody>
     </Table>
   );
+}
+
+function packagesTable(data, onSelect = null, selected = null, getResource = null, style = null) {
+  return packagesTableTemplate(data, 1, selected ? [selected.package_id] : null, onSelect,
+    getResource, style, '600px');
 }
 
 function packageTable(data, getResource = null, style = null) {
@@ -104,6 +130,10 @@ function packageTable(data, getResource = null, style = null) {
         <TableRow >
           <TableRowColumn>包标记</TableRowColumn>
           <TableRowColumn>{data.mark}</TableRowColumn>
+        </TableRow>
+        <TableRow >
+          <TableRowColumn>平台类</TableRowColumn>
+          <TableRowColumn>{getPlatform(data.platform)}</TableRowColumn>
         </TableRow>
         <TableRow >
           <TableRowColumn>资源类型</TableRowColumn>
@@ -232,4 +262,5 @@ export {
   packageTable,
   pfilesTable,
   packageResourceTable,
+  packagesTableTemplate,
 };

@@ -88,15 +88,22 @@ async function notifyAddEntity(user, groupId, entity, callBack) {
   const objtype = entity.objtype;
   const errData = [];
   const areas = [];
+  let connection = 'offline';
 
   if (entity.areas) entity.areas.forEach((area) => areas.push(area.area_id));
+
+  if (entity.connection) {
+    connection = entity.connection;
+  } else if (entity.metadata) {
+    connection = entity.metadata.local_ip;
+  }
 
   const body = {
     entity: entity.entity,
     areas,
+    connection,
     opentime: entity.opentime ? entity.opentime : null,
     objtype: entity.objtype,
-    connection: entity.connection,
     ports: entity.ports,
     datadb: null,
     logdb: null,
@@ -231,7 +238,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
   /* 通知php后台删除 */
   await new Promise((resolve) => {
     const path = `${notifyPrepare('entity')}?group=${groupId}&entity=${entity.entity}&action=del`;
-    const options = { method: 'POST', credentials: 'same-origin' };
+    const options = { method: 'POST', credentials: 'same-origin', body: JSON.stringify({ objtype }) };
 
     const isFinish = finish(1, resolve);
     request(path, options)
@@ -282,6 +289,7 @@ function getReviews(successCallback, failCallback) {
     .then((result) => successCallback(result))
     .catch((error) => { failCallback(`获取提审服务器列表失败~~${error.message}`); });
 }
+
 
 export {
   BONDER,
