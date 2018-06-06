@@ -49,7 +49,6 @@ class PacakgesDialog extends React.Component {
   };
 
   render() {
-    console.log(this.state)
     const { selectPackages } = this.props;
     const IOS = goGameConfig.PLATFORMMAP[goGameConfig.IOS];
     const ANDROID = goGameConfig.PLATFORMMAP[goGameConfig.ANDROID];

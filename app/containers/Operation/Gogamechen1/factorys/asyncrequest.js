@@ -181,7 +181,8 @@ class AsyncRequest extends React.Component {
       platform = '';
     }
     if (stepIndex > 0) {
-      this.setState({ parameter, platform, stepIndex: stepIndex - 1 });
+      const choices = this.state.entitys;
+      this.setState({ type: 'specify', parameter, platform, choices, stepIndex: stepIndex - 1 });
     }
   };
   nextOK = () => {
@@ -224,7 +225,6 @@ class AsyncRequest extends React.Component {
     const { appStore, gameStore, objtype, action, paramTab } = this.props;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
-    // console.log(this.state)
 
     return (
       <div>
@@ -288,17 +288,32 @@ class AsyncRequest extends React.Component {
                   {isPrivate && stepIndex === 1 && (
                     <RaisedButton
                       style={{ marginLeft: '4%' }}
+                      primary
                       label="渠道筛选"
                       onClick={() => {
                         let targets = [];
                         const submit = {
                           title: '通过渠道筛选区服',
                           onSubmit: () => {
-                            this.setState({ submit: null });
+                            targets = new Set(targets);
+                            const choices = this.state.entitys.filter((entity) => {
+                              let include = false;
+                              entity.areas.every((area) => {
+                                if (area.packages.filter((p) => targets.has(p)).length > 0) {
+                                  include = true;
+                                  return false;
+                                }
+                                return true;
+                              });
+                              return include;
+                            });
+                            this.setState({ type: 'specify', targets: [], choices, submit: null });
                           },
                           data:
                             <PacakgesDialog
-                              selectPackages={(t) => targets = t}
+                              selectPackages={(t) => {
+                                targets = t;
+                              }}
                               gameStore={gameStore}
                               appStore={appStore}
                             />,
@@ -307,6 +322,17 @@ class AsyncRequest extends React.Component {
                           },
                         };
                         this.setState({ submit });
+                      }}
+                    />
+                  )}
+                  {isPrivate && stepIndex === 1 && (
+                    <RaisedButton
+                      style={{ marginLeft: '4%' }}
+                      primary
+                      label="还原列表"
+                      onClick={() => {
+                        const choices = this.state.entitys;
+                        this.setState({ choices, targets: [] });
                       }}
                     />
                   )}

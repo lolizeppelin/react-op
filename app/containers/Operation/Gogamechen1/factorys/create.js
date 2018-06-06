@@ -161,21 +161,7 @@ class CreateEntity extends React.Component {
   };
   handleIndexPackages = (result) => {
     this.props.handleLoadingClose(result.result);
-
-    const submit = {
-      title: '按照渠道筛选',
-      onSubmit: () => {
-        this.delete();
-        this.handleSumbitDialogs(null);
-      },
-      data: line,
-      onCancel: () => {
-        this.handleSumbitDialogs(null);
-      },
-    };
-
-
-    this.setState({ packages: result.data, submit });
+    this.setState({ packages: result.data, targets: [] });
   };
 
   selectFile = (rows) => {
