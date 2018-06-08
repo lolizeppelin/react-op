@@ -245,14 +245,15 @@ function resourceTable(data, style = null) {
   );
 }
 
-function resourceVersionsTable(data, onSelect = false, selected = null, desc = true, style = null) {
+function resourceVersionsTable(data, onSelect = false, selected = null, desc = true, style = null, height = '500px') {
   const selectable = onSelect !== null;
   return (
     <Table
-      height="400px"
+      height={height}
       multiSelectable={false}
       fixedHeader={false}
       selectable={selectable}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
       onRowSelection={onSelect}
     >

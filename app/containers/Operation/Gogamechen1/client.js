@@ -269,6 +269,24 @@ function upgradePackage(user, groupId, packageId, body, successCallback, failCal
     .catch((error) => { failCallback(error.message); });
 }
 
+function packageGroupResources(user, groupId, successCallback, failCallback) {
+  const path = urlPrepare('gresources', null, { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function packagesResourcesUpdates(user, groupId, resourceId,
+                                  rversion, packages, successCallback, failCallback) {
+  const path = urlPrepare('gresources', null, { group_id: groupId, resource_id: resourceId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'PUT', user.token, { packages, rversion })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
 function createPfile(user, packageId, body, successCallback, failCallback) {
   const path = urlPrepare('pfiles', null, { package_id: packageId });
   const url = `${baseurl}${path}`;
@@ -320,4 +338,6 @@ export {
   upgradePackage,
   createPfile,
   deletePfile,
+  packageGroupResources,
+  packagesResourcesUpdates,
 };

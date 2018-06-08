@@ -106,7 +106,7 @@ function resetResource(user, resourceId, body, successCallback, failCallback) {
 function upgradeResource(user, resourceId, body, successCallback, failCallback) {
   const path = urlPrepare('resources', 'upgrade', { resource_id: resourceId });
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, body)
+  return http(url, 'PUT', user.token, body)
     .then((result) => waitAsyncRequestFinish(user, result, false, successCallback, failCallback))
     .catch((error) => { failCallback(error.message); });
 }

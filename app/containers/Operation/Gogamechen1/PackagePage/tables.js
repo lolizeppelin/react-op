@@ -35,6 +35,7 @@ function packagesTableTemplate(data, select, selected = null, onSelect = null,
     if (selected && selected.length > 1) enable = 2;
   }
   let self = null;
+
   return (
     <Table
       height={height}
@@ -46,8 +47,8 @@ function packagesTableTemplate(data, select, selected = null, onSelect = null,
       bodyStyle={{ overflow: 'auto' }}
       onRowSelection={onSelect ?
         (rows) => {
-          onSelect(rows);
-          self.setState({ selectedRows: rows });
+          // onSelect(rows);
+          self.setState({ selectedRows: rows }, () => onSelect(rows));
         }
         : null}
     >

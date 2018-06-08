@@ -108,6 +108,11 @@ function urlPrepare(type, ext, target = null) {
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
+    case 'gresources': {
+      baseUrl = `/gogamechen1/group/${target.group_id}/resources`;
+      if (target.resource_id) baseUrl = `${baseUrl}/${target.resource_id}`;
+      break;
+    }
     default: {
       const error = new Error(`Gogamechen1 Not such url of ${type}`);
       error.target = target;

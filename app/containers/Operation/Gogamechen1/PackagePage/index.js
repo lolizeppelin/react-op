@@ -48,6 +48,7 @@ import * as notifyRequest from '../notify';
 import * as cdnRequest from '../../Gopcdn/client';
 import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
 import { SMALL_PACKAGE, FULL_PACKAGE, BASEPATH, PLATFORMS, PLATFORMMAP } from '../configs';
+import PackageBulkUpgrade from './bulk';
 // import { entitysTableTemplate } from '../factorys/tables';
 // {entitysTableTemplate(GAMESERVER, this.state.choices, this.state.type === 'all' ? 4 : 3,
 //   this.state.targets, this.selectTargets, { tableLayout: 'auto', width: 1200, marginTop: '2%' }, '650px')}
@@ -76,6 +77,8 @@ class PackageGogame extends React.Component {
     super(props);
 
     this.state = {
+      active: 0,
+
       // entitys: [],
       choices: [],
       // targets: [],
@@ -637,7 +640,6 @@ class PackageGogame extends React.Component {
     const { gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
-
     return (
       <PageBase title="包管理" navigation={`Gogamechen1 / ${ginfo} / 包管理`} minHeight={180} noWrapContent>
         <Dialog
@@ -665,8 +667,8 @@ class PackageGogame extends React.Component {
             </Link>
           </div>
         ) : (
-          <Tabs>
-            <Tab label="包列表" onActive={this.index}>
+          <Tabs value={this.state.active} onChange={(active) => this.setState({ active }) }>
+            <Tab label="包列表" onActive={this.index} value={0}>
               <div>
                 <div style={{ display: 'inline-block', marginTop: '0.5%' }}>
                   <FlatButton
@@ -750,7 +752,11 @@ class PackageGogame extends React.Component {
                 </div>
               ) }
             </Tab>
-            <Tab label="添加包" onActive={() => this.setState({ resource: null, choices: [], package: null, show: null })}>
+            <Tab
+              label="添加包"
+              onActive={() => this.setState({ resource: null, choices: [], package: null, show: null })}
+              value={1}
+            >
               <div style={{ float: 'left', maxWidth: this.state.resource ? '30%' : '90%' }}>
                 <div>
                   <FlatButton
@@ -846,7 +852,7 @@ class PackageGogame extends React.Component {
                 </div>
               )}
             </Tab>
-            <Tab label="添加包文件" onActive={this.claneParams}>
+            <Tab label="添加包文件" onActive={this.claneParams} value={2}>
               {this.state.paramOK
                 ? (
                   <UploadsFile
@@ -908,7 +914,7 @@ class PackageGogame extends React.Component {
                   </div>
                 )}
             </Tab>
-            <Tab label="包属性管理" onActive={this.reviews}>
+            <Tab label="包属性管理" onActive={this.reviews} value={3}>
               <div>
                 <div style={{ width: '70%', float: 'left' }}>
                   {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource,
@@ -983,8 +989,8 @@ class PackageGogame extends React.Component {
                 )}
               </div>
             </Tab>
-            <Tab label="包标记管理">
-              <div>功能未开放</div>
+            <Tab label="批量包管理" value={4}>
+              {this.state.active == 4 && <PackageBulkUpgrade handleLoading={this.handleLoading} handleLoadingClose={this.handleLoadingClose} /> }
             </Tab>
           </Tabs>
         )
