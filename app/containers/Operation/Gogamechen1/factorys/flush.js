@@ -28,8 +28,7 @@ class FlushConfigTab extends React.Component {
   }
 
   render() {
-    const { active, objtype } = this.props;
-    if (active !== 'flushconfig') return null;
+    const { objtype } = this.props;
     return (
       <AsyncRequest
         action="flushconfig"
@@ -47,7 +46,6 @@ class FlushConfigTab extends React.Component {
 }
 
 FlushConfigTab.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

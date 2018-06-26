@@ -22,8 +22,7 @@ class StopTab extends React.Component {
   }
 
   render() {
-    const { active, objtype } = this.props;
-    if (active !== 'stop') return null;
+    const { objtype } = this.props;
     return (
       <AsyncRequest
         action="stop"
@@ -39,7 +38,6 @@ class StopTab extends React.Component {
 }
 
 StopTab.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

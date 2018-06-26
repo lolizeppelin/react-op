@@ -15,8 +15,6 @@ class StatusTab extends React.Component {
   }
 
   render() {
-    const { active } = this.props;
-    if (active !== 'status') return null;
     return (
       <AsyncRequest
         action="status"
@@ -31,7 +29,6 @@ class StatusTab extends React.Component {
 }
 
 StatusTab.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

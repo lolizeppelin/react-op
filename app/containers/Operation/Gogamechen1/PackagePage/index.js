@@ -141,9 +141,11 @@ class PackageGogame extends React.Component {
   };
   /* action */
   notify = () => {
-    const { appStore } = this.props;
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
     notifyRequest.notifyPackages(appStore.user,
-      (msg) => this.setState({ showSnackbar: true, snackbarMessage: msg }));
+      (msg1) => notifyRequest.notifyAreas(appStore.user, group.group_id,
+        (msg2) => this.setState({ showSnackbar: true, snackbarMessage: `package:${msg1}  areas:${msg2}` })));
   };
   reviews = () => {
     this.handleLoading();
@@ -667,7 +669,7 @@ class PackageGogame extends React.Component {
             </Link>
           </div>
         ) : (
-          <Tabs value={this.state.active} onChange={(active) => this.setState({ active }) }>
+          <Tabs value={this.state.active} onChange={(active) => this.setState({ active })}>
             <Tab label="包列表" onActive={this.index} value={0}>
               <div>
                 <div style={{ display: 'inline-block', marginTop: '0.5%' }}>

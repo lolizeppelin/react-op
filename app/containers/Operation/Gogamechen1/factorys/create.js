@@ -71,8 +71,8 @@ class CreateEntity extends React.Component {
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
   }
 
-  componentWillReceiveProps(nextProps) {
-    if ((this.props.active !== nextProps.active) && nextProps.active === 'create' && this.state.objfiles.length === 0) this.indexObjfiles();
+  componentDidMount() {
+    this.indexObjfiles();
   }
 
   indexObjfiles = () => {
@@ -304,8 +304,7 @@ class CreateEntity extends React.Component {
   };
 
   render() {
-    const { objtype, active } = this.props;
-    if (active !== 'create') return null;
+    const { objtype } = this.props;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
 
@@ -714,7 +713,6 @@ class CreateEntity extends React.Component {
 
 
 CreateEntity.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

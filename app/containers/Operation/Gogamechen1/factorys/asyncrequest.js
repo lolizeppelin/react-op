@@ -79,6 +79,9 @@ const ACTIONSMAP = {
   flushconfig: {
     name: '配置刷新',
     method: 'PUT' },
+  hotfix: {
+    name: '热更程序',
+    method: 'POST' },
 };
 
 const PARAMETERBASE = Object.assign({}, BASEPARAMETER);

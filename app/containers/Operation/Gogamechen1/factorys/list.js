@@ -64,10 +64,6 @@ class IndexEntitys extends React.Component {
     this.index();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if ((this.props.active !== nextProps.active) && nextProps.active === 'list') this.index();
-  }
-
 
   handleRequestError = (error) => {
     this.setState({ clean: DEFAULTCLEANACTION, opentime: OPENTIMEDEFAULT });
@@ -494,7 +490,6 @@ class IndexEntitys extends React.Component {
 
 
 IndexEntitys.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

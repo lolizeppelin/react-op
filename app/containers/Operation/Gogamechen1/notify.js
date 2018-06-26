@@ -227,7 +227,7 @@ async function notifyAddEntity(user, groupId, entity, callBack) {
     await sleep(3000);
   }
   /* areas通知 */
-  return notifyAreas(user, groupId, callBack);
+  return notifyAreas(user, groupId, () => notifyPackages(user, callBack));
 }
 
 async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
@@ -279,7 +279,7 @@ async function notifyDeleteEntity(user, groupId, objtype, entity, callBack) {
     await sleep(3000);
   }
   /* areas通知 */
-  return notifyAreas(user, groupId, callBack);
+  return notifyAreas(user, groupId, () => notifyPackages(user, callBack));
 }
 
 function getReviews(successCallback, failCallback) {

@@ -15,8 +15,6 @@ class StartTab extends React.Component {
   }
 
   render() {
-    const { active } = this.props;
-    if (active !== 'start') return null;
     return (
       <AsyncRequest
         action="start"
@@ -31,7 +29,6 @@ class StartTab extends React.Component {
 }
 
 StartTab.propTypes = {
-  active: PropTypes.string,
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,

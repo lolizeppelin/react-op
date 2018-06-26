@@ -5,15 +5,15 @@ import PropTypes from 'prop-types';
 
 /* 私人代码引用部分 */
 import AsyncRequest from './asyncrequest';
-import UpgradeParameter from './parameter/upgrade';
+import HotfixParameter from './parameter/hotfix';
 import * as goGameRequest from '../client';
 
-function upgradeParamer(objtype, objfiles, handleParameter) {
-  return <UpgradeParameter handleParameter={handleParameter} objtype={objtype} objfiles={objfiles} />;
+function hotfixParamer(objtype, objfiles, handleParameter) {
+  return <HotfixParameter handleParameter={handleParameter} objtype={objtype} objfiles={objfiles} />;
 }
 
 
-class UpgradeTab extends React.Component {
+class HotfixTab extends React.Component {
 
   constructor(props) {
     super(props);
@@ -51,19 +51,19 @@ class UpgradeTab extends React.Component {
 
     return (
       <AsyncRequest
-        action="upgrade"
+        action="hotfix"
         objtype={this.props.objtype}
         gameStore={this.props.gameStore}
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={(handle) => upgradeParamer(objtype, objfiles, handle)}
+        paramTab={(handle) => hotfixParamer(objtype, objfiles, handle)}
       />
     );
   }
 }
 
-UpgradeTab.propTypes = {
+HotfixTab.propTypes = {
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,
@@ -71,4 +71,4 @@ UpgradeTab.propTypes = {
   handleLoadingClose: PropTypes.func,
 };
 
-export default UpgradeTab;
+export default HotfixTab;

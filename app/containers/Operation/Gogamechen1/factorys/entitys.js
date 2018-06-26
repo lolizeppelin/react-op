@@ -26,8 +26,9 @@ import StartTab from './start';
 import StopTab from './stop';
 import UpgradeTab from './upgrade';
 import FlushConfigTab from './flush';
+import HotfixTab from './hotfix';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import { BASEPATH } from '../configs';
+import { BASEPATH, GAMESERVER } from '../configs';
 
 /* gogamechen1 程序主页面 */
 class EntitysPage extends React.Component {
@@ -35,7 +36,7 @@ class EntitysPage extends React.Component {
     super(props);
 
     this.state = {
-      active: 'list',
+      active: 0,
       submit: null,
       loading: false,
       showSnackbar: false,
@@ -73,6 +74,7 @@ class EntitysPage extends React.Component {
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID: ${group.group_id}  组名: ${group.name}`;
     const submit = this.state.submit;
+    const isPrivate = objtype === GAMESERVER;
     return (
       <PageBase
         title="区服"
@@ -105,105 +107,134 @@ class EntitysPage extends React.Component {
               open={submit !== null}
               payload={submit}
             />
-            <Tabs>
+            <Tabs
+              value={this.state.active}
+              onChange={(active) => this.setState({ active })}
+            >
               <Tab
                 label={`${objtype} 列表`}
-                onActive={() => this.setState({ active: 'list' })}
+                value={0}
               >
-                <IndexEntitys
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                {this.state.active === 0 && (
+                  <IndexEntitys
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
               </Tab>
               <Tab
                 label={`创建 ${objtype}`}
-                onActive={() => this.setState({ active: 'create' })}
+                value={1}
               >
-                <CreateEntity
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 1 && (
+                  <CreateEntity
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
               </Tab>
               <Tab
                 label={`状态查询 ${objtype}`}
-                onActive={() => this.setState({ active: 'status' })}
+                value={2}
               >
-                <StatusTab
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 2 && (
+                  <StatusTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
               </Tab>
               <Tab
                 label={`启动 ${objtype}`}
-                onActive={() => this.setState({ active: 'start' })}
+                value={3}
               >
-                <StartTab
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 3 && (
+                  <StartTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
+
               </Tab>
               <Tab
                 label={`关闭 ${objtype}`}
-                onActive={() => this.setState({ active: 'stop' })}
+                value={4}
               >
-                <StopTab
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 4 && (
+                  <StopTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+
+                )}
               </Tab>
               <Tab
                 label={`更新升级 ${objtype}`}
-                onActive={() => this.setState({ active: 'upgrade' })}
+                value={5}
               >
-                <UpgradeTab
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 5 && (
+                  <UpgradeTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
               </Tab>
               <Tab
                 label={`配置刷新 ${objtype}`}
-                onActive={() => this.setState({ active: 'flushconfig' })}
+                value={6}
               >
-                <FlushConfigTab
-                  active={this.state.active}
-                  objtype={objtype}
-                  gameStore={this.props.gameStore}
-                  appStore={this.props.appStore}
-                  handleLoadingClose={this.handleLoadingClose}
-                  handleLoading={this.handleLoading}
-                  handleSumbitDialogs={this.handleSumbitDialogs}
-                />
+                { this.state.active === 6 && (
+                  <FlushConfigTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
               </Tab>
+              { isPrivate && (
+                <Tab
+                  label={`热更后台 ${objtype}`}
+                  value={7}
+                >
+                  { this.state.active === 7 && (
+                    <HotfixTab
+                      objtype={objtype}
+                      gameStore={this.props.gameStore}
+                      appStore={this.props.appStore}
+                      handleLoadingClose={this.handleLoadingClose}
+                      handleLoading={this.handleLoading}
+                      handleSumbitDialogs={this.handleSumbitDialogs}
+                    />
+                  )}
+                </Tab>
+              ) }
             </Tabs>
             <Snackbar
               open={this.state.showSnackbar}
