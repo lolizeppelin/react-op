@@ -48,7 +48,8 @@ import * as notifyRequest from '../notify';
 import * as cdnRequest from '../../Gopcdn/client';
 import { packagesTable, packageTable, pfilesTable, packageResourceTable } from './tables';
 import { SMALL_PACKAGE, FULL_PACKAGE, BASEPATH, PLATFORMS, PLATFORMMAP } from '../configs';
-import PackageBulkUpgrade from './bulk';
+import PackageBulkUpgrade from './bulk/packages';
+import GversionsBulkUpdate from './bulk/gversions';
 // import { entitysTableTemplate } from '../factorys/tables';
 // {entitysTableTemplate(GAMESERVER, this.state.choices, this.state.type === 'all' ? 4 : 3,
 //   this.state.targets, this.selectTargets, { tableLayout: 'auto', width: 1200, marginTop: '2%' }, '650px')}
@@ -368,30 +369,11 @@ class PackageGogame extends React.Component {
       this.setState({ version });
     }
   };
-  // selectTargets = (rows) => {
-  //   if (rows === 'all') {
-  //     const targets = [];
-  //     this.state.choices.forEach((entity) => targets.push(entity.entity));
-  //     this.setState({ type: 'all', targets });
-  //   } else if (rows === 'none') {
-  //     this.setState({ type: 'specify', targets: [] });
-  //   } else if (rows.length === 0) {
-  //     this.setState({ type: 'specify', targets: [] });
-  //   } else {
-  //     const targets = [];
-  //     rows.forEach((index) => targets.push(this.state.choices[index].entity));
-  //     this.setState({ type: 'specify', targets });
-  //     if (this.state.type === 'all') {
-  //       this.setState({ type: 'specify', targets });
-  //     } else {
-  //       this.setState({ type: 'specify', targets });
-  //     }
-  //   }
-  // };
+
   selectPlatform = (platform) => {
     const platformId = PLATFORMMAP[platform];
     const choices = this.state.packages.filter((p) => p.platform & platformId);
-    this.setState({ choices })
+    this.setState({ choices });
   };
 
   closeShow = () => {
@@ -639,7 +621,7 @@ class PackageGogame extends React.Component {
 
   render() {
     const submit = this.state.submit;
-    const { gameStore } = this.props;
+    const { appStore, gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID:${group.group_id}  组名:${group.name}`;
     return (
@@ -854,7 +836,17 @@ class PackageGogame extends React.Component {
                 </div>
               )}
             </Tab>
-            <Tab label="添加包文件" onActive={this.claneParams} value={2}>
+            <Tab label="批量玩家版本号管理" onActive={this.claneParams} value={2}>
+              {this.state.active === 2 &&
+              <GversionsBulkUpdate
+                packages={this.state.packages}
+                appStore={appStore}
+                gameStore={gameStore}
+                handleLoading={this.handleLoading}
+                handleLoadingClose={this.handleLoadingClose}
+              /> }
+            </Tab>
+            <Tab label="添加包文件" onActive={this.claneParams} value={3}>
               {this.state.paramOK
                 ? (
                   <UploadsFile
@@ -916,7 +908,7 @@ class PackageGogame extends React.Component {
                   </div>
                 )}
             </Tab>
-            <Tab label="包属性管理" onActive={this.reviews} value={3}>
+            <Tab label="包属性管理" onActive={this.reviews} value={4}>
               <div>
                 <div style={{ width: '70%', float: 'left' }}>
                   {packagesTable(this.state.packages, this.selectPackage, this.state.package, this.presource,
@@ -991,8 +983,8 @@ class PackageGogame extends React.Component {
                 )}
               </div>
             </Tab>
-            <Tab label="批量包管理" value={4}>
-              {this.state.active == 4 && <PackageBulkUpgrade handleLoading={this.handleLoading} handleLoadingClose={this.handleLoadingClose} /> }
+            <Tab label="批量包管理" value={5}>
+              {this.state.active === 5 && <PackageBulkUpgrade handleLoading={this.handleLoading} handleLoadingClose={this.handleLoadingClose} /> }
             </Tab>
           </Tabs>
         )

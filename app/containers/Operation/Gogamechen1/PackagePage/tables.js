@@ -106,6 +106,7 @@ function packageTable(data, getResource = null, style = null) {
       multiSelectable={false}
       fixedHeader={false}
       selectable={false}
+      bodyStyle={{ overflow: 'auto' }}
       style={style}
     >
       <TableHeader

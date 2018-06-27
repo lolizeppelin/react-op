@@ -9,23 +9,23 @@ import FontIcon from 'material-ui/FontIcon';
 import FlatButton from 'material-ui/FlatButton';
 
 /* ui框架引用部分  */
-import { makeSelectGlobal } from '../../../App/selectors';
+import { makeSelectGlobal } from '../../../../App/selectors';
 
 /* 私人代码引用部分 */
-import makeSelectGogamechen1 from '../GroupPage/selectors';
-import { SubmitDialogs } from '../../factorys/dialogs';
-import { DEFAULTUPGRADE, UpgradeDialog } from '../../Gopcdn/factorys/upgrade';
+import makeSelectGogamechen1 from '../../GroupPage/selectors';
+import { SubmitDialogs } from '../../../factorys/dialogs';
+import { DEFAULTUPGRADE, UpgradeDialog } from '../../../Gopcdn/factorys/upgrade';
 import {
   resourcesTable,
   resourceVersionsTable,
-} from '../../Gopcdn/factorys/tables';
-import * as goGameRequest from '../client';
-import * as gopCdnRequest from '../../Gopcdn/client';
-import { packagesTableTemplate } from './tables';
-import { requestBodyBase } from '../../Goperation/utils/async';
-import { ENDPOINTNAME } from '../configs';
-import AsyncResponses from '../../Goperation/AsyncRequest/factorys/showResult';
-import * as notifyRequest from '../notify';
+} from '../../../Gopcdn/factorys/tables';
+import * as goGameRequest from '../../client';
+import * as gopCdnRequest from '../../../Gopcdn/client';
+import { packagesTableTemplate } from '../tables';
+import { requestBodyBase } from '../../../Goperation/utils/async';
+import { ENDPOINTNAME } from '../../configs';
+import AsyncResponses from '../../../Goperation/AsyncRequest/factorys/showResult';
+import * as notifyRequest from '../../notify';
 
 
 class PackageBulkUpgrade extends React.Component {
