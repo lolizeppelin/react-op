@@ -37,9 +37,30 @@ function showAsyncRequest(user, requestId, details, successCallback, failCallbac
     .catch((error) => { failCallback(error.message); });
 }
 
+
+function entitysLogs(user, endpoint, entity, logpath, successCallback, failCallback) {
+  const path = urlPrepare('entity', 'logs', { endpoint, entity });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token, { path: logpath })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function entitysReadLog(user, endpoint, entity, logpath, lines, successCallback, failCallback) {
+  const path = urlPrepare('entity', 'readlog', { endpoint, entity });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token, { lines, path: logpath })
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
 export {
   indexAgents,
   showAgent,
   showFile,
   showAsyncRequest,
+  entitysLogs,
+  entitysReadLog,
 };

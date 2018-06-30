@@ -23,6 +23,7 @@ import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as agentRequest from '../../Goperation/client';
+import LogReaderDialog from '../../Goperation/ServerAgent/factorys/logs';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { entitysTable } from './tables';
 import PackageVersion from './rversion';
@@ -214,7 +215,7 @@ class IndexEntitys extends React.Component {
     this.index();
   };
   openDialog = (event) => {
-    const { handleSumbitDialogs, objtype } = this.props;
+    const { handleSumbitDialogs, objtype, appStore } = this.props;
     const action = event.currentTarget.value;
     if (action === 'delete') {
       let target = `实体ID:${this.state.target.entity}`;
@@ -317,6 +318,25 @@ class IndexEntitys extends React.Component {
         onCancel: () => handleSumbitDialogs(null),
       };
       handleSumbitDialogs(submit);
+    } else if (action === 'logs') {
+      let dialog = null;
+      const submit = {
+        title: '日志查询',
+        data: <LogReaderDialog
+          entity={this.state.target.entity}
+          endpoint={goGameConfig.ENDPOINTNAME}
+          appStore={appStore}
+          ref={(node) => { dialog = node; }}
+        />,
+        onCancel: () => {
+          if (dialog !== null) {
+            dialog.shutdown();
+            dialog = null;
+          }
+          handleSumbitDialogs(null);
+        },
+      };
+      handleSumbitDialogs(submit);
     }
   };
 
@@ -390,6 +410,13 @@ class IndexEntitys extends React.Component {
               disabled={this.state.target === null || this.state.filter !== goGameConfig.DELETED}
               onClick={this.openDialog}
               icon={<FontIcon className="material-icons">clear</FontIcon>}
+            />
+            <FlatButton
+              label="查看日志"
+              value="logs"
+              disabled={this.state.target === null}
+              onClick={this.openDialog}
+              icon={<FontIcon className="material-icons">insert_comment</FontIcon>}
             />
             { isPrivate &&
             <FlatButton

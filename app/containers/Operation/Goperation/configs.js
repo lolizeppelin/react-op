@@ -37,6 +37,17 @@ function urlPrepare(type, ext = null, target = null) {
       }
       break;
     }
+    case 'entitys': {
+      baseUrl = `/agent/${target.agent_id}/endpoint/${target.endpoint}`;
+      if (target.entity) baseUrl = `${baseUrl}/${target.entity}`;
+      if (ext) baseUrl = `${baseUrl}/${ext}`;
+      break;
+    }
+    case 'entity': {
+      baseUrl = `/endpoint/${target.endpoint}/entitys/${target.entity}`;
+      if (ext) baseUrl = `${baseUrl}/${ext}`;
+      break;
+    }
     default: {
       const error = new Error(`Goperation Not such url of ${type}`);
       error.target = target;
