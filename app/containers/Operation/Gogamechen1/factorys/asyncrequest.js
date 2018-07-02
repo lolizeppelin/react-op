@@ -42,9 +42,6 @@ import BASEPARAMETER from './parameter';
 import { entitysTableTemplate } from './tables';
 import { SubmitDialogs } from '../../factorys/dialogs';
 import PacakgesDialog  from './parameter/package'
-import {DEFAULTUPGRADE} from "../../Gopcdn/factorys/upgrade";
-import {makeSelectGlobal} from "../../../App/selectors";
-import makeSelectGogamechen1 from "../GroupPage/selectors";
 
 
 const contentStyle = { margin: '0 16px' };
@@ -57,6 +54,10 @@ function resultFormat(action, objtype) {
     const resultcode = detail.resultcode;
     if (Object.keys(details).length !== 3) return { style, result: `entity: ${entity} 结果码: ${resultcode} 请求结果: ${detail.result}` };
     const pid = details[1];
+    if (resultcode === 0) {
+      if (pid === 'N/A') style.background = '#ffd10d';
+      else style.background = '#18ff0e';
+    }  else style.background = '#ff0000';
     const result = details[2];
     const areas = (objtype === goGameConfig.GAMESERVER) ? `区服: [${details[0]}]` : '';
     return { style, result: `实体:${entity} ${areas} PID: ${pid} 结果码:${resultcode} ${result}` };

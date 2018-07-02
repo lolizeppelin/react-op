@@ -69,7 +69,7 @@ class LogReaderDialog extends React.Component {
         this.reader = new FileReader();
         this.reader.onload = () => {
           const buffers = this.state.buffers + this.reader.result;
-          this.setState({ buffers: buffers.slice(-5000) });
+          this.setState({ buffers: buffers.slice(-8000) });
         };
         this.setState({ buffers: '', loading: false, uri });
       },
@@ -125,8 +125,9 @@ class LogReaderDialog extends React.Component {
       (result) => {
         if (result.resultcode !== 0) this.setState({ loading: false, errmsg: result.result });
         else {
+          console.log(result);
           const dirs = result.data[0].dirs;
-          dirs.splice(0, 0, '..');
+          dirs.unshift('..');
           this.setState({ loading: false, files: result.data[0].files, dirs });
         }
       },
