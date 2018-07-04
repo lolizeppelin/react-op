@@ -46,6 +46,7 @@ const OPENTIMEDEFAULT = { date: null, time: null };
 
 const DEFAULTCLEANACTION = 'delete';
 
+
 class IndexEntitys extends React.Component {
   constructor(props) {
     super(props);
@@ -211,133 +212,142 @@ class IndexEntitys extends React.Component {
     this.index();
   };
   handleQuote = (result) => {
+    this.notify();
     this.props.handleLoadingClose(result.result);
     this.index();
   };
   openDialog = (event) => {
     const { handleSumbitDialogs, objtype, appStore } = this.props;
     const action = event.currentTarget.value;
-    if (action === 'delete') {
-      let target = `实体ID:${this.state.target.entity}`;
-      if (objtype === goGameConfig.GAMESERVER && this.state.target.areas.length > 0) {
-        const area = this.state.target.areas[0];
-        target = `${target} 区服ID:${area.area_id} 区服名:${area.areaname}`;
+    let submit = null;
+    switch (action) {
+      case 'delete': {
+        let target = `实体ID:${this.state.target.entity}`;
+        if (objtype === goGameConfig.GAMESERVER && this.state.target.areas.length > 0) {
+          const area = this.state.target.areas[0];
+          target = `${target} 区服ID:${area.area_id} 区服名:${area.areaname}`;
+        }
+        submit = {
+          title: '确认删除',
+          onSubmit: this.delete,
+          data: `删除目标: ${objtype}  ${target}`,
+          onCancel: () => {
+            handleSumbitDialogs(null);
+          },
+        };
+        break;
       }
-      const submit = {
-        title: '确认删除',
-        onSubmit: this.delete,
-        data: `删除目标: ${objtype}  ${target}`,
-        onCancel: () => {
-          handleSumbitDialogs(null);
-        },
-      };
-      handleSumbitDialogs(submit);
-    } else if (action === 'clean') {
-      const submit = {
-        title: '清理删除确认',
-        onSubmit: this.clean,
-        data: (
-          <div style={{ marginLeft: '10%' }}>
-            <RadioButtonGroup
-              name="delete-database"
-              valueSelected={this.state.clean}
-              onChange={(ev, value) => { this.setState({ clean: value }); }}
-            >
-              <RadioButton
-                style={{ marginTop: '1%' }}
-                labelStyle={{ color: '#1935f4' }}
-                value="delete"
-                label="删除数据库(不可恢复)"
+      case 'clean': {
+        submit = {
+          title: '清理删除确认',
+          onSubmit: this.clean,
+          data: (
+            <div style={{ marginLeft: '10%' }}>
+              <RadioButtonGroup
+                name="delete-database"
+                valueSelected={this.state.clean}
+                onChange={(ev, value) => { this.setState({ clean: value }); }}
+              >
+                <RadioButton
+                  style={{ marginTop: '1%' }}
+                  labelStyle={{ color: '#1935f4' }}
+                  value="delete"
+                  label="删除数据库(不可恢复)"
+                />
+                <RadioButton
+                  style={{ marginTop: '1%' }}
+                  labelStyle={{ color: '#F44336' }}
+                  value="force"
+                  label="强制删除数据库(不可恢复,忽略错误)"
+                />
+                <RadioButton
+                  style={{ marginTop: '1%' }}
+                  value="unquote"
+                  labelStyle={{ color: '#4CAF50' }}
+                  label="解除数据库引用"
+                />
+              </RadioButtonGroup>
+            </div>
+          ),
+          onCancel: () => {
+            this.setState({ clean: DEFAULTCLEANACTION });
+            handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'opentime': {
+        submit = {
+          title: '修改开服时间',
+          onSubmit: this.opentime,
+          data: (
+            <div style={{ marginLeft: '10%' }}>
+              <DatePicker
+                hintText="开服日期" style={{ float: 'left' }}
+                onChange={(none, datetime) => {
+                  const h = datetime.getHours();
+                  const m = datetime.getMinutes();
+                  const opentime = Object.assign({}, this.state.opentime);
+                  opentime.date = datetime.getTime() - ((h * 3600 * 1000) + (m * 60 * 1000));
+                  this.setState({ opentime });
+                }}
               />
-              <RadioButton
-                style={{ marginTop: '1%' }}
-                labelStyle={{ color: '#F44336' }}
-                value="force"
-                label="强制删除数据库(不可恢复,忽略错误)"
-              />
-              <RadioButton
-                style={{ marginTop: '1%' }}
-                value="unquote"
-                labelStyle={{ color: '#4CAF50' }}
-                label="解除数据库引用"
-              />
-            </RadioButtonGroup>
-          </div>
-        ),
-        onCancel: () => {
-          this.setState({ clean: DEFAULTCLEANACTION });
-          handleSumbitDialogs(null);
-        },
-      };
-      handleSumbitDialogs(submit);
-    } else if (action === 'opentime') {
-      const submit = {
-        title: '修改开服时间',
-        onSubmit: this.opentime,
-        // diableSubmit: !(this.state.opentime.date && this.state.opentime.time),
-        data: (
-          <div style={{ marginLeft: '10%' }}>
-            <DatePicker
-              hintText="开服日期" style={{ float: 'left' }}
-              onChange={(none, datetime) => {
-                const h = datetime.getHours();
-                const m = datetime.getMinutes();
-                const opentime = Object.assign({}, this.state.opentime);
-                opentime.date = datetime.getTime() - ((h * 3600 * 1000) + (m * 60 * 1000));
-                this.setState({ opentime });
-              }}
-            />
-            <TimePicker
-              hintText="具体时间"
-              style={{ marginLeft: '5%', float: 'left' }}
-              format="24hr" minutesStep={10}
-              onChange={(none, datetime) => {
-                const h = datetime.getHours();
-                const m = datetime.getMinutes();
-                const opentime = Object.assign({}, this.state.opentime);
-                opentime.time = (h * 3600 * 1000) + (m * 60 * 1000);
-                this.setState({ opentime });
-              }}
+              <TimePicker
+                hintText="具体时间"
+                style={{ marginLeft: '5%', float: 'left' }}
+                format="24hr" minutesStep={10}
+                onChange={(none, datetime) => {
+                  const h = datetime.getHours();
+                  const m = datetime.getMinutes();
+                  const opentime = Object.assign({}, this.state.opentime);
+                  opentime.time = (h * 3600 * 1000) + (m * 60 * 1000);
+                  this.setState({ opentime });
+                }}
 
-            />
-          </div>
-        ),
-        onCancel: () => {
-          this.setState({ opentime: OPENTIMEDEFAULT });
-          handleSumbitDialogs(null);
-        },
-      };
-      handleSumbitDialogs(submit);
-    } else if (action === 'rversion') {
-      let packageId = null;
-      let version = null;
-      const submit = {
-        title: '指定包资源版本',
-        onSubmit: () => packageId && this.quote(packageId, version),
-        data: <PackageVersion entity={this.state.target} addVersion={(p, v) => { packageId = p; version = v; }} />,
-        onCancel: () => handleSumbitDialogs(null),
-      };
-      handleSumbitDialogs(submit);
-    } else if (action === 'logs') {
-      let dialog = null;
-      const submit = {
-        title: '日志查询',
-        data: <LogReaderDialog
-          entity={this.state.target.entity}
-          endpoint={goGameConfig.ENDPOINTNAME}
-          appStore={appStore}
-          ref={(node) => { dialog = node; }}
-        />,
-        onCancel: () => {
-          if (dialog !== null) {
-            dialog.shutdown();
-            dialog = null;
-          }
-          handleSumbitDialogs(null);
-        },
-      };
-      handleSumbitDialogs(submit);
+              />
+            </div>
+          ),
+          onCancel: () => {
+            this.setState({ opentime: OPENTIMEDEFAULT });
+            handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      case 'rversion': {
+        let packageId = null;
+        let version = null;
+        submit = {
+          title: '指定包资源版本',
+          onSubmit: () => packageId && this.quote(packageId, version),
+          data: <PackageVersion entity={this.state.target} addVersion={(p, v) => { packageId = p; version = v; }} />,
+          onCancel: () => handleSumbitDialogs(null),
+        };
+        break;
+      }
+      case 'logs': {
+        let dialog = null;
+        submit = {
+          title: '日志查询',
+          data: <LogReaderDialog
+            entity={this.state.target.entity}
+            endpoint={goGameConfig.ENDPOINTNAME}
+            appStore={appStore}
+            ref={(node) => { dialog = node; }}
+          />,
+          onCancel: () => {
+            if (dialog !== null) {
+              dialog.shutdown();
+              dialog = null;
+            }
+            handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
+      default: break;
     }
+    handleSumbitDialogs(submit);
   };
 
   notify = (entity = null) => {

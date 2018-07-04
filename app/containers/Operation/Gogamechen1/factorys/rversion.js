@@ -34,15 +34,14 @@ class PackageVersion extends React.Component {
       package: null,
       versions: this.oldVersons(),
     };
-
   }
 
 
   componentWillMount() {
     const { appStore, entity } = this.props;
     allPackages(appStore.user,
-      (result) => this.setState({packages: result.data.filter((p) => p.group_id === entity.group_id), loading: false}),
-      () => this.setState({loading: false}));
+      (result) => this.setState({ packages: result.data.filter((p) => p.group_id === entity.group_id), loading: false }),
+      () => this.setState({ loading: false }));
   }
 
   oldVersons = () => {
@@ -50,8 +49,8 @@ class PackageVersion extends React.Component {
     const versions = {};
     if (entity.versions) {
       this.versions = {};
-      Object.keys(entity.versions).map((strPackageId) => {
-        versions[[strPackageId]] = { version: entity.versions[[strPackageId]].version}
+      Object.keys(entity.versions).forEach((strPackageId) => {
+        versions[[strPackageId]] = { version: entity.versions[[strPackageId]].version };
       });
     }
     return versions;
@@ -60,7 +59,6 @@ class PackageVersion extends React.Component {
   isVersonSelected = (row) => {
     const quotePakcage = this.state.versions[`${this.state.package.package_id}`];
     return (quotePakcage) && quotePakcage.version === row.version;
-
   };
 
 
@@ -70,8 +68,7 @@ class PackageVersion extends React.Component {
     if (rows.length === 0) {
       this.setState({ package: null, versions });
       addVersion(null, null);
-    }
-    else {
+    } else {
       const index = rows[0];
       const p = this.state.packages[index];
       this.setState({ package: p, versions });
@@ -85,8 +82,7 @@ class PackageVersion extends React.Component {
       versions[`${this.state.package.package_id}`] = { version: null };
       this.setState({ versions });
       addVersion(this.state.package.package_id, null);
-    }
-    else {
+    } else {
       const index = rows[0];
       const version = this.state.package.resource.versions[index];
       versions[`${this.state.package.package_id}`] = { version: version.version };
