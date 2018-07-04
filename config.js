@@ -10,6 +10,7 @@ const NOTIFY = {
   groups: '/notify_areagroups.php',
   entity: 'http://172.23.0.131/notify_entity.php',
   reviews: 'http://172.23.0.131/get_reviewservers.php',
+  phpadmin: '',
 };
 
 /* 后台API */

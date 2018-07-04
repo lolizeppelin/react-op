@@ -23,11 +23,14 @@ import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import * as goGameRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as agentRequest from '../../Goperation/client';
+import * as gopdbRequest from '../../Gopdb/client';
 import LogReaderDialog from '../../Goperation/ServerAgent/factorys/logs';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { entitysTable } from './tables';
 import PackageVersion from './rversion';
 import * as goGameConfig from '../configs';
+
+const PHPADMIN = goGameConfig.notifyPrepare('phpadmin');
 
 
 const styles = {
@@ -175,6 +178,14 @@ class IndexEntitys extends React.Component {
       agentRequest.showAgent(user, this.state.target.agent_id, false, false, this.handleAgent, this.handleRequestError);
     }
   };
+  phpadmin = (databaseId, schema, slave = false) => {
+    if (PHPADMIN) {
+      this.props.handleLoading();
+      const { appStore } = this.props;
+      const user = appStore.user;
+      gopdbRequest.phpadmin(user, databaseId, schema, slave, this.handlePhpadmin, this.handleRequestError);
+    } else this.props.handleLoadingClose('未配置phpadmin连接');
+  };
   handleAgent = (result) => {
     this.props.handleLoadingClose(result.result);
     this.setState({ agent: result.data[0], entity: null });
@@ -215,6 +226,15 @@ class IndexEntitys extends React.Component {
     this.notify();
     this.props.handleLoadingClose(result.result);
     this.index();
+  };
+  handlePhpadmin = (result) => {
+    const key = result.data[0];
+    const win = window.open(`http://www.baidu.com/${key}`);
+    if (win === null) this.props.handleLoadingClose('新窗口打开被阻止');
+    else {
+      win.focus();
+      this.props.handleLoadingClose(result.result);
+    }
   };
   openDialog = (event) => {
     const { handleSumbitDialogs, objtype, appStore } = this.props;
@@ -471,6 +491,8 @@ class IndexEntitys extends React.Component {
                   <TableHeaderColumn style={styles.wan}>读用户</TableHeaderColumn>
                   <TableHeaderColumn style={styles.lan}>密码</TableHeaderColumn>
                   <TableHeaderColumn style={styles.dbname}>库名</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.dbtype}>从库</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.dbtype}>主库</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
               <TableBody displayRowCheckbox={false}>
@@ -483,6 +505,20 @@ class IndexEntitys extends React.Component {
                     <TableRowColumn>{row.ro_user}</TableRowColumn>
                     <TableRowColumn>{row.ro_passwd}</TableRowColumn>
                     <TableRowColumn>{row.schema}</TableRowColumn>
+                    <TableRowColumn>
+                      <FlatButton
+                        label="slave"
+                        onClick={() => this.phpadmin(row.database_id, row.schema, true)}
+                        icon={<FontIcon className="material-icons">redo</FontIcon>}
+                      />
+                    </TableRowColumn>
+                    <TableRowColumn>
+                      <FlatButton
+                        label="master"
+                        onClick={() => this.phpadmin(row.database_id, row.schema, false)}
+                        icon={<FontIcon className="material-icons">forward</FontIcon>}
+                      />
+                    </TableRowColumn>
                   </TableRow>
                 ))}
               </TableBody>
