@@ -53,8 +53,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
       bodyStyle={{ overflow: 'auto' }}
       onRowSelection={onSelect ?
         (rows) => {
-          onSelect(rows);
-          self.setState({ selectedRows: rows });
+          self.setState({ selectedRows: rows }, () => onSelect(rows));
         }
         : null}
     >
