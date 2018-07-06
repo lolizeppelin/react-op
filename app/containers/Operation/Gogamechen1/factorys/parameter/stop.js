@@ -30,7 +30,7 @@ class GamesvrStopParameter extends React.Component {
       notify: true,
       kill: false,
       message: '',
-      delay: 10,
+      delay: 3,
       timeout: 15,
 
       finished: false,
@@ -209,7 +209,7 @@ class GamesvrStopParameter extends React.Component {
           </p>
           <Slider
             disabled={this.state.finished}
-            min={10}
+            min={3}
             max={60}
             step={1}
             value={this.state.delay}

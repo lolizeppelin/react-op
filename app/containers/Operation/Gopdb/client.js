@@ -100,10 +100,10 @@ function unBondSchema(user, quoteId, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-function phpadmin(user, databaseId, schema, slave, successCallback, failCallback) {
+function phpadmin(user, databaseId, schema, slave, name, successCallback, failCallback) {
   const path = urlPrepare('schemas', 'phpadmin', { schema, database_id: databaseId });
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, { slave })
+  return http(url, 'POST', user.token, { slave, name })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

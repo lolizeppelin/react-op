@@ -113,16 +113,15 @@ class PackageBulkUpgrade extends React.Component {
     }
   };
   selectPackages = (rows) => {
+    const targets = [];
     if (rows === 'all') {
-      const targets = [];
       this.state.resource.packages.forEach((p) => targets.push(p.package_id));
       this.setState({ targets });
     } else if (rows === 'none') {
-      this.setState({ targets: [] });
+      this.setState({ targets });
     } else if (rows.length === 0) {
-      this.setState({ targets: [] });
+      this.setState({ targets });
     } else {
-      const targets = [];
       rows.forEach((index) => targets.push(this.state.resource.packages[index].package_id));
       this.setState({ targets });
     }
@@ -202,8 +201,6 @@ class PackageBulkUpgrade extends React.Component {
 
   render() {
     const submit = this.state.submit;
-    // console.log(this.state)
-
     return (
       <div>
         <SubmitDialogs

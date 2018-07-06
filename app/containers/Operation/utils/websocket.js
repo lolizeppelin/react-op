@@ -34,6 +34,8 @@ function sendfile(uri, blob, cbProgress) {
               msg = `WebSocket已经关闭,发生后续错误,事件类型:${type}`;
               break;
             default:
+              msg = `WebSocket未关闭,事件类型:${type}`;
+              ws.close();
               break;
           }
           reject(new Error(msg));
@@ -94,6 +96,8 @@ function readbuffer(uri, path, opencb, datacb, errorcb) {
               msg = `WebSocket已经关闭,发生后续错误,事件类型: ${type}`;
               break;
             default:
+              msg = `WebSocket未关闭,事件类型:${type}`;
+              ws.close();
               break;
           }
           const err = new Error(msg);

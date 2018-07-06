@@ -41,7 +41,7 @@ import * as goGameRequest from '../client';
 import BASEPARAMETER from './parameter';
 import { entitysTableTemplate } from './tables';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import PacakgesDialog  from './parameter/package'
+import PacakgesDialog from './parameter/package';
 
 
 const contentStyle = { margin: '0 16px' };
@@ -133,7 +133,11 @@ class AsyncRequest extends React.Component {
     const { objtype, action, gameStore, appStore } = this.props;
     const method = ACTIONSMAP[action].method;
     const group = gameStore.group;
-    const entitys = (this.state.type === 'all' && !this.state.platform) ? 'all' : this.state.targets.join(',');
+    let entitys = null;
+    if (this.state.platform.length === 0) {
+      if (this.state.targets.length > 0 && this.state.targets.length === this.state.choices.length) entitys = 'all';
+      else entitys = this.state.targets.join(',');
+    } else entitys = this.state.targets.join(',');
     this.props.handleLoading();
     const body = requestBodyBase(this.state.parameter.body, this.state.parameter.timeout);
     goGameRequest.entitysAsyncrequest(appStore.user, action, method,
@@ -145,7 +149,6 @@ class AsyncRequest extends React.Component {
     this.props.handleLoadingClose(asyncResult.result);
     this.setState({ result: asyncResult });
   };
-
 
   handleParameter = (parameter) => this.setState({ parameter });
 
@@ -197,7 +200,7 @@ class AsyncRequest extends React.Component {
         return true;
       }
       case 1: {
-        return !((this.state.type === 'specify' || this.state.platform) && this.state.targets.length === 0);
+        return this.state.targets.length > 0;
       }
       default:
         return true;
@@ -205,23 +208,17 @@ class AsyncRequest extends React.Component {
   };
 
   selectTargets = (rows) => {
+    const targets = [];
     if (rows === 'all') {
-      const targets = [];
-      if (this.state.platforms) this.state.choices.forEach((entity) => targets.push(entity.entity));
-      this.setState({ type: 'all', targets });
+      this.state.choices.forEach((entity) => targets.push(entity.entity));
+      this.setState({ targets });
     } else if (rows === 'none') {
-      this.setState({ type: 'specify', targets: [] });
+      this.setState({ targets });
     } else if (rows.length === 0) {
-      this.setState({ type: 'specify', targets: [] });
+      this.setState({ targets });
     } else {
-      const targets = [];
       rows.forEach((index) => targets.push(this.state.choices[index].entity));
-      this.setState({ type: 'specify', targets });
-      if (this.state.type === 'all') {
-        this.setState({ type: 'specify', targets });
-      } else {
-        this.setState({ type: 'specify', targets });
-      }
+      this.setState({ targets });
     }
   };
 
@@ -229,7 +226,6 @@ class AsyncRequest extends React.Component {
     const { appStore, gameStore, objtype, action, paramTab } = this.props;
     const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
-
     return (
       <div>
         <SubmitDialogs
@@ -355,7 +351,9 @@ class AsyncRequest extends React.Component {
           </div>
         )}
         {stepIndex === 1
-        && entitysTableTemplate(objtype, this.state.choices, this.state.type === 'all' ? 4 : 3, this.state.targets, this.selectTargets,
+        && entitysTableTemplate(objtype, this.state.choices,
+          (this.state.targets.length === this.state.choices.length && this.state.targets.length > 0) ? 4 : 3,
+          this.state.targets, this.selectTargets,
           { tableLayout: 'auto' }, '700px')}
         {stepIndex >= 2 && (
           <div>

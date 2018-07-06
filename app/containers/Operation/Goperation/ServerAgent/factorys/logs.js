@@ -24,7 +24,6 @@ class LogReaderDialog extends React.Component {
     this.connection = null;
     this.lastpaths = [];
     this.curpath = null;
-    this.reader = null;
 
     this.state = {
       lines: 80,
@@ -46,10 +45,6 @@ class LogReaderDialog extends React.Component {
       this.connection.onmessage = null;
       this.connection.onclose = null;
       this.connection.onerror = null;
-      if (this.reader !== null) {
-        this.reader.onload = null;
-        this.reader = null;
-      }
     }
   };
 
@@ -66,11 +61,6 @@ class LogReaderDialog extends React.Component {
     readbuffer(uri, path,
       (ws) => {
         this.connection = ws;
-        this.reader = new FileReader();
-        this.reader.onload = () => {
-          const buffers = this.state.buffers + this.reader.result;
-          this.setState({ buffers: buffers.slice(-8000) });
-        };
         this.setState({ buffers: '', loading: false, uri });
       },
       (buf) => {
@@ -79,7 +69,15 @@ class LogReaderDialog extends React.Component {
           this.connection = null;
           this.setState({ buffers: '', uri: null });
         } else {
-          this.reader.readAsText(buf, 'utf-8');
+          let reader = new FileReader();
+          reader.onload = () => {
+            const buffers = this.state.buffers + reader.result;
+            this.setState({ buffers: buffers.slice(-8000) }, () => {
+              reader = null;
+            });
+          };
+          reader.readAsText(buf, 'utf-8');
+          // reader = null;
         }
       },
       (err) => {
@@ -125,7 +123,6 @@ class LogReaderDialog extends React.Component {
       (result) => {
         if (result.resultcode !== 0) this.setState({ loading: false, errmsg: result.result });
         else {
-          console.log(result);
           const dirs = result.data[0].dirs;
           dirs.unshift('..');
           this.setState({ loading: false, files: result.data[0].files, dirs });
@@ -153,7 +150,6 @@ class LogReaderDialog extends React.Component {
   };
 
   render() {
-    console.log(this.state);
     if (this.state.loading) return <CircularProgress size={80} thickness={5} style={{ display: 'block', margin: 'auto' }} />;
     if (this.state.errmsg) return <p>{this.state.errmsg}</p>;
     if (this.state.uri) return <pre style={{ overflow: 'auto', height: 600, width: 700, fontSize: 12, lineHeight: '15px' }}>{this.state.buffers}</pre>;

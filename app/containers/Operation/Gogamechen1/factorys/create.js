@@ -202,8 +202,17 @@ class CreateEntity extends React.Component {
   };
   selectTargets = (rows) => {
     const targets = [];
-    rows.forEach((index) => targets.push(this.state.choices[index].package_id));
-    this.setState({ targets });
+    if (rows === 'all') {
+      this.state.choices.forEach((p) => targets.push(p.package_id));
+      this.setState({ targets });
+    } else if (rows === 'none') {
+      this.setState({ targets });
+    } else if (rows.length === 0) {
+      this.setState({ targets });
+    } else {
+      rows.forEach((index) => targets.push(this.state.choices[index].package_id));
+      this.setState({ targets });
+    }
   };
 
   handleNext = () => {
@@ -632,7 +641,9 @@ class CreateEntity extends React.Component {
                   </div>
                 </div>
                 <div>
-                  {packagesTableTemplate(this.state.choices, 2, this.state.targets, this.selectTargets, null, null, '300px')}
+                  {packagesTableTemplate(this.state.choices,
+                    (this.state.targets.length === this.state.choices.length && this.state.targets.length > 0) ? 4 : 3,
+                    this.state.targets, this.selectTargets, null, null, '500px')}
                 </div>
               </div>
               )

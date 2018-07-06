@@ -60,7 +60,7 @@ class PacakgesDialog extends React.Component {
           <div style={{ float: 'left', width: 120 }}>
             <Checkbox
               label="安卓"
-              checked={this.state.platform & ANDROID}
+              checked={(this.state.platform & ANDROID) > 0}
               onCheck={(event, value) => {
                 let platform;
                 if (value) platform = this.state.platform | ANDROID;
@@ -73,7 +73,7 @@ class PacakgesDialog extends React.Component {
           <div style={{ float: 'left', width: 120 }}>
             <Checkbox
               label="苹果"
-              checked={this.state.platform & IOS}
+              checked={(this.state.platform & IOS) > 0}
               onCheck={(event, value) => {
                 let platform;
                 if (value) platform = this.state.platform | IOS;

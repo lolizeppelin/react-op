@@ -181,9 +181,11 @@ class IndexEntitys extends React.Component {
   phpadmin = (databaseId, schema, slave = false) => {
     if (PHPADMIN) {
       this.props.handleLoading();
-      const { appStore } = this.props;
+      const { appStore, objtype } = this.props;
       const user = appStore.user;
-      gopdbRequest.phpadmin(user, databaseId, schema, slave, this.handlePhpadmin, this.handleRequestError);
+      const type = slave ? 'ro' : 'rw';
+      const name = `${objtype}-${this.state.entity.entity}-${type}`;
+      gopdbRequest.phpadmin(user, databaseId, schema, slave, name, this.handlePhpadmin, this.handleRequestError);
     } else this.props.handleLoadingClose('未配置phpadmin连接');
   };
   handleAgent = (result) => {
@@ -229,7 +231,8 @@ class IndexEntitys extends React.Component {
   };
   handlePhpadmin = (result) => {
     const key = result.data[0];
-    const win = window.open(`http://www.baidu.com/${key}`);
+    const url = `${PHPADMIN}?tokens=${key}`;
+    const win = window.open(url);
     if (win === null) this.props.handleLoadingClose('新窗口打开被阻止');
     else {
       win.focus();
