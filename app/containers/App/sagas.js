@@ -52,7 +52,7 @@ export function* fetchSignIn(action) {
       user: {
         name: result.name,
         email: result.email,
-        imgUrl: result.imgUrl ? result.imgUrl : 'http://www.material-ui.com/images/ok-128.jpg',
+        imgUrl: result.imgUrl ? result.imgUrl : 'http://cdn.www.youzhai.com/head.png',
         token: result.token,
       },
     });
