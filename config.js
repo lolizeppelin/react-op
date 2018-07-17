@@ -3,8 +3,8 @@ const BASEPATH = '/op';
 
 /* php站点通知接口 */
 const NOTIFY = {
-  login: '/index.php?m=Admin&c=Login&a=index',
-  token: '/index.php?m=Admin&c=Token&a=fetch',
+  // login: '/index.php?m=Admin&c=Login&a=index',
+  // token: '/index.php?m=Admin&c=Token&a=fetch',
   packages: '/notify_package.php',
   areas: '/notify_areas.php',
   groups: '/notify_areagroups.php',
@@ -19,6 +19,8 @@ const API = {
   lan: '192.168.1.46',
   port: 7999,
   version: 'v1.0',
+  login: '/auth/login',
+  token: '',
 };
 
 window.OPBASECONFIG = { BASEPATH, NOTIFY, API };

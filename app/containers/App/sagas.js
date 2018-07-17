@@ -1,10 +1,11 @@
-// import { throttle as takeLatest } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import mockMenuApi from '../../api/mockMenuApi';
 import {
   SIGN_IN,
   SIGN_IN_FACEBOOK,
   SIGN_IN_GOOGLE,
+  SIGN_BY_STATIC_TOKEN,
+  SIGN_BY_DYNAMIC_TOKEN,
   REGISTER,
   RESET_PASSWORD,
   RESET_PASSWORD_FAILED,
@@ -14,9 +15,13 @@ import {
   LOAD_MENU_SUCCESS,
   LOAD_MENU_FAILED,
   REGISTRATION_FAILED,
+  SIGN_OUT,
+  LOGIN_OUT,
 } from './constants';
 
 import request from '../../utils/request';
+
+import OPBASECONFIG from '../../configs';
 
 // worker Saga: will be fired on LOAD_MENU actions
 export function* fetchMenu(action) {
@@ -37,23 +42,22 @@ export function* appSaga() {
   yield takeLatest(LOAD_MENU, fetchMenu);
 }
 
+
 export function* fetchSignIn(action) {
   try {
-    let result;
-    if (action.payload.token) {
-      result = action.payload;
-    } else {
-      const headers = { 'Content-Type': 'application/json' };
-      const options = { headers, method: 'POST', credentials: 'include' };
-      result = yield call(request, action.payload.url, options, 5);
-    }
+    const headers = { 'Content-Type': 'application/json' };
+    const options = { headers, method: 'POST', body: JSON.stringify({ password: action.payload.password }) };
+    const result = yield call(request, action.payload.url, options, 5);
+    const userinfo = result.data[0];
+    const cookies = action.payload.cookies;
+    if (cookies) cookies.set('goptoken', userinfo.token, { path: OPBASECONFIG.BASEPATH });
 
     yield put({ type: AUTHENTICATED,
       user: {
-        name: result.name,
-        email: result.email,
-        imgUrl: result.imgUrl ? result.imgUrl : 'http://cdn.www.youzhai.com/head.png',
-        token: result.token,
+        name: userinfo.username,
+        email: userinfo.email,
+        imgUrl: userinfo.imgUrl ? result.imgUrl : 'http://cdn.www.youzhai.com/head.png',
+        token: userinfo.token,
       },
     });
   } catch (e) {
@@ -64,6 +68,69 @@ export function* fetchSignIn(action) {
 export function* signIn() {
   yield takeLatest(SIGN_IN, fetchSignIn);
 }
+
+
+export function* fetchSignInStaticToken(action) {
+  try {
+    // here you can call your API in order to authenticate the user, for this demo just authenticate an user
+    yield put({ type: AUTHENTICATED,
+      user: {
+        name: 'admin',
+        email: action.payload.email,
+        toke: action.payload.token,
+        imgUrl: 'http://cdn.www.youzhai.com/head.png',
+      },
+    });
+  } catch (e) {
+    yield put({ type: AUTHENTICATION_FAILED, message: e.message });
+  }
+}
+
+export function* signInStaticToken() {
+  yield takeLatest(SIGN_BY_STATIC_TOKEN, fetchSignInStaticToken);
+}
+
+
+export function* fetchSignInDynamicToken(action) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    const options = { headers, method: 'GET' };
+    const result = yield call(request, action.payload.url, options, 5);
+    const userinfo = result.data[0];
+
+    yield put({ type: AUTHENTICATED,
+      user: {
+        name: userinfo.username,
+        email: userinfo.email,
+        imgUrl: userinfo.imgUrl ? result.imgUrl : 'http://cdn.www.youzhai.com/head.png',
+        token: userinfo.token,
+      },
+    });
+  } catch (e) {
+    yield put({ type: AUTHENTICATION_FAILED, message: `本地token验证失败 ${e.message}` });
+  }
+}
+
+export function* signInDynamicToken() {
+  yield takeLatest(SIGN_BY_DYNAMIC_TOKEN, fetchSignInDynamicToken);
+}
+
+
+export function* fetchLoginOut(action) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    const options = { headers, method: 'DELETE', body: JSON.stringify({ token: action.payload.token }) };
+    yield call(request, action.payload.url, options, 5);
+    yield put({ type: SIGN_OUT });
+  } catch (e) {
+    yield put({ type: AUTHENTICATION_FAILED, message: `登出失败 ${e.message}` });
+  }
+}
+
+export function* loginOut() {
+  yield takeLatest(LOGIN_OUT, fetchLoginOut);
+}
+
 
 export function* fetchSignInFacebook(action) {
   try {
@@ -84,6 +151,7 @@ export function* signInFacebook() {
   yield takeLatest(SIGN_IN_FACEBOOK, fetchSignInFacebook);
 }
 
+
 export function* fetchSignInGoogle(action) {
   try {
     // here you can call your API in order to authenticate the user, for this demo just authenticate an user
@@ -103,6 +171,7 @@ export function* signInGoogle() {
   yield takeLatest(SIGN_IN_GOOGLE, fetchSignInGoogle);
 }
 
+
 export function* fetchRegister(action) {
   try {
     // here you can call your API in order to register an user, for this demo just authenticate an user
@@ -121,6 +190,7 @@ export function* fetchRegister(action) {
 export function* register() {
   yield takeLatest(REGISTER, fetchRegister);
 }
+
 
 export function* fetchResetPassword(action) {
   try {
@@ -145,6 +215,9 @@ export function* resetPassword() {
 export default [
   appSaga,
   signIn,
+  signInStaticToken,
+  signInDynamicToken,
+  loginOut,
   signInFacebook,
   signInGoogle,
   register,

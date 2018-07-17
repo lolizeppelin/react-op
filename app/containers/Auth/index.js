@@ -4,25 +4,35 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { createStructuredSelector } from 'reselect';
+import { withCookies } from 'react-cookie';
 
 
 import FontIcon from 'material-ui/FontIcon';
 import FlatButton from 'material-ui/FlatButton';
 
-import OPBASECONFIG from '../../configs';
+
 import { makeSelectGlobal } from '../App/selectors';
 import ThemeDefault from '../../themes/theme-default';
 import * as appActions from '../../containers/App/actions';
 
+import Login from '../../components/Auth/Login';
+import Register from '../../components/Auth/Register';
+import ForgotPassword from '../../components/Auth/ForgotPassword';
+
+
+import OPBASECONFIG from '../../configs';
+
 
 class AuthPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+
   constructor(props) {
     super(props);
 
     this.state = {
       login: {
+        name: 'admin',
         email: 'demo@test.com', // default values, leave it empty when implementing your logic
-        password: 'demo', // default values, leave it empty when implementing your logic
+        password: '', // default values, leave it empty when implementing your logic
         rememberMe: false,
       },
       register: {
@@ -61,12 +71,31 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   componentDidMount() {
-    setTimeout(() => { this.signIn(); }, 500);
+    if (OPBASECONFIG.API.token) {
+      const payload = {
+        name: this.state.login.name,
+        email: this.state.login.email,
+        // password: this.state.login.password,
+        // rememberMe: true,
+        token: OPBASECONFIG.API.token,
+      };
+      this.props.actions.signInStaticToken(payload);
+    } else {
+      const { cookies } = this.props;
+      const token = cookies.get('goptoken');
+      if (token) {
+        const path = `${OPBASECONFIG.API.login}/${token}`;
+        const payload = {
+          url: `http://${OPBASECONFIG.API.host}:${OPBASECONFIG.API.port}${path}`,
+        };
+        this.props.actions.signInDynamicToken(payload);
+      }
+    }
   }
 
   componentWillReceiveProps(newProps) {
     if (newProps.appStore.authenticationErrorMessage !==
-    this.props.appStore.authenticationErrorMessage) {
+      this.props.appStore.authenticationErrorMessage) {
       this.setState({
         errorMessage: newProps.appStore.authenticationErrorMessage,
       });
@@ -74,17 +103,12 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   signIn() {
-    let payload;
-    if (OPBASECONFIG.NOTIFY.token) {
-      payload = { url: OPBASECONFIG.NOTIFY.token };
-    } else {
-      payload = {
-        email: this.state.login.email,
-        password: this.state.login.password,
-        rememberMe: true,
-        token: 'goperation-trusted-token',
-      };
-    }
+    const path = `${OPBASECONFIG.API.login}/${this.state.login.name}`;
+    const payload = {
+      url: `http://${OPBASECONFIG.API.host}:${OPBASECONFIG.API.port}${path}`,
+      password: this.state.login.password,
+      cookies: this.state.login.rememberMe ? this.props.cookies : null,
+    };
     this.props.actions.signIn(payload);
   }
 
@@ -101,6 +125,18 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
     const payload = {};
     this.props.actions.signInGoogle(payload);
   }
+
+  loginUserChanged(event) {
+    const login = this.state.login;
+    login.name = event.target.value;
+
+    this.setState({
+      login,
+    });
+
+    this.props.actions.clearAuthenticationMessage();
+  }
+
 
   loginEmailChanged(event) {
     const login = this.state.login;
@@ -221,27 +257,71 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
   }
 
   render() {
+    if (this.state.errorMessage.length > 0) {
+      return (
+        <div style={{ position: 'absolute', top: '45%', left: '50%' }}>
+          <p style={{ fontSize: 30 }}>{`认证失败: ${this.state.errorMessage}`}</p>
+          <p style={{ fontSize: 30 }}> 请回到后台主页重新登陆 </p>
+          <FlatButton
+            style={{ marginTop: '1.2%' }}
+            onClick={() => {
+              const { cookies } = this.props;
+              cookies.remove('goptoken');
+              location.reload();
+              // window.open(OPBASECONFIG.API.login, '_self').close();
+            }}
+          >
+            <FontIcon className="material-icons">reply</FontIcon>
+          </FlatButton>
+        </div>
+      );
+    }
+
+
     return (
       <MuiThemeProvider muiTheme={ThemeDefault}>
-        { this.state.errorMessage.length > 0 ? (
-          <div style={{ position: 'absolute', top: '45%', left: '50%' }}>
-            <p style={{ fontSize: 30 }}>{ `认证失败: ${this.state.errorMessage}`}</p>
-            <p style={{ fontSize: 30 }}> 请回到后台主页重新登陆 </p>
-            <FlatButton
-              style={{ marginTop: '1.2%' }}
-              onClick={() => {
-                window.open(OPBASECONFIG.NOTIFY.login, '_self').close();
-              }}
-            >
-              <FontIcon className="material-icons">reply</FontIcon>
-            </FlatButton>
-          </div>
-        ) : (
-          <div style={{ position: 'absolute', top: '45%', left: '50%' }}>
-            <p style={{ fontSize: 30 }}> 登陆中加载中 </p>
-          </div>
-        )}
-
+        <div>
+          {
+            this.state.showRegister ? (
+              <div>
+                <Register
+                  fullName={this.state.register.fullName}
+                  onFullNameChange={this.registerFullNameChanged}
+                  email={this.state.register.email}
+                  onEmailChange={this.registerEmailChanged}
+                  password={this.state.register.password}
+                  onPasswordChange={this.registerPasswordChanged}
+                  confirmPassword={this.state.register.confirmPassword}
+                  onConfirmPasswordChange={this.registerConfirmPasswordChanged}
+                  onRegister={this.register}
+                  onGoBack={this.showLogin}
+                />
+              </div>
+            ) : (
+              <div>
+                { this.state.showForgotPassword ? (
+                  <ForgotPassword
+                    email={this.state.forgotPassword.email}
+                    onEmailChange={this.forgotPasswordEmailChanged}
+                    onGoBack={this.showLogin}
+                  />
+                ) : (
+                  <Login
+                    user={this.state.login.name}
+                    onUserChange={this.loginUserChanged}
+                    password={this.state.login.password}
+                    onPasswordChange={this.loginPasswordChanged}
+                    onSignIn={this.signIn}
+                    rememberMe={this.state.login.rememberMe}
+                    onRememberMeChange={this.loginRememberMeChanged}
+                    errorMessage={this.state.errorMessage}
+                  />
+                )
+                }
+              </div>
+            )
+          }
+        </div>
       </MuiThemeProvider >
     );
   }
@@ -251,6 +331,7 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
 AuthPage.propTypes = {
   actions: PropTypes.any,
   appStore: PropTypes.any,
+  cookies: PropTypes.any,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -263,4 +344,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AuthPage);
+export default connect(mapStateToProps, mapDispatchToProps)(withCookies(AuthPage));

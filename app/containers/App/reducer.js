@@ -3,7 +3,7 @@ import * as ActionTypes from './constants';
 
 const initialState = fromJS({
   user: {
-    name: 'John Smith',
+    name: 'admin',
     email: 'demo@test.com',
     imgUrl: 'http://cdn.www.youzhai.com/head.png',
     token: null,

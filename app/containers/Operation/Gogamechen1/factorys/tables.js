@@ -69,6 +69,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
           <TableHeaderColumn>端口</TableHeaderColumn>
           <TableHeaderColumn>内网IP</TableHeaderColumn>
           <TableHeaderColumn>外网IP</TableHeaderColumn>
+          { isPrivate && <TableHeaderColumn>开服时间</TableHeaderColumn>}
           { isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
           { isPrivate && <TableHeaderColumn>区服ID</TableHeaderColumn>}
         </TableRow>
@@ -87,6 +88,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
             <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
             <TableRowColumn >{row.local_ip === null ? '离线' : row.local_ip }</TableRowColumn>
             <TableRowColumn >{row.external_ips === null ? '离线' : row.external_ips.join(',') }</TableRowColumn>
+            { isPrivate && <TableRowColumn>{new Date(row.opentime * 1000).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>}
             { isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
             { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.area_id)).join(',') }</TableRowColumn> }
           </TableRow>
