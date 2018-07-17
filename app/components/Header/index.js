@@ -15,7 +15,7 @@ import { makeSelectGlobal } from '../../containers/App/selectors';
 import Theme from '../../config/theme';
 import Styles from './styles';
 import TabNav from './TabsNav';
-import OPBASECONFIG from "../../configs";
+import OPBASECONFIG from '../../configs';
 
 const theme = new Theme();
 
@@ -41,9 +41,12 @@ class Header extends React.Component {
   signOut() {
     const { cookies, appStore } = this.props;
     const user = appStore.user;
-    const token = cookies.get('goptoken');
+    let token = cookies.get('goptoken');
+    if (token) cookies.remove('goptoken');
+    else {
+      token = user.token !== OPBASECONFIG.API.token ? user.token : null;
+    }
     if (token) {
-      cookies.remove('goptoken');
       const path = `${OPBASECONFIG.API.login}/${user.name}`;
       const payload = {
         url: `http://${OPBASECONFIG.API.host}:${OPBASECONFIG.API.port}${path}`,

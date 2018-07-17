@@ -20,7 +20,7 @@ const API = {
   port: 7999,
   version: 'v1.0',
   login: '/auth/login',
-  token: '',
+  token: null,
 };
 
 window.OPBASECONFIG = { BASEPATH, NOTIFY, API };
