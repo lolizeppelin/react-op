@@ -34,10 +34,11 @@ import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { databaseTable } from '../../Gopdb/factorys/tables';
 import { packagesTableTemplate } from '../PackagePage/tables';
+import { isPint } from '../../utils/math'
 
 const contentStyle = { margin: '0 16px' };
 /* 默认扩展参数 */
-const EXTSBASE = { areasname: '', date: -1, time: -1, cross: 0, platform: '' };
+const EXTSBASE = { areasname: '', showId: '', date: -1, time: -1, cross: 0, platform: '' };
 /* 是否自动选择 */
 const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto' };
 
@@ -266,7 +267,7 @@ class CreateEntity extends React.Component {
       }
       case 2: {
         if (!this.isPrivate) return true;
-        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.areasname.length > 0 && this.state.exts.platform.length > 0);
+        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.showId.length > 0 && this.state.exts.areasname.length > 0 && this.state.exts.platform.length > 0);
       }
       default:
         return true;
@@ -287,6 +288,7 @@ class CreateEntity extends React.Component {
     if (Object.keys(databases).length > 0) body.databases = databases;
     if (objtype === goGameConfig.GAMESERVER) {
       body.areaname = this.state.exts.areasname;
+      body.show_id = parseInt(this.state.exts.showId, 0);
       body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
       body.platform = this.state.exts.platform;
       if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
@@ -589,6 +591,23 @@ class CreateEntity extends React.Component {
                         if (name || name === '') {
                           const exts = Object.assign({}, this.state.exts);
                           exts.areasname = name;
+                          this.setState({ exts });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div style={{ float: 'left' }}>
+                    <TextField
+                      style={{ marginLeft: 20, width: 150 }}
+                      floatingLabelText="显示ID"
+                      hintText="新区服显示ID"
+                      value={this.state.exts.showId}
+                      fullWidth={false}
+                      errorText={this.state.exts.showId.length > 0 ? '' : '区服名显示ID未填写(必要)'}
+                      onChange={(event, value) => {
+                        if (isPint(value) || value === '') {
+                          const exts = Object.assign({}, this.state.exts);
+                          exts.showId = value;
                           this.setState({ exts });
                         }
                       }}

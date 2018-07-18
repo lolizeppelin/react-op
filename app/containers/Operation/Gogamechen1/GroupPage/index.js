@@ -36,6 +36,8 @@ import * as groupRequest from '../client';
 import * as notifyRequest from '../notify';
 import * as goGameConfig from '../configs';
 import { SubmitDialogs } from '../../factorys/dialogs';
+import UpdateAreas from '../factorys/parameter/update';
+
 
 const getStatus = goGameConfig.getStatus;
 const CREATEBASE = { name: '', desc: '' };
@@ -135,18 +137,18 @@ class Groups extends React.Component {
         this.handleChiefs, this.handleLoadingClose);
     }
   };
-  area = (areaname) => {
-    if (areaname.length === 0) {
+  area = (showId, areaname) => {
+    if (areaname.length === 0 && showId.length === 0) {
       this.handleLoadingClose('无修改内容未执行');
       return null;
     }
-
     const { gameStore, appStore } = this.props;
     const lastGroup = gameStore.group;
     if (lastGroup !== null) {
       this.setState({ loading: true });
       const body = { area_id: this.state.area.area_id };
-      if (areaname) body.areaname = areaname;
+      if (areaname.length > 0) body.areaname = areaname;
+      if (showId.length > 0) body.show_id = parseInt(showId, 10);
       groupRequest.groupArea(appStore.user, lastGroup.group_id, body,
         this.handleArea, this.handleLoadingClose);
     }
@@ -243,31 +245,24 @@ class Groups extends React.Component {
   };
 
   handleAreaSubmitDialog = () => {
+    let showId = '';
     let areaname = '';
 
     const submit = {
       title: '修改区服信息',
-      data: (
-        <div style={{ marginLeft: '10%' }}>
-          <TextField
-            floatingLabelText={`原区服名: ${this.state.area.areaname}`}
-            hintText="更改区服名称"
-            style={{ width: '250px' }}
-            fullWidth={false}
-            onChange={(event, value) => {
-              areaname = value;
-            }}
-          />
-        </div>
-      ),
-      onSubmit: () => this.area(areaname),
-      onCancel: () => { this.setState({ submit: null }); },
+      data: <UpdateAreas
+        showId={`${this.state.area.show_id}`}
+        areaname={this.state.area.areaname}
+        handleParameter={(id, name) => {
+          showId = id;
+          areaname = name;
+        }}
+      />,
+      onSubmit: () => this.area(showId, areaname),
+      onCancel: () => this.setState({ submit: null }),
     };
-    this.setState({
-      submit,
-    });
+    this.setState({ submit });
   };
-
 
   render() {
     const { gameStore } = this.props;
@@ -345,6 +340,7 @@ class Groups extends React.Component {
                     displaySelectAll={false}
                   >
                     <TableRow>
+                      <TableHeaderColumn>显示ID</TableHeaderColumn>
                       <TableHeaderColumn>名称</TableHeaderColumn>
                       <TableHeaderColumn>区服识标ID</TableHeaderColumn>
                     </TableRow>
@@ -352,6 +348,7 @@ class Groups extends React.Component {
                   <TableBody displayRowCheckbox={false}>
                     {(group !== null) && group.areas.map((row) => (
                       <TableRow key={`group-area-${row.area_id}`}>
+                        <TableRowColumn>{row.show_id}</TableRowColumn>
                         <TableRowColumn>{row.areaname}</TableRowColumn>
                         <TableRowColumn>{row.area_id}</TableRowColumn>
                       </TableRow>
@@ -431,7 +428,7 @@ class Groups extends React.Component {
                 <div style={{ marginTop: '1%' }} >
                   <Table
                     height="600px"
-                    // fixedHeader={false}
+                    fixedHeader={false}
                     style={{ marginLeft: '5%', maxWidth: '70%' }}
                     selectable={false}
                   >
@@ -440,7 +437,7 @@ class Groups extends React.Component {
                       displaySelectAll={false}
                     >
                       <TableRow>
-                        <TableHeaderColumn colSpan="3" style={{ textAlign: 'center' }}>
+                        <TableHeaderColumn colSpan="2" style={{ textAlign: 'center' }}>
                           {goGameConfig.GAMESERVER}
                         </TableHeaderColumn>
                       </TableRow>
@@ -496,6 +493,7 @@ class Groups extends React.Component {
                 </TableRow>
                 <TableRow>
                   <TableHeaderColumn>平台</TableHeaderColumn>
+                  <TableHeaderColumn>显示ID</TableHeaderColumn>
                   <TableHeaderColumn>区服名</TableHeaderColumn>
                   <TableHeaderColumn>实体ID</TableHeaderColumn>
                   <TableHeaderColumn>区服ID</TableHeaderColumn>
@@ -508,6 +506,7 @@ class Groups extends React.Component {
                 {this.state.areas.map((row) => (
                   <TableRow key={row.area_id} selected={(this.state.area && row.area_id === this.state.area.area_id) ? true : null}>
                     <TableRowColumn>{goGameConfig.getPlatform(row.platform)}</TableRowColumn>
+                    <TableRowColumn>{row.show_id}</TableRowColumn>
                     <TableRowColumn>{row.areaname}</TableRowColumn>
                     <TableRowColumn>{row.entity}</TableRowColumn>
                     <TableRowColumn >{row.area_id}</TableRowColumn>

@@ -190,7 +190,7 @@ class GopDatabases extends React.Component {
   handlReady = (result) => {
     this.handleLoadingClose(result.result);
     this.setState({ show: null, slave: null, database: null });
-    this.index()
+    this.index();
   };
 
   slave = (databaseId) => {
@@ -453,8 +453,10 @@ class GopDatabases extends React.Component {
   };
 
   isReady = () => {
-    const repl = this.state.database.slaves.filter((s) => s.slave_id === this.state.slave.database_id)[0];
-    return repl.ready;
+    const choices = this.state.database.slaves.filter((s) => s.slave_id === this.state.slave.database_id);
+    if (choices.length < 1) return false;
+    const choice = choices[0];
+    return choice.ready;
   };
 
 

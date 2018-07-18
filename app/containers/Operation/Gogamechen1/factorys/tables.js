@@ -63,6 +63,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
       >
         <TableRow>
           { isPrivate && <TableHeaderColumn>平台</TableHeaderColumn> }
+          { isPrivate && <TableHeaderColumn>显示ID</TableHeaderColumn> }
           { isPrivate && <TableHeaderColumn>区服名</TableHeaderColumn> }
           { !isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
           <TableHeaderColumn>服务器</TableHeaderColumn>
@@ -82,6 +83,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
         {data.length > 0 && data.map((row) => (
           <TableRow key={row.entity} selected={(enable >= 4 || (selected && selected.indexOf(row.entity) >= 0)) ? true : null}>
             { isPrivate && <TableRowColumn>{goGameConfig.getPlatform(row.platform)}</TableRowColumn>}
+            { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.show_id)).join(',') }</TableRowColumn> }
             { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.areaname)).join(',') }</TableRowColumn> }
             { !isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
             <TableRowColumn>{row.agent_id}</TableRowColumn>
