@@ -21,7 +21,7 @@ function http(url, method, token, body = null, timeout = null) {
   let URL = url;
   const headers = { 'Content-Type': 'application/json' };
   if (token !== null) headers['Auth-Token'] = token;
-  const options = { method, headers };
+  const options = { method, headers, cache: 'no-store' };
   if (method.toLowerCase() === 'get' && body !== null) {
     options.method = 'post';
     URL = `${URL}?${getQueryString({ _method: 'GET' })}`;

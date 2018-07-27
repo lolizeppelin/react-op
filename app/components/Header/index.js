@@ -42,7 +42,7 @@ class Header extends React.Component {
     const { cookies, appStore } = this.props;
     const user = appStore.user;
     let token = cookies.get('goptoken');
-    if (token) cookies.remove('goptoken');
+    if (token) cookies.remove('goptoken', { path: OPBASECONFIG.BASEPATH });
     else {
       token = user.token !== OPBASECONFIG.API.token ? user.token : null;
     }

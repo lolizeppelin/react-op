@@ -19,6 +19,8 @@ import Login from '../../components/Auth/Login';
 import Register from '../../components/Auth/Register';
 import ForgotPassword from '../../components/Auth/ForgotPassword';
 
+import sleep from '../Operation/utils/asyncutils';
+
 
 import OPBASECONFIG from '../../configs';
 
@@ -264,9 +266,10 @@ class AuthPage extends React.Component { // eslint-disable-line react/prefer-sta
           <p style={{ fontSize: 30 }}> 请回到后台主页重新登陆 </p>
           <FlatButton
             style={{ marginTop: '1.2%' }}
-            onClick={() => {
+            onClick={async () => {
               const { cookies } = this.props;
-              cookies.remove('goptoken');
+              cookies.remove('goptoken', { path: OPBASECONFIG.BASEPATH });
+              await sleep(300);
               location.reload();
               // window.open(OPBASECONFIG.API.login, '_self').close();
             }}
