@@ -41,7 +41,7 @@ class UpdateAreas extends React.Component {
           floatingLabelText={`原区服名: ${areaname}`}
           value={this.state.areaname}
           hintText="更改区服名称"
-          style={{ width: '250px' }}
+          style={{ width: '250px', marginLeft: '5%' }}
           fullWidth={false}
           onChange={(event, value) => this.setState({ areaname: value }, () => this.output())}
         />

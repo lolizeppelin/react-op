@@ -541,17 +541,19 @@ class IndexEntitys extends React.Component {
                 displaySelectAll={false}
               >
                 <TableRow>
+                  <TableHeaderColumn>显示名称</TableHeaderColumn>
                   <TableHeaderColumn>区服名称</TableHeaderColumn>
-                  <TableHeaderColumn>实体ID</TableHeaderColumn>
                   <TableHeaderColumn>区服ID</TableHeaderColumn>
+                  <TableHeaderColumn>实体ID</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
               <TableBody displayRowCheckbox={false}>
                 {this.state.entity !== null && this.state.entity.areas.map((row) => (
                   <TableRow key={row.area_id}>
+                    <TableRowColumn>{row.show_id}</TableRowColumn>
                     <TableRowColumn>{row.areaname}</TableRowColumn>
-                    <TableRowColumn>{this.state.entity.entity}</TableRowColumn>
                     <TableRowColumn>{row.area_id}</TableRowColumn>
+                    <TableRowColumn>{this.state.entity.entity}</TableRowColumn>
                   </TableRow>
                 ))}
               </TableBody>
