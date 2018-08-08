@@ -7,6 +7,7 @@ import { createStructuredSelector } from 'reselect';
 /* material-ui 引用部分  */
 import FontIcon from 'material-ui/FontIcon';
 import FlatButton from 'material-ui/FlatButton';
+import Checkbox from 'material-ui/Checkbox';
 
 /* ui框架引用部分  */
 import { makeSelectGlobal } from '../../../../App/selectors';
@@ -14,7 +15,7 @@ import { makeSelectGlobal } from '../../../../App/selectors';
 /* 私人代码引用部分 */
 import makeSelectGogamechen1 from '../../GroupPage/selectors';
 import { SubmitDialogs } from '../../../factorys/dialogs';
-import { DEFAULTUPGRADE, UpgradeDialog } from '../../../Gopcdn/factorys/upgrade';
+import { DEFAULTUPGRADE as BASEUPGRADE, UpgradeDialog } from '../../../Gopcdn/factorys/upgrade';
 import {
   resourcesTable,
   resourceVersionsTable,
@@ -27,6 +28,9 @@ import { ENDPOINTNAME } from '../../configs';
 import AsyncResponses from '../../../Goperation/AsyncRequest/factorys/showResult';
 import * as notifyRequest from '../../notify';
 
+const DEFAULTUPGRADE = Object.assign({}, BASEUPGRADE);
+
+DEFAULTUPGRADE.notify = false;
 
 class PackageBulkUpgrade extends React.Component {
   constructor(props) {
@@ -63,8 +67,9 @@ class PackageBulkUpgrade extends React.Component {
 
   upgrade = () => {
     const { appStore } = this.props;
-    const body = requestBodyBase({ version: this.state.upgrade.version,
-      detail: { username: appStore.user.name, endpoint: ENDPOINTNAME } },
+    const body = requestBodyBase({ notify: this.state.upgrade.notify,
+        version: this.state.upgrade.version,
+        detail: { username: appStore.user.name, endpoint: ENDPOINTNAME } },
       this.state.upgrade.timeout);
     this.props.handleLoading();
     gopCdnRequest.upgradeResource(appStore.user, this.state.resource.resource_id, body,
@@ -167,26 +172,43 @@ class PackageBulkUpgrade extends React.Component {
         break;
       }
       case 'upgrade': {
+        let box = null;
         submit = {
           title: '引用资源版本更新',
           onSubmit: () => {
+            box = null;
             if (!this.state.upgrade.version) {
               this.handleLoadingClose('更新版本号未空,未发送任何更新命令,请重新填写更新信息');
-              this.setState({ upgrade: DEFAULTUPGRADE });
             } else {
               this.setState({ submit: null }, () => this.upgrade());
             }
+            this.setState({ upgrade: DEFAULTUPGRADE });
           },
           data: (
             <div>
               <UpgradeDialog
                 changeUpgrade={(up) => {
-                  this.setState({ upgrade: up });
+                  const upgrade = Object.assign({}, up);
+                  upgrade.notify = this.state.upgrade.notify;
+                  this.setState({ upgrade });
                 }}
+                extComponent={
+                  <Checkbox
+                    ref={(node) => { box = node; }}
+                    style={{ marginLeft: '25%', marginTop: '20%', width: 200 }}
+                    checked={this.state.upgrade.notify}
+                    label="更新后通知服务器"
+                    onCheck={(ev, value) => {
+                      const upgrade = Object.assign({}, this.state.upgrade);
+                      upgrade.notify = value;
+                      this.setState({ upgrade }, box.setState({ switched: value }));
+                    }}
+                  />}
               />
             </div>
           ),
           onCancel: () => {
+            box = null;
             this.setState({ upgrade: DEFAULTUPGRADE });
             this.handleSumbitDialogs(null);
           },
@@ -249,7 +271,7 @@ class PackageBulkUpgrade extends React.Component {
           </div>
         ) : (
           <div>
-            {resourcesTable(this.state.resources, this.selectPresource, this.state.resource,  { tableLayout: 'auto' })}
+            {resourcesTable(this.state.resources, this.selectPresource, this.state.resource, { tableLayout: 'auto' })}
           </div>
         )}
       </div>

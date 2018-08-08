@@ -27,6 +27,7 @@ import MenuItem from 'material-ui/MenuItem';
 import FontIcon from 'material-ui/FontIcon';
 import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
+import Checkbox from 'material-ui/Checkbox';
 
 /* ui框架引用部分  */
 import PageBase from '../../../../components/PageBase';
@@ -36,7 +37,7 @@ import { makeSelectGlobal } from '../../../App/selectors';
 import makeSelectGogamechen1 from '../GroupPage/selectors';
 import { requestBodyBase } from '../../Goperation/utils/async';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import { DEFAULTUPGRADE, UpgradeDialog } from '../../Gopcdn/factorys/upgrade';
+import { DEFAULTUPGRADE as BASEUPGRADE, UpgradeDialog } from '../../Gopcdn/factorys/upgrade';
 import {
   resourcesTable,
   resourceVersionsTable,
@@ -72,6 +73,10 @@ const DEFAULTPARAM = {
   gversion: '',
   desc: '',
 };
+
+const DEFAULTUPGRADE = Object.assign({}, BASEUPGRADE);
+
+DEFAULTUPGRADE.notify = false;
 
 class PackageGogame extends React.Component {
   constructor(props) {
@@ -222,7 +227,8 @@ class PackageGogame extends React.Component {
   };
   upgrade = () => {
     const { appStore, gameStore } = this.props;
-    const body = requestBodyBase({ version: this.state.upgrade.version, detail: { username: appStore.user.name } },
+    const body = requestBodyBase({ notify: this.state.upgrade.notify,
+        version: this.state.upgrade.version, detail: { username: appStore.user.name } },
       this.state.upgrade.timeout);
     this.handleLoading();
     goGameRequest.upgradePackage(appStore.user, gameStore.group.group_id, this.state.package.package_id, body,
@@ -581,9 +587,11 @@ class PackageGogame extends React.Component {
         break;
       }
       case 'upgrade': {
+        let box = null;
         submit = {
           title: '更新包引用资源版本',
           onSubmit: () => {
+            box = null;
             if (!this.state.upgrade.version) {
               this.handleLoadingClose('更新版本号未空,未发送任何更新命令,请重新填写更新信息');
             } else {
@@ -601,12 +609,27 @@ class PackageGogame extends React.Component {
               </p>
               <UpgradeDialog
                 changeUpgrade={(up) => {
-                  this.setState({ upgrade: up });
+                  const upgrade = Object.assign({}, up);
+                  upgrade.notify = this.state.upgrade.notify;
+                  this.setState({ upgrade });
                 }}
+                extComponent={
+                  <Checkbox
+                    ref={(node) => { box = node; }}
+                    style={{ marginLeft: '25%', marginTop: '20%', width: 200 }}
+                    checked={this.state.upgrade.notify}
+                    label="更新后通知服务器"
+                    onCheck={(ev, value) => {
+                      const upgrade = Object.assign({}, this.state.upgrade);
+                      upgrade.notify = value;
+                      this.setState({ upgrade }, box.setState({ switched: value }));
+                    }}
+                  />}
               />
             </div>
           ),
           onCancel: () => {
+            box = null;
             this.setState({ upgrade: DEFAULTUPGRADE });
             this.handleSumbitDialogs(null);
           },
