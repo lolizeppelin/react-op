@@ -26,28 +26,35 @@ class UpgradeDialog extends React.Component {
   }
 
   render() {
-    const { changeUpgrade } = this.props;
+    const { changeUpgrade, extComponent } = this.props;
     return (
       <div style={{ marginLeft: '10%' }}>
-        <TextField
-          floatingLabelText="版本信息"
-          hintText="填写更新版本"
-          style={{ width: '150px' }}
-          value={this.state.upgrade.version ? this.state.upgrade.version : ''}
-          fullWidth
-          errorText={(this.state.upgrade.version) ? '' : '更新到指定版本(必要)'}
-          onChange={(event, value) => {
-            const version = value.trim();
-            const upgrade = Object.assign({}, this.state.upgrade);
-            if (version) {
-              upgrade.version = version;
-            } else upgrade.version = null;
-            this.setState({ upgrade });
-          }}
-          onBlur={() => {
-            changeUpgrade(this.state.upgrade);
-          }}
-        />
+        <div style={{ display: 'inline-block' }}>
+          <div style={{ float: 'left' }}>
+            <TextField
+              floatingLabelText="版本信息"
+              hintText="填写更新版本"
+              style={{ width: '150px' }}
+              value={this.state.upgrade.version ? this.state.upgrade.version : ''}
+              fullWidth
+              errorText={(this.state.upgrade.version) ? '' : '更新到指定版本(必要)'}
+              onChange={(event, value) => {
+                const version = value.trim();
+                const upgrade = Object.assign({}, this.state.upgrade);
+                if (version) {
+                  upgrade.version = version;
+                } else upgrade.version = null;
+                this.setState({ upgrade });
+              }}
+              onBlur={() => {
+                changeUpgrade(this.state.upgrade);
+              }}
+            />
+          </div>
+          <div style={{ float: 'left' }}>
+            {extComponent}
+          </div>
+        </div>
         <p>
           <span>{'更新进程将于 '}</span>
           <span style={{ color: '#FF5722' }}>{this.state.upgrade.timeout}</span>
@@ -76,6 +83,7 @@ class UpgradeDialog extends React.Component {
 
 UpgradeDialog.propTypes = {
   changeUpgrade: PropTypes.func,
+  extComponent: PropTypes.any,
 };
 
 

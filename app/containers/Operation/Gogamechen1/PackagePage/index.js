@@ -228,7 +228,8 @@ class PackageGogame extends React.Component {
   upgrade = () => {
     const { appStore, gameStore } = this.props;
     const body = requestBodyBase({ notify: this.state.upgrade.notify,
-        version: this.state.upgrade.version, detail: { username: appStore.user.name } },
+      version: this.state.upgrade.version,
+      detail: { username: appStore.user.name } },
       this.state.upgrade.timeout);
     this.handleLoading();
     goGameRequest.upgradePackage(appStore.user, gameStore.group.group_id, this.state.package.package_id, body,

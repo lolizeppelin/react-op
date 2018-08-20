@@ -68,9 +68,10 @@ class PackageBulkUpgrade extends React.Component {
   upgrade = () => {
     const { appStore } = this.props;
     const body = requestBodyBase({ notify: this.state.upgrade.notify,
-        version: this.state.upgrade.version,
-        detail: { username: appStore.user.name, endpoint: ENDPOINTNAME } },
+      version: this.state.upgrade.version,
+      detail: { username: appStore.user.name, endpoint: ENDPOINTNAME } },
       this.state.upgrade.timeout);
+    this.setState({ upgrade: DEFAULTUPGRADE });
     this.props.handleLoading();
     gopCdnRequest.upgradeResource(appStore.user, this.state.resource.resource_id, body,
       this.handleUgrade, this.props.handleLoadingClose);
@@ -179,10 +180,10 @@ class PackageBulkUpgrade extends React.Component {
             box = null;
             if (!this.state.upgrade.version) {
               this.handleLoadingClose('更新版本号未空,未发送任何更新命令,请重新填写更新信息');
+              this.setState({ upgrade: DEFAULTUPGRADE });
             } else {
               this.setState({ submit: null }, () => this.upgrade());
             }
-            this.setState({ upgrade: DEFAULTUPGRADE });
           },
           data: (
             <div>
