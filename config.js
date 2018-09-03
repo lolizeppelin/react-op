@@ -19,7 +19,7 @@ const API = {
   lan: '192.168.1.46',
   port: 7999,
   version: 'v1.0',
-  login: '/auth/login',
+  login: '/n1.0/goperation/login',   /* login path */
   token: null,
 };
 
