@@ -119,8 +119,10 @@ export function* signInDynamicToken() {
 export function* fetchLoginOut(action) {
   try {
     const headers = { 'Content-Type': 'application/json' };
-    const options = { headers, method: 'DELETE', body: JSON.stringify({ token: action.payload.token }) };
-    yield call(request, action.payload.url, options, 5);
+    headers['Auth-Token'] = action.payload.token;
+    const options = { headers, method: 'DELETE' };
+    const url = `${action.payload.url}/${action.payload.token}`;
+    yield call(request, url, options, 5);
     yield put({ type: SIGN_OUT });
   } catch (e) {
     yield put({ type: AUTHENTICATION_FAILED, message: `登出失败 ${e.message}` });

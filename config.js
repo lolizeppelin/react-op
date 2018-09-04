@@ -20,6 +20,7 @@ const API = {
   port: 7999,
   version: 'v1.0',
   login: '/n1.0/goperation/login',   /* login path */
+  loginout: '/v1.0/goperation/login',   /* login path */
   token: null,
 };
 

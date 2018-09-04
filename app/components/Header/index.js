@@ -47,7 +47,7 @@ class Header extends React.Component {
       token = user.token !== OPBASECONFIG.API.token ? user.token : null;
     }
     if (token) {
-      const path = `${OPBASECONFIG.API.login}/${user.name}`;
+      const path = `${OPBASECONFIG.API.loginout}/${user.name}`;
       const payload = {
         url: `http://${OPBASECONFIG.API.host}:${OPBASECONFIG.API.port}${path}`,
         token,
