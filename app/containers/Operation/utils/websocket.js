@@ -6,9 +6,10 @@ function sendfile(uri, blob, cbProgress) {
     (resolve, reject) => {
       const ipaddr = uri.ipaddr;
       const port = uri.port;
+      const token = uri.token;
       let ws = null;
       try {
-        ws = new WebSocket(`ws://${ipaddr}:${port}`, ['binary']);
+        ws = new WebSocket(`ws://${ipaddr}:${port}/?token=${token}`, ['binary']);
       } catch (err) {
         const error = new Error('webcoket连接失败');
         error.err = err;
