@@ -69,9 +69,10 @@ function readbuffer(uri, path, opencb, datacb, errorcb) {
     (resolve, reject) => {
       const ipaddr = uri.ipaddr;
       const port = uri.port;
+      const token = uri.token;
       let ws = null;
       try {
-        ws = new WebSocket(`ws://${ipaddr}:${port}/${path}`, ['binary']);
+        ws = new WebSocket(`ws://${ipaddr}:${port}/${path}?token=${token}`, ['binary']);
       } catch (err) {
         const error = new Error('webcoket连接失败');
         error.err = err;
