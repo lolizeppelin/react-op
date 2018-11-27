@@ -250,7 +250,7 @@ class AppserverFlushParameter extends React.Component {
                 onCheck={(event, value) => {
                   const flush = Object.assign({}, this.state.flush);
                   flush[goGameConfig.GMSERVER] = 0;
-                  this.setState({ flush, [goGameConfig.GMSERVER]: value }, this.indexGm);
+                  this.setState({ flush, gm: value }, this.indexGm);
                 }}
               />
               {this.state.gm && (
@@ -298,7 +298,7 @@ class AppserverFlushParameter extends React.Component {
                 onCheck={(event, value) => {
                   const flush = Object.assign({}, this.state.flush);
                   flush[goGameConfig.CROSSSERVER] = 0;
-                  this.setState({ flush, [goGameConfig.CROSSSERVER]: value }, this.indexGross);
+                  this.setState({ flush, cross: value }, this.indexGross);
                 }}
               />
               {this.state.cross && (
