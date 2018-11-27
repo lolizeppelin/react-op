@@ -38,9 +38,10 @@ import * as goGameConfig from '../../configs';
 
 const PARAMETERBASE = Object.assign({}, BASEPARAMETER);
 
+
 const FLUSHBASE = {
-  cross: 0,
-  gm: 0,
+  [goGameConfig.CROSSSERVER]: 0,
+  [goGameConfig.GMSERVER]: 0,
   force: false,
 };
 
@@ -94,19 +95,19 @@ class AppserverFlushParameter extends React.Component {
 
   selectGm = (rows) => {
     const flush = Object.assign({}, this.state.flush);
-    if (rows.length === 0) flush.gm = 0;
+    if (rows.length === 0) flush[goGameConfig.GMSERVER] = 0;
     else {
       const index = rows[0];
-      flush.gm = this.state.gmsvr[index].entity;
+      flush[goGameConfig.GMSERVER] = this.state.gmsvr[index].entity;
     }
     this.setState({ flush });
   };
   selectCross = (rows) => {
     const flush = Object.assign({}, this.state.flush);
-    if (rows.length === 0) flush.cross = 0;
+    if (rows.length === 0) flush[goGameConfig.CROSSSERVER] = 0;
     else {
       const index = rows[0];
-      flush.cross = this.state.crosssvr[index].entity;
+      flush[goGameConfig.CROSSSERVER] = this.state.crosssvr[index].entity;
     }
     this.setState({ flush });
   };
@@ -137,8 +138,8 @@ class AppserverFlushParameter extends React.Component {
   nextOK = () => {
     const { objtype } = this.props;
     if (objtype !== goGameConfig.GAMESERVER) return true;
-    if (this.state.gm && this.state.flush.gm === 0) return false;
-    if (this.state.cross && this.state.flush.cross === 0) return false;
+    if (this.state.gm && this.state.flush[goGameConfig.GMSERVER] === 0) return false;
+    if (this.state.cross && this.state.flush[goGameConfig.CROSSSERVER] === 0) return false;
     return !(this.state.optime && (this.state.date === null || this.state.time === null));
   };
 
@@ -248,8 +249,8 @@ class AppserverFlushParameter extends React.Component {
                 checked={this.state.gm}
                 onCheck={(event, value) => {
                   const flush = Object.assign({}, this.state.flush);
-                  flush.gm = 0;
-                  this.setState({ flush, gm: value }, this.indexGm);
+                  flush[goGameConfig.GMSERVER] = 0;
+                  this.setState({ flush, [goGameConfig.GMSERVER]: value }, this.indexGm);
                 }}
               />
               {this.state.gm && (
@@ -274,7 +275,7 @@ class AppserverFlushParameter extends React.Component {
                     {this.state.gmsvr.map((row) => (
                       <TableRow
                         key={row.entity}
-                        selected={this.state.flush.gm === row.entity}
+                        selected={this.state.flush[goGameConfig.GMSERVER] === row.entity}
                       >
                         <TableRowColumn>{row.entity}</TableRowColumn>
                         <TableRowColumn>{row.agent_id}</TableRowColumn>
@@ -296,8 +297,8 @@ class AppserverFlushParameter extends React.Component {
                 checked={this.state.cross}
                 onCheck={(event, value) => {
                   const flush = Object.assign({}, this.state.flush);
-                  flush.cross = 0;
-                  this.setState({ flush, cross: value }, this.indexGross);
+                  flush[goGameConfig.CROSSSERVER] = 0;
+                  this.setState({ flush, [goGameConfig.CROSSSERVER]: value }, this.indexGross);
                 }}
               />
               {this.state.cross && (
@@ -323,7 +324,7 @@ class AppserverFlushParameter extends React.Component {
                     {this.state.crosssvr.map((row) => (
                       <TableRow
                         key={row.entity}
-                        selected={this.state.flush.cross === row.entity}
+                        selected={this.state.flush[goGameConfig.CROSSSERVER] === row.entity}
                       >
                         <TableRowColumn>{row.entity}</TableRowColumn>
                         <TableRowColumn>{row.agent_id}</TableRowColumn>
