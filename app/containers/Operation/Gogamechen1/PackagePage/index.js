@@ -459,6 +459,40 @@ class PackageGogame extends React.Component {
         };
         break;
       }
+      case 'cleanrv': {
+        const p = Object.assign({}, this.state.package);
+        if (p.magic !== null) {
+          const magic = Object.assign({}, p.magic);
+          if (magic.version !== undefined) delete magic.version;
+          if (Object.keys(magic).length > 0) p.magic = magic;
+          else p.magic = null;
+        } else return null;
+        const body = { magic: p.magic };
+        const line = (
+          <div>
+            <p>
+              <span style={{ marginLeft: '2%' }}>{`包ID: ${this.state.package.package_id}`}</span>
+              <span style={{ marginLeft: '2%' }}>{`包名: ${this.state.package.package_name}`}</span>
+            </p>
+            <p>
+              <span style={{ marginLeft: '2%', color: '#D50000' }}>取消提审状态</span>
+            </p>
+          </div>);
+        submit = {
+          title: '包取消提审',
+          onSubmit: () => {
+            this.update(body);
+            // 更新显示内容
+            this.index();
+            this.handleSumbitDialogs(null);
+          },
+          data: line,
+          onCancel: () => {
+            this.handleSumbitDialogs(null);
+          },
+        };
+        break;
+      }
       case 'rversion': {
         const body = { rversion: this.state.version.version };
         const line = (
@@ -987,6 +1021,13 @@ class PackageGogame extends React.Component {
                           disabled={this.state.package.magic === null || this.state.package.magic.version === null}
                           style={{ marginLeft: '3%', marginTop: '2%' }}
                           value="review"
+                          onClick={this.openDialog}
+                        />
+                        <RaisedButton
+                          label="取消提审"
+                          disabled={this.state.package.magic === null || this.state.package.magic.version === null}
+                          style={{ marginLeft: '3%', marginTop: '2%' }}
+                          value="cleanrv"
                           onClick={this.openDialog}
                         />
                       </div>
