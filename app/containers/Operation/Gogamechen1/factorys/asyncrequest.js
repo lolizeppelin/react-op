@@ -113,8 +113,7 @@ class AsyncRequest extends React.Component {
       result: null,
     };
 
-    this.isPrivate = objtype === goGameConfig.GAMESERVER;
-    this.needWarset = objtype === (goGameConfig.WARSERVER && action === 'upgrade');
+    this.isPrivate = objtype === goGameConfig.GAMESERVER || objtype === goGameConfig.WARSERVER;
   }
 
 
@@ -326,11 +325,11 @@ class AsyncRequest extends React.Component {
                       }}
                     />
                   )}
-                  {this.needWarset && stepIndex === 1 && (
+                  {this.isPrivate && stepIndex === 1 && (
                     <RaisedButton
                       style={{ marginLeft: '4%' }}
                       primary
-                      label="战斗组筛选"
+                      label="通过战斗组筛选"
                       onClick={() => {
                         let setId = [];
                         const submit = {
@@ -355,7 +354,7 @@ class AsyncRequest extends React.Component {
                       }}
                     />
                   )}
-                  {(this.isPrivate || this.needWarset) && stepIndex === 1 && (
+                  {(this.isPrivate) && stepIndex === 1 && (
                     <RaisedButton
                       style={{ marginLeft: '4%' }}
                       primary

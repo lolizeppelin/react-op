@@ -625,7 +625,7 @@ class CreateEntity extends React.Component {
                   >
                     <RadioButton
                       value="auto"
-                      label="自动选取"
+                      label={objtype === goGameConfig.WARSERVER ? '请选择战斗组(必要)' : '自动选择'}
                       style={{ marginBottom: '0.5%' }}
                     />
                     <RadioButton
