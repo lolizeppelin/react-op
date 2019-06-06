@@ -7,6 +7,7 @@ import { createStructuredSelector } from 'reselect';
 
 /* material-ui 引用部分  */
 import TextField from 'material-ui/TextField';
+import Checkbox from 'material-ui/Checkbox';
 import {
   Table,
   TableBody,
@@ -40,7 +41,7 @@ import UpdateAreas from '../factorys/parameter/update';
 
 
 const getStatus = goGameConfig.getStatus;
-const CREATEBASE = { name: '', desc: '' };
+const CREATEBASE = { name: '', desc: '', warsvr: false };
 
 class Groups extends React.Component {
   constructor(props) {
@@ -100,7 +101,8 @@ class Groups extends React.Component {
   create = () => {
     const { appStore } = this.props;
     this.setState({ loading: true, groups: [] });
-    groupRequest.createGroup(appStore.user, this.state.create.name, this.state.create.desc,
+    groupRequest.createGroup(appStore.user, this.state.create.name, this.state.create.warsvr,
+      this.state.create.desc,
       this.handleCreate, this.handleLoadingClose);
   };
   show = () => {
@@ -307,6 +309,7 @@ class Groups extends React.Component {
                       <TableHeaderColumn>组ID</TableHeaderColumn>
                       <TableHeaderColumn>组名</TableHeaderColumn>
                       <TableHeaderColumn>注释</TableHeaderColumn>
+                      <TableHeaderColumn>战斗计算</TableHeaderColumn>
                     </TableRow>
                   </TableHeader>
                   <TableBody deselectOnClickaway={false}>
@@ -315,6 +318,7 @@ class Groups extends React.Component {
                         <TableRowColumn >{row.group_id}</TableRowColumn>
                         <TableRowColumn>{row.name}</TableRowColumn>
                         <TableRowColumn>{row.desc}</TableRowColumn>
+                        <TableRowColumn>{row.warsvr ? '是' : '否'}</TableRowColumn>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -362,7 +366,7 @@ class Groups extends React.Component {
             {(showed !== null && group !== null) ? (
               <div>
                 <h1 style={{ marginTop: '1%', fontSize: 30 }} >
-                  {`组ID:${group.group_id}  组名:${group.name}`}
+                  {`组ID:${group.group_id}  组名:${group.name} 战斗验证: ${group.warsvr ? '是' : '否'}`}
                 </h1>
                 <Divider style={{ marginTop: '1%' }} />
                 <div style={{ float: 'left', marginTop: '1%' }} >
@@ -588,9 +592,19 @@ class Groups extends React.Component {
                   this.setState({ create });
                 }}
               />
+              <Checkbox
+                style={{ width: 150, marginTop: 10 }}
+                label="启用战斗计算"
+                checked={this.state.create.warsvr}
+                onCheck={(event, value) => {
+                  const create = Object.assign({}, this.state.create);
+                  create.warsvr = value;
+                  this.setState({ create });
+                }}
+              />
               <div style={{ marginTop: '3%' }}>
                 <FlatButton
-                  label="创建"
+                  label="创建新组"
                   primary
                   keyboardFocused
                   disabled={this.state.create.name.length === 0}

@@ -42,6 +42,7 @@ import BASEPARAMETER from './parameter';
 import { entitysTableTemplate } from './tables';
 import { SubmitDialogs } from '../../factorys/dialogs';
 import PacakgesDialog from './parameter/package';
+import WarSetDialog from './parameter/warset';
 
 
 const contentStyle = { margin: '0 16px' };
@@ -91,7 +92,7 @@ const PARAMETERBASE = Object.assign({}, BASEPARAMETER);
 class AsyncRequest extends React.Component {
   constructor(props) {
     super(props);
-    const { objtype } = props;
+    const { objtype, action } = props;
 
     this.state = {
 
@@ -113,6 +114,7 @@ class AsyncRequest extends React.Component {
     };
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
+    this.needWarset = objtype === (goGameConfig.WARSERVER && action === 'upgrade');
   }
 
 
@@ -224,7 +226,6 @@ class AsyncRequest extends React.Component {
 
   render() {
     const { appStore, gameStore, objtype, action, paramTab } = this.props;
-    const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
     return (
       <div>
@@ -285,7 +286,7 @@ class AsyncRequest extends React.Component {
                     primary
                     onClick={this.handleNext}
                   />
-                  {isPrivate && stepIndex === 1 && (
+                  {this.isPrivate && stepIndex === 1 && (
                     <RaisedButton
                       style={{ marginLeft: '4%' }}
                       primary
@@ -325,7 +326,36 @@ class AsyncRequest extends React.Component {
                       }}
                     />
                   )}
-                  {isPrivate && stepIndex === 1 && (
+                  {this.needWarset && stepIndex === 1 && (
+                    <RaisedButton
+                      style={{ marginLeft: '4%' }}
+                      primary
+                      label="战斗组筛选"
+                      onClick={() => {
+                        let setId = [];
+                        const submit = {
+                          title: '通过战斗组筛选',
+                          onSubmit: () => {
+                            const choices = this.state.entitys.filter((entity) => entity.set_id === setId);
+                            this.setState({ type: 'specify', targets: [], choices, submit: null });
+                          },
+                          data:
+                            <WarSetDialog
+                              selectWarSetId={(Id) => {
+                                setId = Id;
+                              }}
+                              gameStore={gameStore}
+                              appStore={appStore}
+                            />,
+                          onCancel: () => {
+                            this.setState({ submit: null });
+                          },
+                        };
+                        this.setState({ submit });
+                      }}
+                    />
+                  )}
+                  {(this.isPrivate || this.needWarset) && stepIndex === 1 && (
                     <RaisedButton
                       style={{ marginLeft: '4%' }}
                       primary

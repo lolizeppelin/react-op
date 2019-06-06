@@ -87,6 +87,38 @@ export default function createRoutes(store) {
         importModules.catch(errorLoading);
       },
     }, {
+      path: `${BASEPATH}/warsvrs`,
+      name: 'warsvrPage',
+      getComponent(nextState, cb) {
+        const importModules = Promise.all([
+          System.import('containers/Operation/Gogamechen1/WarSvrPage'),
+        ]);
+
+        const renderRoute = loadModule(cb);
+
+        importModules.then(([component]) => {
+          renderRoute(component);
+        });
+
+        importModules.catch(errorLoading);
+      },
+    }, {
+      path: `${BASEPATH}/warsvrsets`,
+      name: 'warsetPage',
+      getComponent(nextState, cb) {
+        const importModules = Promise.all([
+          System.import('containers/Operation/Gogamechen1/WarSetPage'),
+        ]);
+
+        const renderRoute = loadModule(cb);
+
+        importModules.then(([component]) => {
+          renderRoute(component);
+        });
+
+        importModules.catch(errorLoading);
+      },
+    }, {
       path: `${BASEPATH}/objfiles`,
       name: 'ObjfilePage',
       getComponent(nextState, cb) {

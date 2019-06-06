@@ -18,6 +18,7 @@ import Slider from 'material-ui/Slider';
 
 /* 私人代码引用部分 */
 import BASEPARAMETER from './index';
+import { GAMESERVER } from '../../configs';
 
 const PARAMETERBASE = Object.assign({}, BASEPARAMETER);
 
@@ -27,7 +28,7 @@ class GamesvrStopParameter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      notify: true,
+      notify: this.props.objtype === GAMESERVER,
       kill: false,
       message: '',
       delay: 3,
@@ -36,7 +37,7 @@ class GamesvrStopParameter extends React.Component {
       finished: false,
       stepIndex: 0,
     };
-  };
+  }
 
 
   handleNext = () => {
@@ -228,6 +229,7 @@ class GamesvrStopParameter extends React.Component {
 }
 
 GamesvrStopParameter.propTypes = {
+  objtype: PropTypes.string,
   handleParameter: PropTypes.func,
 };
 

@@ -45,6 +45,7 @@ class FlushConfigTab extends React.Component {
   }
 }
 
+
 FlushConfigTab.propTypes = {
   objtype: PropTypes.string,
   gameStore: PropTypes.object,

@@ -12,10 +12,10 @@ function indexGroups(user, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-function createGroup(user, name, desc, successCallback, failCallback) {
+function createGroup(user, name, warsvr, desc, successCallback, failCallback) {
   const path = urlPrepare('groups', null, null);
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, { name, desc })
+  return http(url, 'POST', user.token, { name, warsvr, desc })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -65,6 +65,43 @@ function groupArea(user, groupId, body, successCallback, failCallback) {
   const path = urlPrepare('groups', 'area', { group_id: groupId });
   const url = `${baseurl}${path}`;
   return http(url, 'PUT', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function indexWarsets(user, groupId, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'warsvrsets', { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'GET', user.token)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function createWarsets(user, groupId, body, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'warsvrsets', { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  return http(url, 'POST', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+
+function showWarsets(user, groupId, setId, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'warsvrset', { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  const body = { set_id: setId }
+  return http(url, 'GET', user.token, body)
+    .then((result) => { successCallback(result); })
+    .catch((error) => { failCallback(error.message); });
+}
+
+function deleteWarsets(user, groupId, setId, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'warsvrset', { group_id: groupId });
+  const url = `${baseurl}${path}`;
+  const body = { set_id: setId }
+  return http(url, 'DELETE', user.token, body)
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -303,6 +340,7 @@ function deletePfile(user, packageId, pfileId, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
+
 export {
   indexGroups,
   createGroup,
@@ -312,6 +350,10 @@ export {
   groupChiefs,
   groupPackages,
   groupArea,
+  indexWarsets,
+  createWarsets,
+  showWarsets,
+  deleteWarsets,
   entitysIndex,
   entityCreate,
   entityShow,

@@ -5,14 +5,13 @@ import PropTypes from 'prop-types';
 
 /* 私人代码引用部分 */
 import AsyncRequest from './asyncrequest';
-import { GAMESERVER } from '../configs';
+import { GAMESERVER, WARSERVER } from '../configs';
 import GamesvrStopParameter from './parameter/stop';
 
 
-function gogamesvrStopParm(handleParameter) {
-  return <GamesvrStopParameter handleParameter={handleParameter} />;
+function stopParm(objtype) {
+  return (handleParameter) => <GamesvrStopParameter objtype={objtype} handleParameter={handleParameter} />;
 }
-
 
 class StopTab extends React.Component {
 
@@ -31,7 +30,7 @@ class StopTab extends React.Component {
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={objtype === GAMESERVER ? gogamesvrStopParm : undefined}
+        paramTab={(objtype === GAMESERVER || objtype === WARSERVER) ? stopParm(objtype) : undefined}
       />
     );
   }

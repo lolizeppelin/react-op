@@ -57,7 +57,7 @@ function agentsTable(data, onSelect = null, selected = null, style = null) {
             <TableRowColumn>{row.cpu}</TableRowColumn>
             <TableRowColumn>{row.memory}</TableRowColumn>
             <TableRowColumn>{row.disk}</TableRowColumn>
-            <TableRowColumn>{new Date(row.create_time).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
+            <TableRowColumn>{new Date(row.create_time * 1000).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
             <TableRowColumn>{row.endpoints.join(',')}</TableRowColumn>
           </TableRow>
         ))}

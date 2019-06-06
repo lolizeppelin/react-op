@@ -34,18 +34,19 @@ import * as gopDbRequest from '../../Gopdb/client';
 import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { databaseTable } from '../../Gopdb/factorys/tables';
 import { packagesTableTemplate } from '../PackagePage/tables';
-import { isPint } from '../../utils/math'
+import { isPint } from '../../utils/math';
 
 const contentStyle = { margin: '0 16px' };
 /* 默认扩展参数 */
 const EXTSBASE = { areasname: '', showId: '', date: -1, time: -1, cross: 0, platform: '' };
+
 /* 是否自动选择 */
-const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto' };
+const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto', warset: 'auto' };
 
 class CreateEntity extends React.Component {
   constructor(props) {
     super(props);
-    const { objtype } = props;
+    const { objtype, gameStore } = props;
 
     this.state = {
       exts: EXTSBASE,
@@ -59,8 +60,9 @@ class CreateEntity extends React.Component {
       datadbs: [],
       logdb: null,
       logdbs: [],
+      warset: null,
+      warsets: [],
       platforms: goGameConfig.PLATFORMS,
-
       packages: [],
       choices: [],
       targets: [],
@@ -70,6 +72,8 @@ class CreateEntity extends React.Component {
     };
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
+    this.needDatabase = objtype !== goGameConfig.WARSERVER;
+    this.needWarset = gameStore.group.warsvr && (objtype === goGameConfig.GAMESERVER || objtype === goGameConfig.WARSERVER);
   }
 
   componentDidMount() {
@@ -127,6 +131,20 @@ class CreateEntity extends React.Component {
     }
     this.setState({ datadbs, logdbs });
   };
+  indexWarSets = () => {
+    const { appStore, gameStore } = this.props;
+    if (this.state.warsets.length < 1) {
+      this.props.handleLoading();
+      goGameRequest.indexWarsets(appStore.user, gameStore.group.group_id,
+        this.handleindexWarSets, this.props.handleLoadingClose);
+    }
+  };
+  handleindexWarSets = (result) => {
+    this.setState({ warsets: result.data });
+    this.props.handleLoadingClose(result.result);
+  };
+
+
   showAgent = (agentId) => {
     const { appStore } = this.props;
     this.props.handleLoading();
@@ -201,6 +219,15 @@ class CreateEntity extends React.Component {
       this.showDatabase(databaseId, goGameConfig.LOGDB);
     }
   };
+  selectWarset = (rows) => {
+    if (rows.length === 0) {
+      this.setState({ warset: null });
+    } else {
+      const index = rows[0];
+      const warset = this.state.warsets[index];
+      this.setState({ warset });
+    }
+  };
   selectTargets = (rows) => {
     const targets = [];
     if (rows === 'all') {
@@ -238,9 +265,7 @@ class CreateEntity extends React.Component {
         this.create();
         break;
       }
-      default : {
-        break;
-      }
+      default: break;
     }
 
     this.setState({
@@ -251,7 +276,7 @@ class CreateEntity extends React.Component {
   handlePrev = () => {
     const { stepIndex } = this.state;
     if (stepIndex > 0) {
-      this.setState({ stepIndex: stepIndex - 1, exts: EXTSBASE, choices: [], targets: []});
+      this.setState({ stepIndex: stepIndex - 1, exts: EXTSBASE, choices: [], targets: [] });
     }
   };
   nextOK = () => {
@@ -262,8 +287,16 @@ class CreateEntity extends React.Component {
       }
       case 1: {
         /* 数据库校验 */
+        let dbchecked = false;
+        let warchecked = !this.needWarset;
         if (this.state.type.datadb === 'specify' && this.state.datadb === null) return false;
-        return !(this.state.type.logdb === 'specify' && this.state.logdb === null);
+        dbchecked = !(this.state.type.logdb === 'specify' && this.state.logdb === null);
+        /* 战斗组校验 */
+        if (this.needWarset) {
+          warchecked = !(this.state.type.warset === 'specify' && this.state.warset === null);
+          if (warchecked && !this.needDatabase && this.state.type.warset !== 'specify') warchecked = false;
+        }
+        return dbchecked && warchecked;
       }
       case 2: {
         if (!this.isPrivate) return true;
@@ -294,6 +327,7 @@ class CreateEntity extends React.Component {
       if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
       if (this.state.targets.length > 0) body.packages = Object.assign([], this.state.targets);
     }
+    if (this.needWarset && this.state.warset) body.set_id = this.state.warset.set_id;
     this.props.handleLoading();
     goGameRequest.entityCreate(appStore.user, group.group_id, objtype, body,
       this.handleCreate, this.props.handleLoadingClose);
@@ -316,7 +350,6 @@ class CreateEntity extends React.Component {
 
   render() {
     const { objtype } = this.props;
-    const isPrivate = objtype === goGameConfig.GAMESERVER;
     const { finished, stepIndex } = this.state;
 
     return (
@@ -466,58 +499,60 @@ class CreateEntity extends React.Component {
         )}
         {stepIndex === 1 && (
           <div style={{ marginTop: '3%' }}>
-            <div style={{ float: 'left', width: '800px' }}>
-              <div style={{ float: 'left', width: '300px' }}>
-                <h1 style={{ marginLeft: '10%' }}>设置主数据库</h1>
-                <RadioButtonGroup
-                  style={{ marginLeft: '5%', marginTop: '5%' }}
-                  name="datadb"
-                  valueSelected={this.state.type.datadb}
-                  onChange={(event, chiose) => {
-                    const type = Object.assign({}, this.state.type);
-                    const datadb = chiose === 'auto' ? null : this.state.datadb;
-                    type.datadb = chiose;
-                    if (this.state.datadbs.length === 0) this.indexDatabases();
-                    this.setState({ type, datadb });
-                  }}
-                >
-                  <RadioButton
-                    value="auto"
-                    label="自动选取"
-                    style={{ marginBottom: '0.5%' }}
-                  />
-                  <RadioButton
-                    value="specify"
-                    label="指定数据库"
-                  />
-                </RadioButtonGroup>
-                { this.state.type.datadb === 'specify' && (
-                  <Table
-                    height="400px"
-                    multiSelectable={false}
-                    fixedHeader={false}
-                    style={{ width: '100px', tableLayout: 'auto' }}
-                    onRowSelection={this.selectDatadb}
+            {this.needDatabase && (
+              <div style={{ float: 'left', width: '800px' }}>
+                <div style={{ float: 'left', width: '300px' }}>
+                  <h1 style={{ marginLeft: '10%' }}>设置主数据库</h1>
+                  <RadioButtonGroup
+                    style={{ marginLeft: '5%', marginTop: '5%' }}
+                    name="datadb"
+                    valueSelected={this.state.type.datadb}
+                    onChange={(event, chiose) => {
+                      const type = Object.assign({}, this.state.type);
+                      const datadb = chiose === 'auto' ? null : this.state.datadb;
+                      type.datadb = chiose;
+                      if (this.state.datadbs.length === 0) this.indexDatabases();
+                      this.setState({ type, datadb });
+                    }}
                   >
-                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                      <TableRow>
-                        <TableHeaderColumn>选择主数据库</TableHeaderColumn>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody deselectOnClickaway={false}>
-                      {this.state.datadbs.map((row, index) => (
-                        <TableRow key={`datadb-${index}`} selected={(this.state.datadb && row === this.state.datadb.database_id) ? true : null}>
-                          <TableRowColumn>{row}</TableRowColumn>
+                    <RadioButton
+                      value="auto"
+                      label="自动选取"
+                      style={{ marginBottom: '0.5%' }}
+                    />
+                    <RadioButton
+                      value="specify"
+                      label="指定数据库"
+                    />
+                  </RadioButtonGroup>
+                  { this.state.type.datadb === 'specify' && (
+                    <Table
+                      height="400px"
+                      multiSelectable={false}
+                      fixedHeader={false}
+                      style={{ width: '100px', tableLayout: 'auto' }}
+                      onRowSelection={this.selectDatadb}
+                    >
+                      <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                        <TableRow>
+                          <TableHeaderColumn>选择主数据库</TableHeaderColumn>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+                      </TableHeader>
+                      <TableBody deselectOnClickaway={false}>
+                        {this.state.datadbs.map((row, index) => (
+                          <TableRow key={`datadb-${index}`} selected={(this.state.datadb && row === this.state.datadb.database_id) ? true : null}>
+                            <TableRowColumn>{row}</TableRowColumn>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+                <div>
+                  {this.state.datadb && databaseTable(this.state.datadb, { width: '300px', tableLayout: 'auto' })}
+                </div>
               </div>
-              <div>
-                {this.state.datadb && databaseTable(this.state.datadb, { width: '300px', tableLayout: 'auto' })}
-              </div>
-            </div>
+            )}
             {this.isPrivate && (
               <div style={{ float: 'left', width: '800px' }}>
                 <div style={{ float: 'left', width: '300px' }}>
@@ -572,11 +607,68 @@ class CreateEntity extends React.Component {
                 </div>
               </div>
             )}
+            {this.needWarset && (
+              <div style={{ float: 'left', width: '800px' }}>
+                <div style={{ float: 'left', width: '300px' }}>
+                  <h1 style={{ marginLeft: '10%' }}>设置战斗组</h1>
+                  <RadioButtonGroup
+                    style={{ marginLeft: '5%', marginTop: '5%' }}
+                    name="warset"
+                    valueSelected={this.state.type.warset}
+                    onChange={(event, chiose) => {
+                      const type = Object.assign({}, this.state.type);
+                      const warset = chiose === 'auto' ? null : this.state.warset;
+                      type.warset = chiose;
+                      if (this.state.warsets.length === 0) this.indexWarSets();
+                      this.setState({ type, warset });
+                    }}
+                  >
+                    <RadioButton
+                      value="auto"
+                      label="自动选取"
+                      style={{ marginBottom: '0.5%' }}
+                    />
+                    <RadioButton
+                      value="specify"
+                      label="指定战斗组"
+                    />
+                  </RadioButtonGroup>
+                  { this.state.type.warset === 'specify' && (
+                    <Table
+                      height="400px"
+                      multiSelectable={false}
+                      fixedHeader={false}
+                      style={{ width: '100px', tableLayout: 'auto' }}
+                      onRowSelection={this.selectWarset}
+                    >
+                      <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                        <TableRow>
+                          <TableHeaderColumn>战斗组ID</TableHeaderColumn>
+                          <TableHeaderColumn>host</TableHeaderColumn>
+                          <TableHeaderColumn>port</TableHeaderColumn>
+                          <TableHeaderColumn>vhost</TableHeaderColumn>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody deselectOnClickaway={false}>
+                        {this.state.warsets.map((row) => (
+                          <TableRow key={`warset-${row.set_id}`} selected={(this.state.warset && row.set_id === this.state.warset.set_id) ? true : null}>
+                            <TableRowColumn>{row.set_id}</TableRowColumn>
+                            <TableRowColumn>{row.host}</TableRowColumn>
+                            <TableRowColumn>{row.port}</TableRowColumn>
+                            <TableRowColumn>{row.vhost}</TableRowColumn>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {stepIndex === 2 && (
           <div>
-            { isPrivate ? (
+            { this.isPrivate ? (
               <div>
                 <div style={{ marginLeft: '1%', marginTop: '1%', display: 'inline-block' }}>
                   <div style={{ float: 'left' }}>

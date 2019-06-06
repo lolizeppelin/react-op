@@ -30,6 +30,7 @@ import { entitysTable } from './tables';
 import PackageVersion from './rversion';
 import * as goGameConfig from '../configs';
 
+
 const PHPADMIN = goGameConfig.notifyPrepare('phpadmin');
 
 
@@ -45,7 +46,9 @@ const styles = {
   dbname: { width: '250px' },
 };
 
+
 const OPENTIMEDEFAULT = { date: null, time: null };
+
 
 const DEFAULTCLEANACTION = 'delete';
 
