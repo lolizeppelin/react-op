@@ -44,7 +44,8 @@ class WarSetsPage extends React.Component {
   }
 
   componentDidMount() {
-    this.index();
+    const { gameStore } = this.props;
+    if (gameStore.group) this.index();
   }
 
   handleSnackbarClose = () => {
