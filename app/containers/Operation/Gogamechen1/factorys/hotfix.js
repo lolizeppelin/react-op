@@ -8,8 +8,8 @@ import AsyncRequest from './asyncrequest';
 import HotfixParameter from './parameter/hotfix';
 import * as goGameRequest from '../client';
 
-function hotfixParamer(objtype, objfiles, handleParameter) {
-  return <HotfixParameter handleParameter={handleParameter} objtype={objtype} objfiles={objfiles} />;
+function hotfixParamer(group, objtype, objfiles, handleParameter) {
+  return <HotfixParameter handleParameter={handleParameter} group={group} objtype={objtype} objfiles={objfiles} />;
 }
 
 
@@ -57,7 +57,7 @@ class HotfixTab extends React.Component {
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={(handle) => hotfixParamer(objtype, objfiles, handle)}
+        paramTab={(handle) => hotfixParamer(this.props.gameStore.group, objtype, objfiles, handle)}
       />
     );
   }

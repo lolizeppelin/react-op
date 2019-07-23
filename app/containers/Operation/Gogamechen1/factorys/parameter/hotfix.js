@@ -41,10 +41,9 @@ class HotfixParameter extends React.Component {
 
   constructor(props) {
     super(props);
-    const { objfiles, objtype } = this.props;
+    const { objfiles, objtype, group } = this.props;
     this.state = {
-      appfiles: objfiles.filter((f) => f.objtype === objtype && f.subtype === APPFILE),
-
+      appfiles: objfiles.filter((f) => (f.group === 0 || f.group === group.group_id) && f.objtype === objtype && f.subtype === APPFILE),
       appfile: APPFILEBASE,
       fired: false,
     };
@@ -195,6 +194,7 @@ class HotfixParameter extends React.Component {
 }
 
 HotfixParameter.propTypes = {
+  group: PropTypes.any,
   objfiles: PropTypes.array,
   objtype: PropTypes.string,
   handleParameter: PropTypes.func,

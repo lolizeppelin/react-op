@@ -62,7 +62,7 @@ class UpgradeParameter extends React.Component {
       target: BASECHIOCE,
       fired: false,
     };
-  };
+  }
 
   paramOK = () => {
     if (this.state.target.appfile) {
@@ -71,7 +71,7 @@ class UpgradeParameter extends React.Component {
     if (this.state.target.datadb) {
       if (this.state.datadb.md5.length === 0) return false;
     }
-    if (this.state.target.logdb){
+    if (this.state.target.logdb) {
       if (this.state.logdb.md5.length === 0) return false;
     }
     return !(!this.state.target.appfile && !this.state.target.datadb && !this.state.target.logdb);
@@ -483,7 +483,7 @@ class UpgradeParameter extends React.Component {
 }
 
 UpgradeParameter.propTypes = {
-  group: PropTypes.array,
+  group: PropTypes.any,
   objfiles: PropTypes.array,
   objtype: PropTypes.string,
   handleParameter: PropTypes.func,
