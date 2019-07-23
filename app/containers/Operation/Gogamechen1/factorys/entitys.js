@@ -92,7 +92,8 @@ class EntitysPage extends React.Component {
       </PageBase>);
     }
 
-    if (objtype === WARSERVER && !group.warset) {
+    if (objtype === WARSERVER && !group.warsvr) {
+      console.log(group)
       return (<PageBase title="战斗计算组" navigation={`Gogamechen1 / ${ginfo}`} minHeight={180} noWrapContent>
         <div>
           <p>当前游戏组不支持战斗计算</p>

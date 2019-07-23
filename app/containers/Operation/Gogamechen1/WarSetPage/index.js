@@ -43,6 +43,10 @@ class WarSetsPage extends React.Component {
     };
   }
 
+  componentDidMount() {
+    this.index();
+  }
+
   handleSnackbarClose = () => {
     this.setState({
       showSnackbar: false,
@@ -80,10 +84,12 @@ class WarSetsPage extends React.Component {
 
   index = () => {
     const { appStore, gameStore } = this.props;
-    this.setState({ loading: true, warsvrsets: [], selected: null });
-    groupRequest.indexWarsets(appStore.user, gameStore.group.group_id,
-      this.handleIndex, this.handleLoadingClose);
+    this.setState({ loading: true, warsvrsets: [], selected: null }, () => {
+      groupRequest.indexWarsets(appStore.user, gameStore.group.group_id,
+        this.handleIndex, this.handleLoadingClose);
+    });
   };
+
   handleIndex = (result) => {
     this.handleLoadingClose();
     const warsvrsets = result.data;
@@ -108,7 +114,7 @@ class WarSetsPage extends React.Component {
     const { appStore, gameStore } = this.props;
     this.handleLoading();
     groupRequest.createWarsets(appStore.user, gameStore.group.group_id, body,
-      this.handleShow, this.handleLoadingClose);
+      this.handleCreate, this.handleLoadingClose);
   };
   handleCreate = () => {
     this.handleLoadingClose();
@@ -172,6 +178,8 @@ class WarSetsPage extends React.Component {
     const { gameStore } = this.props;
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID: ${group.group_id}  组名: ${group.name}`;
+
+    console.log(this.state.selected);
 
     if (group === null) {
       return (<PageBase title="战斗计算组" navigation={`Gogamechen1 / ${ginfo}`} minHeight={180} noWrapContent>

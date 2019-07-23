@@ -42,6 +42,7 @@ import { fileTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { resourceTable } from '../../Gopcdn/factorys/tables';
 import { requestBodyBase } from '../../Goperation/utils/async';
 import { SendFileDialog, timeout as sendTimeout } from './sendfile';
+import makeSelectGogamechen1 from '../GroupPage/selectors';
 
 const DEFALUTPARAM = {
   objtype: goGameConfig.GAMESERVER,
@@ -107,7 +108,9 @@ class Objfiles extends React.Component {
     objfileRequest.indexObjfiles(appStore.user, this.handleIndex, this.handleLoadingClose);
   };
   create = (body, successCallback, failCallback) => {
-    const { appStore } = this.props;
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    if (group) body.group = group.group_id;
     this.setState({ loading: true });
     objfileRequest.createObjfile(appStore.user, body,
       successCallback, failCallback);
@@ -312,6 +315,8 @@ class Objfiles extends React.Component {
                         <TableHeaderColumn>程序类型</TableHeaderColumn>
                         <TableHeaderColumn>文件类型</TableHeaderColumn>
                         <TableHeaderColumn>版本</TableHeaderColumn>
+                        <TableHeaderColumn>源文件名</TableHeaderColumn>
+                        <TableHeaderColumn>组别</TableHeaderColumn>
                         <TableHeaderColumn>归属资源</TableHeaderColumn>
                       </TableRow>
                     </TableHeader>
@@ -322,6 +327,8 @@ class Objfiles extends React.Component {
                             <TableRowColumn >{row.objtype}</TableRowColumn>
                             <TableRowColumn>{row.subtype}</TableRowColumn>
                             <TableRowColumn>{row.version}</TableRowColumn>
+                            <TableRowColumn>{row.srcname}</TableRowColumn>
+                            <TableRowColumn>{row.group}</TableRowColumn>
                             <TableRowColumn>{row.resource_id}</TableRowColumn>
                           </TableRow>
                         ))}
@@ -361,7 +368,7 @@ class Objfiles extends React.Component {
                 <div style={{ marginLeft: '5%' }}>
                   <div style={{ marginTop: '5%' }}>
                     <p>
-                      <span style={{ marginLeft: '1%', fontSize: 20, width: '200px'}}>选择层序类型</span>
+                      <span style={{ marginLeft: '1%', fontSize: 20, width: '200px' }}>选择层序类型</span>
                       <span style={{ marginLeft: '5%', fontSize: 20 }}>选择文件类型</span>
                     </p>
                   </div>
@@ -378,6 +385,7 @@ class Objfiles extends React.Component {
                       style={{ width: '200px' }}
                     >
                       <MenuItem value={goGameConfig.GAMESERVER} primaryText="区服程序" />
+                      <MenuItem value={goGameConfig.WARSERVER} primaryText="战斗计算" />
                       <MenuItem value={goGameConfig.GMSERVER} primaryText="GM程序" />
                       <MenuItem value={goGameConfig.CROSSSERVER} primaryText="跨服战场程序" />
                     </DropDownMenu>
@@ -441,10 +449,12 @@ class Objfiles extends React.Component {
 
 Objfiles.propTypes = {
   appStore: PropTypes.any,
+  gameStore: PropTypes.any,
 };
 
 const mapStateToProps = createStructuredSelector({
   appStore: makeSelectGlobal(),
+  gameStore: makeSelectGogamechen1(),
 });
 
 

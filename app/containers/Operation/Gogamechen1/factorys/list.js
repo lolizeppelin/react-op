@@ -215,7 +215,7 @@ class IndexEntitys extends React.Component {
   handleDelete = (result) => {
     this.props.handleLoadingClose(result.result);
     this.index();
-    this.notify(this.state.target);
+    if (this.props.objtype !== goGameConfig.WARSERVER) this.notify(this.state.target);
   };
   handleClean = (result) => {
     this.props.handleLoadingClose(result.result);
@@ -548,6 +548,7 @@ class IndexEntitys extends React.Component {
                   <TableHeaderColumn>区服名称</TableHeaderColumn>
                   <TableHeaderColumn>区服ID</TableHeaderColumn>
                   <TableHeaderColumn>实体ID</TableHeaderColumn>
+                  <TableHeaderColumn>全局ID</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
               <TableBody displayRowCheckbox={false}>
@@ -557,6 +558,7 @@ class IndexEntitys extends React.Component {
                     <TableRowColumn>{row.areaname}</TableRowColumn>
                     <TableRowColumn>{row.area_id}</TableRowColumn>
                     <TableRowColumn>{this.state.entity.entity}</TableRowColumn>
+                    <TableRowColumn>{row.gid}</TableRowColumn>
                   </TableRow>
                 ))}
               </TableBody>

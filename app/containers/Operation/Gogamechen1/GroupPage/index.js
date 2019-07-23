@@ -39,9 +39,10 @@ import * as goGameConfig from '../configs';
 import { SubmitDialogs } from '../../factorys/dialogs';
 import UpdateAreas from '../factorys/parameter/update';
 
+const portparten = RegExp('^[0-9]+$');
 
 const getStatus = goGameConfig.getStatus;
-const CREATEBASE = { name: '', desc: '', warsvr: false };
+const CREATEBASE = { name: '', desc: '', warsvr: false, platfrom_id: 0 };
 
 class Groups extends React.Component {
   constructor(props) {
@@ -308,6 +309,7 @@ class Groups extends React.Component {
                     <TableRow>
                       <TableHeaderColumn>组ID</TableHeaderColumn>
                       <TableHeaderColumn>组名</TableHeaderColumn>
+                      <TableHeaderColumn>渠道ID</TableHeaderColumn>
                       <TableHeaderColumn>注释</TableHeaderColumn>
                       <TableHeaderColumn>战斗计算</TableHeaderColumn>
                     </TableRow>
@@ -317,6 +319,7 @@ class Groups extends React.Component {
                       <TableRow key={row.group_id} selected={(group && row.group_id === group.group_id) ? true : null}>
                         <TableRowColumn >{row.group_id}</TableRowColumn>
                         <TableRowColumn>{row.name}</TableRowColumn>
+                        <TableRowColumn>{row.platfrom_id}</TableRowColumn>
                         <TableRowColumn>{row.desc}</TableRowColumn>
                         <TableRowColumn>{row.warsvr ? '是' : '否'}</TableRowColumn>
                       </TableRow>
@@ -569,6 +572,22 @@ class Groups extends React.Component {
               <h1 style={{ fontSize: 30 }}>
                 填写创建组所需信息
               </h1>
+              <TextField
+                floatingLabelText="渠道ID/GID前缀"
+                hintText="渠道ID"
+                value={String(this.state.create.platfrom_id)}
+                fullWidth
+                onChange={(event, v) => {
+                  const create = Object.assign({}, this.state.create);
+                  const platfrom_id = v.trim();
+                  if (portparten.test(platfrom_id) && parseInt(platfrom_id, 0) <= 16777215 && parseInt(platfrom_id, 0) > 0) {
+                    create.platfrom_id = parseInt(platfrom_id, 0);
+                  } else {
+                    create.platfrom_id = 0;
+                  }
+                  this.setState({ create });
+                }}
+              />
               <TextField
                 floatingLabelText="组名"
                 hintText="组名由26个英文字母以及数字组成"

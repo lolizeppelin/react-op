@@ -70,6 +70,7 @@ class UploadsFile extends React.Component {
         const fileinfo = Object.assign({}, this.state.fileinfo);
         fileinfo.size = parseInt(this.state.fileinfo.size, 0);
         body.fileinfo = fileinfo;
+        body.srcname = this.state.file.name;
         doupload(body,
           (result) => {
             const uri = result.data[0].uri;
@@ -81,7 +82,7 @@ class UploadsFile extends React.Component {
                 this.setState({ precent: 100 });
               })
               .catch((err) => {
-                console.log('websocket错误?');
+                console.log(`websocket错误: ${err.message}`);
                 handleLoadingClose(err.message);
                 this.setState({ precent: 100 });
               });

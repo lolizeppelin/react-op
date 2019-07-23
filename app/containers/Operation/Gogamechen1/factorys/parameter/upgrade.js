@@ -50,9 +50,9 @@ class UpgradeParameter extends React.Component {
 
   constructor(props) {
     super(props);
-    const { objfiles, objtype } = this.props;
+    const { objfiles, objtype, group } = this.props;
     this.state = {
-      appfiles: objfiles.filter((f) => f.objtype === objtype && f.subtype === APPFILE),
+      appfiles: objfiles.filter((f) => (f.group === 0 || f.group === group.group_id) && f.objtype === objtype && f.subtype === APPFILE),
       datadbs: objfiles.filter((f) => f.objtype === objtype && f.subtype === DATADB),
       logdbs: objfiles.filter((f) => f.objtype === objtype && f.subtype === LOGDB),
 
@@ -277,6 +277,7 @@ class UpgradeParameter extends React.Component {
                         selectable={!this.state.fired}
                         selected={(row.md5 === this.state[APPFILE].md5) ? true : null}
                       >
+                        <TableRowColumn>{row.srcname}</TableRowColumn>
                         <TableRowColumn>{row.version}</TableRowColumn>
                         <TableRowColumn>{row.md5}</TableRowColumn>
                       </TableRow>
@@ -482,6 +483,7 @@ class UpgradeParameter extends React.Component {
 }
 
 UpgradeParameter.propTypes = {
+  group: PropTypes.array,
   objfiles: PropTypes.array,
   objtype: PropTypes.string,
   handleParameter: PropTypes.func,

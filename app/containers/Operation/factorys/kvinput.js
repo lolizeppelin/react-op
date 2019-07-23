@@ -112,9 +112,7 @@ class KvIputInDialogs extends React.Component {
                 style={{ float: 'left', display: 'inline-block', width: '250px', marginLeft: '3%' }}
                 floatingLabelText="VALUE"
                 hintText="KEY对应VALUE/默认NULL"
-                // value={this.state.fileinfo.size ? this.state.fileinfo.size : ''}
                 fullWidth={false}
-                // errorText={(!this.state.fileinfo.size) ? '外部文件大小未填写(必要/数值)' : ''}
                 onBlur={(event) => {
                   const ext = Object.assign([], this.state.ext);
                   ext[index][1] = event.target.value.trim();

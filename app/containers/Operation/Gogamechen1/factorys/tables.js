@@ -40,6 +40,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
     if (selected && selected.length > 1) enable = 2;
   }
   const isPrivate = objtype === goGameConfig.GAMESERVER;
+  const needWarSets = objtype === goGameConfig.GAMESERVER || objtype === goGameConfig.WARSERVER;
   let self = null;
 
   return (
@@ -70,6 +71,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
           <TableHeaderColumn>端口</TableHeaderColumn>
           <TableHeaderColumn>内网IP</TableHeaderColumn>
           <TableHeaderColumn>外网IP</TableHeaderColumn>
+          { needWarSets && <TableHeaderColumn>战斗组</TableHeaderColumn>}
           { isPrivate && <TableHeaderColumn>开服时间</TableHeaderColumn>}
           { isPrivate && <TableHeaderColumn>实体ID</TableHeaderColumn>}
           { isPrivate && <TableHeaderColumn>区服ID</TableHeaderColumn>}
@@ -90,6 +92,7 @@ export function entitysTableTemplate(objtype, data, select, selected = null, onS
             <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
             <TableRowColumn >{row.local_ip === null ? '离线' : row.local_ip }</TableRowColumn>
             <TableRowColumn >{row.external_ips === null ? '离线' : row.external_ips.join(',') }</TableRowColumn>
+            { needWarSets && <TableRowColumn>{row.set_id}</TableRowColumn>}
             { isPrivate && <TableRowColumn>{new Date(row.opentime * 1000).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>}
             { isPrivate && <TableRowColumn>{row.entity}</TableRowColumn>}
             { isPrivate && <TableRowColumn>{ row.areas.map((area) => (area.area_id)).join(',') }</TableRowColumn> }

@@ -228,6 +228,7 @@ class GamesvrStopParameter extends React.Component {
   }
 }
 
+
 GamesvrStopParameter.propTypes = {
   objtype: PropTypes.string,
   handleParameter: PropTypes.func,

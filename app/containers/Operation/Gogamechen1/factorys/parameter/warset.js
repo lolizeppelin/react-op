@@ -15,6 +15,7 @@ class WarSetDialog extends React.Component {
     this.state = {
       warsvrsets: [],
       loading: false,
+      selected: null,
     };
   }
 
@@ -30,17 +31,19 @@ class WarSetDialog extends React.Component {
         this.handleIndexWarSets, () => this.setState({ loading: false })));
   };
   handleIndexWarSets = (result) => {
-    this.setState({ loading: false, warsvrsets: result.data });
+    this.setState({ loading: false, warsvrsets: result.data, selected: null });
   };
 
   selectWarset = (rows) => {
     const { selectWarSetId } = this.props;
     if (rows.length === 0) {
+      this.setState({ selected: null });
       selectWarSetId(null);
     } else {
       const index = rows[0];
-      const warset = this.state.warsvrsets[index];
-      selectWarSetId(warset.set_id);
+      const selected = this.state.warsvrsets[index];
+      this.setState({ selected });
+      selectWarSetId(selected.set_id);
     }
   };
 

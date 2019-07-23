@@ -86,8 +86,10 @@ class CreateEntity extends React.Component {
     goGameRequest.indexObjfiles(appStore.user, this.handleIndexObjfiles, this.props.handleLoadingClose);
   };
   handleIndexObjfiles = (result) => {
+    const { gameStore } = this.props;
+    const group = gameStore.group;
     this.props.handleLoadingClose(result.result);
-    const objfiles = result.data.filter((f) => f.objtype === this.props.objtype && f.subtype === goGameConfig.APPFILE);
+    const objfiles = result.data.filter((f) => (f.group === 0 || f.group === group.group_id) && f.objtype === this.props.objtype && f.subtype === goGameConfig.APPFILE);
     this.setState({ objfiles });
   };
   indexAgents = () => {
@@ -337,7 +339,7 @@ class CreateEntity extends React.Component {
       this.props.handleLoadingClose(`错误码: ${result.resultcode} 原因: ${result.result}`);
     } else {
       this.props.handleLoadingClose('新实体已经创建,通知后台绑定中');
-      this.notify(result.data[0]);
+      if (this.props.objtype !== goGameConfig.WARSERVER) this.notify(result.data[0]);
     }
   };
 
@@ -426,13 +428,17 @@ class CreateEntity extends React.Component {
               >
                 <TableHeader enableSelectAll={false} displaySelectAll={false}>
                   <TableRow>
-                    <TableHeaderColumn>选择程序文件版本</TableHeaderColumn>
+                    <TableHeaderColumn>文件名</TableHeaderColumn>
+                    <TableHeaderColumn>版本</TableHeaderColumn>
+                    <TableHeaderColumn>MD5</TableHeaderColumn>
                   </TableRow>
                 </TableHeader>
                 <TableBody deselectOnClickaway={false}>
                   {this.state.objfiles.map((row, index) => (
                     <TableRow key={`objfile-${index}`} selected={(this.state.objfile && row.md5 === this.state.objfile.md5) ? true : null}>
+                      <TableRowColumn>{row.srcname}</TableRowColumn>
                       <TableRowColumn>{row.version}</TableRowColumn>
+                      <TableRowColumn>{row.md5}</TableRowColumn>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -498,10 +504,10 @@ class CreateEntity extends React.Component {
           </div>
         )}
         {stepIndex === 1 && (
-          <div style={{ marginTop: '3%' }}>
+          <div style={{ marginTop: '3%', display: 'flex' }}>
             {this.needDatabase && (
-              <div style={{ float: 'left', width: '800px' }}>
-                <div style={{ float: 'left', width: '300px' }}>
+              <div>
+                <div style={{ width: '250px' }}>
                   <h1 style={{ marginLeft: '10%' }}>设置主数据库</h1>
                   <RadioButtonGroup
                     style={{ marginLeft: '5%', marginTop: '5%' }}
@@ -554,8 +560,8 @@ class CreateEntity extends React.Component {
               </div>
             )}
             {this.isPrivate && (
-              <div style={{ float: 'left', width: '800px' }}>
-                <div style={{ float: 'left', width: '300px' }}>
+              <div>
+                <div style={{ width: '250px' }}>
                   <h1 style={{ marginLeft: '10%' }}>设置日志数据库</h1>
                   <RadioButtonGroup
                     style={{ marginLeft: '5%', marginTop: '5%' }}
@@ -608,11 +614,11 @@ class CreateEntity extends React.Component {
               </div>
             )}
             {this.needWarset && (
-              <div style={{ float: 'left', width: '800px' }}>
-                <div style={{ float: 'left', width: '300px' }}>
-                  <h1 style={{ marginLeft: '10%' }}>设置战斗组</h1>
+              <div style={{ width: '600px' }}>
+                <div style={{ width: '600px' }}>
+                  <h1 style={{ marginLeft: '10%' }}>选择战斗组</h1>
                   <RadioButtonGroup
-                    style={{ marginLeft: '5%', marginTop: '5%' }}
+                    style={{ marginLeft: '5%', marginTop: '1%' }}
                     name="warset"
                     valueSelected={this.state.type.warset}
                     onChange={(event, chiose) => {
@@ -638,7 +644,7 @@ class CreateEntity extends React.Component {
                       height="400px"
                       multiSelectable={false}
                       fixedHeader={false}
-                      style={{ width: '100px', tableLayout: 'auto' }}
+                      style={{ tableLayout: 'auto', width: '500px' }}
                       onRowSelection={this.selectWarset}
                     >
                       <TableHeader enableSelectAll={false} displaySelectAll={false}>

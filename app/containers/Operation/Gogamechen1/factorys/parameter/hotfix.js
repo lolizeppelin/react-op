@@ -179,6 +179,7 @@ class HotfixParameter extends React.Component {
                       selectable={!this.state.fired}
                       selected={(row.md5 === this.state.appfile.md5) ? true : null}
                     >
+                      <TableRowColumn>{row.srcname}</TableRowColumn>
                       <TableRowColumn>{row.version}</TableRowColumn>
                       <TableRowColumn>{row.md5}</TableRowColumn>
                     </TableRow>

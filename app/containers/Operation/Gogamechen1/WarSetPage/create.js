@@ -28,7 +28,9 @@ class WarSetsCreatePage extends React.Component {
     if (this.state.create.vhost.length === 0) return null;
     if (this.state.create.user.length === 0) return null;
     if (this.state.create.passwd.length === 0) return null;
-    return this.state.create;
+    const create = Object.assign({}, this.state.create);
+    create.port = parseInt(this.state.create.port, 0);
+    return create;
   };
 
   render() {

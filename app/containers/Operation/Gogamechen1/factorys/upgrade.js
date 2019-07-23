@@ -8,8 +8,8 @@ import AsyncRequest from './asyncrequest';
 import UpgradeParameter from './parameter/upgrade';
 import * as goGameRequest from '../client';
 
-function upgradeParamer(objtype, objfiles, handleParameter) {
-  return <UpgradeParameter handleParameter={handleParameter} objtype={objtype} objfiles={objfiles} />;
+function upgradeParamer(group, objtype, objfiles, handleParameter) {
+  return <UpgradeParameter handleParameter={handleParameter} objtype={objtype} objfiles={objfiles} group={group} />;
 }
 
 
@@ -57,7 +57,7 @@ class UpgradeTab extends React.Component {
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={(handle) => upgradeParamer(objtype, objfiles, handle)}
+        paramTab={(handle) => upgradeParamer(this.props.gameStore.group, objtype, objfiles, handle)}
       />
     );
   }

@@ -30,7 +30,7 @@ class StopTab extends React.Component {
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={(objtype === GAMESERVER || objtype === WARSERVER) ? stopParm(objtype) : undefined}
+        paramTab={objtype === GAMESERVER ? stopParm(objtype) : undefined}
       />
     );
   }

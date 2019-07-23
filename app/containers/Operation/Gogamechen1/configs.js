@@ -9,7 +9,7 @@ export const ENDPOINTNAME = 'gogamechen1';
 export const GAMESERVER = 'gamesvr';
 export const GMSERVER = 'gmsvr';
 export const CROSSSERVER = 'publicsvr';
-export const WARSERVER = 'warsvr';
+export const WARSERVER = 'warserver';
 export const WARSVRSET = 'warsvrset';
 
 export const DATADB = 'datadb';
