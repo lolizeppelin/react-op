@@ -327,7 +327,7 @@ class CreateEntity extends React.Component {
       body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
       body.platform = this.state.exts.platform;
       if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
-      if (this.state.targets.length > 0) body.packages = Object.assign([], this.state.targets);
+      if (this.state.targets.length > 0) body.exclude = Object.assign([], this.state.targets);
     }
     if (this.needWarset && this.state.warset) body.set_id = this.state.warset.set_id;
     this.props.handleLoading();
@@ -719,7 +719,7 @@ class CreateEntity extends React.Component {
                       onChange={(event, index, value) => {
                         const exts = Object.assign({}, this.state.exts);
                         exts.platform = value;
-                        const choices = this.state.packages.filter((p) => p.platform & goGameConfig.PLATFORMMAP[value]);
+                        const choices = this.state.packages.filter((p) => p.platform & goGameConfig.PLATFORMMAPWITHANY[value]);
                         this.setState({ exts, choices, targets: [] });
                       }}
                       value={this.state.exts.platform}
@@ -754,12 +754,12 @@ class CreateEntity extends React.Component {
                     />
                   </div>
                   <div style={{ float: 'left' }}>
-                    <p style={{ marginLeft: 30, fontSize: 35 }}>在下方选择新区服可见渠道(多选)</p>
+                    <p style={{ marginLeft: 30, fontSize: 35 }}>指定新区服不可见渠道(多选)</p>
                   </div>
                 </div>
                 <div>
                   {packagesTableTemplate(this.state.choices,
-                    (this.state.targets.length === this.state.choices.length && this.state.targets.length > 0) ? 4 : 3,
+                    2,
                     this.state.targets, this.selectTargets, null, null, '500px')}
                 </div>
               </div>
