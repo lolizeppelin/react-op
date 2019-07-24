@@ -62,7 +62,7 @@ class CreateEntity extends React.Component {
       logdbs: [],
       warset: null,
       warsets: [],
-      platforms: goGameConfig.PLATFORMS,
+      platforms: goGameConfig.PLATFORMSWITHANY,
       packages: [],
       choices: [],
       targets: [],

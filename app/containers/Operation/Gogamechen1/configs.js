@@ -36,6 +36,7 @@ export const ANDROID = 'android';
 export const IOS = 'ios';
 export const PLATFORMS = [ANDROID, IOS];
 export const PLATFORMMAP = { [ANDROID]: 1, [IOS]: 2 };
+export const PLATFORMSWITHANY = [ANDROID, IOS, ANY];
 export const PLATFORMMAPWITHANY = { [ANDROID]: 1, [IOS]: 2, [ANY]: 3 };
 
 export function getPlatform(platform) {
