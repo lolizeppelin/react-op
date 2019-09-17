@@ -5,7 +5,7 @@ const notifys = OPBASECONFIG.NOTIFY;
 export const BASEPATH = OPBASECONFIG.BASEPATH;
 
 /* 游戏相关常量 */
-export const ENDPOINTNAME = 'gogamechen1';
+export const ENDPOINTNAME = OPBASECONFIG.ENDPOINT;
 export const GAMESERVER = 'gamesvr';
 export const GMSERVER = 'gmsvr';
 export const CROSSSERVER = 'publicsvr';
@@ -71,49 +71,49 @@ function urlPrepare(type, ext, target = null) {
   let baseUrl;
   switch (type) {
     case 'groups': {
-      baseUrl = '/gogamechen1/groups';
+      baseUrl = `/${ENDPOINTNAME}/groups`;
       if (target && target.group_id) baseUrl = `${baseUrl}/${target.group_id}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
     case 'entitys': {
-      baseUrl = `/gogamechen1/group/${target.group_id}/${target.objtype}/entitys`;
+      baseUrl = `/${ENDPOINTNAME}/group/${target.group_id}/${target.objtype}/entitys`;
       if (target && target.entity) baseUrl = `${baseUrl}/${target.entity}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
     case 'agents': {
-      baseUrl = `/gogamechen1/${target.objtype}/agents`;
+      baseUrl = `/${ENDPOINTNAME}/${target.objtype}/agents`;
       break;
     }
     case 'databases': {
-      baseUrl = `/gogamechen1/${target.objtype}/databases`;
+      baseUrl = `/${ENDPOINTNAME}/${target.objtype}/databases`;
       break;
     }
     case 'objfiles': {
-      baseUrl = '/gogamechen1/objfiles';
+      baseUrl = '/${ENDPOINTNAME}/objfiles';
       if (target && target.md5) baseUrl = `${baseUrl}/${target.md5}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
     case 'packages': {
-      baseUrl = `/gogamechen1/group/${target.group_id}/packages`;
+      baseUrl = `/${ENDPOINTNAME}/group/${target.group_id}/packages`;
       if (target && target.package_id) baseUrl = `${baseUrl}/${target.package_id}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
     case 'all': {
-      baseUrl = '/gogamechen1/packages';
+      baseUrl = `/${ENDPOINTNAME}/packages`;
       break;
     }
     case 'pfiles': {
-      baseUrl = `/gogamechen1/package/${target.package_id}/pfiles`;
+      baseUrl = `/${ENDPOINTNAME}/package/${target.package_id}/pfiles`;
       if (target && target.pfile_id) baseUrl = `${baseUrl}/${target.pfile_id}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;
     }
     case 'gresources': {
-      baseUrl = `/gogamechen1/group/${target.group_id}/resources`;
+      baseUrl = `/${ENDPOINTNAME}/group/${target.group_id}/resources`;
       if (target.resource_id) baseUrl = `${baseUrl}/${target.resource_id}`;
       break;
     }

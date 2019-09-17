@@ -1,6 +1,8 @@
 /* 访问目录 */
 const BASEPATH = '/op';
 
+const ENDPOINT = 'gogamechen1';
+
 /* php站点通知接口 */
 const NOTIFY = {
   // login: '/index.php?m=Admin&c=Login&a=index',
@@ -24,4 +26,4 @@ const API = {
   token: null,
 };
 
-window.OPBASECONFIG = { BASEPATH, NOTIFY, API };
+window.OPBASECONFIG = { BASEPATH, NOTIFY, API, ENDPOINT };

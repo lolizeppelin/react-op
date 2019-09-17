@@ -491,26 +491,20 @@ class IndexEntitys extends React.Component {
               >
                 <TableRow>
                   <TableHeaderColumn style={styles.dbtype}>库类型</TableHeaderColumn>
-                  <TableHeaderColumn style={styles.id}>数据库ID</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.dbtype}>从库</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.dbtype}>主库</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.dbname}>库名</TableHeaderColumn>
                   <TableHeaderColumn style={styles.lan}>服务器host</TableHeaderColumn>
                   <TableHeaderColumn style={styles.port}>端口</TableHeaderColumn>
                   <TableHeaderColumn style={styles.wan}>读用户</TableHeaderColumn>
                   <TableHeaderColumn style={styles.lan}>密码</TableHeaderColumn>
-                  <TableHeaderColumn style={styles.dbname}>库名</TableHeaderColumn>
-                  <TableHeaderColumn style={styles.dbtype}>从库</TableHeaderColumn>
-                  <TableHeaderColumn style={styles.dbtype}>主库</TableHeaderColumn>
+                  <TableHeaderColumn style={styles.id}>数据库ID</TableHeaderColumn>
                 </TableRow>
               </TableHeader>
               <TableBody displayRowCheckbox={false}>
                 {this.state.entity !== null && this.state.entity.databases.map((row) => (
                   <TableRow key={row.quote_id}>
                     <TableRowColumn>{row.subtype}</TableRowColumn>
-                    <TableRowColumn>{row.database_id}</TableRowColumn>
-                    <TableRowColumn>{row.host}</TableRowColumn>
-                    <TableRowColumn>{row.port}</TableRowColumn>
-                    <TableRowColumn>{row.ro_user}</TableRowColumn>
-                    <TableRowColumn>{row.ro_passwd}</TableRowColumn>
-                    <TableRowColumn>{row.schema}</TableRowColumn>
                     <TableRowColumn>
                       <FlatButton
                         label="slave"
@@ -525,6 +519,12 @@ class IndexEntitys extends React.Component {
                         icon={<FontIcon className="material-icons">forward</FontIcon>}
                       />
                     </TableRowColumn>
+                    <TableRowColumn>{row.schema}</TableRowColumn>
+                    <TableRowColumn>{row.host}</TableRowColumn>
+                    <TableRowColumn>{row.port}</TableRowColumn>
+                    <TableRowColumn>{row.ro_user}</TableRowColumn>
+                    <TableRowColumn>{row.ro_passwd}</TableRowColumn>
+                    <TableRowColumn>{row.database_id}</TableRowColumn>
                   </TableRow>
                 ))}
               </TableBody>

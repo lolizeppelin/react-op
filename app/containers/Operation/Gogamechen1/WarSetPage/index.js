@@ -28,7 +28,7 @@ import * as groupRequest from '../client';
 import WarSetsCreatePage from './create';
 
 
-/* gogamechen1 程序主页面 */
+/* gogamechen 程序主页面 */
 class WarSetsPage extends React.Component {
   constructor(props) {
     super(props);

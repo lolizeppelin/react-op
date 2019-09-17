@@ -30,7 +30,7 @@ import HotfixTab from './hotfix';
 import { SubmitDialogs } from '../../factorys/dialogs';
 import { BASEPATH, GAMESERVER, WARSERVER } from '../configs';
 
-/* gogamechen1 程序主页面 */
+/* gogamechen 程序主页面 */
 class EntitysPage extends React.Component {
   constructor(props) {
     super(props);
