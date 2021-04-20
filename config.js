@@ -10,15 +10,15 @@ const NOTIFY = {
   packages: '/notify_package.php',
   areas: '/notify_areas.php',
   groups: '/notify_areagroups.php',
-  entity: 'http://172.23.0.131/notify_entity.php',
-  reviews: 'http://172.23.0.131/get_reviewservers.php',
+  entity: 'http://172.31.0.128/notify_entity.php',
+  reviews: 'http://172.31.0.128/get_reviewservers.php',
   phpadmin: '',
 };
 
 /* 后台API */
 const API = {
-  host: '172.31.0.110',
-  lan: '192.168.1.46',
+  host: '172.31.0.128',
+  lan: '192.168.1.202',
   port: 7999,
   version: 'v1.0',
   login: '/n1.0/goperation/login',   /* login path */

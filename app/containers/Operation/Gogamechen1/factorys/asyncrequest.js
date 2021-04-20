@@ -42,7 +42,6 @@ import BASEPARAMETER from './parameter';
 import { entitysTableTemplate } from './tables';
 import { SubmitDialogs } from '../../factorys/dialogs';
 import PacakgesDialog from './parameter/package';
-import WarSetDialog from './parameter/warset';
 
 
 const contentStyle = { margin: '0 16px' };
@@ -113,7 +112,7 @@ class AsyncRequest extends React.Component {
       result: null,
     };
 
-    this.isPrivate = objtype === goGameConfig.GAMESERVER || objtype === goGameConfig.WARSERVER;
+    this.isPrivate = objtype === goGameConfig.GAMESERVER;
   }
 
 
@@ -313,35 +312,6 @@ class AsyncRequest extends React.Component {
                             <PacakgesDialog
                               selectPackages={(t) => {
                                 targets = t;
-                              }}
-                              gameStore={gameStore}
-                              appStore={appStore}
-                            />,
-                          onCancel: () => {
-                            this.setState({ submit: null });
-                          },
-                        };
-                        this.setState({ submit });
-                      }}
-                    />
-                  )}
-                  {this.isPrivate && stepIndex === 1 && (
-                    <RaisedButton
-                      style={{ marginLeft: '4%' }}
-                      primary
-                      label="通过战斗组筛选"
-                      onClick={() => {
-                        let setId = [];
-                        const submit = {
-                          title: '通过战斗组筛选',
-                          onSubmit: () => {
-                            const choices = this.state.entitys.filter((entity) => entity.set_id === setId);
-                            this.setState({ type: 'specify', targets: [], choices, submit: null });
-                          },
-                          data:
-                            <WarSetDialog
-                              selectWarSetId={(Id) => {
-                                setId = Id;
                               }}
                               gameStore={gameStore}
                               appStore={appStore}

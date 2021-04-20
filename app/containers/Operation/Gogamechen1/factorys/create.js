@@ -35,18 +35,19 @@ import { agentTable } from '../../Goperation/ServerAgent/factorys/tables';
 import { databaseTable } from '../../Gopdb/factorys/tables';
 import { packagesTableTemplate } from '../PackagePage/tables';
 import { isPint } from '../../utils/math';
+import DropDownMenu from "material-ui/DropDownMenu";
 
 const contentStyle = { margin: '0 16px' };
 /* 默认扩展参数 */
-const EXTSBASE = { areasname: '', showId: '', date: -1, time: -1, cross: 0, platform: '' };
+const EXTSBASE = { areasname: '', showId: '', date: -1, time: -1, cross: 0, platform: '', world_id: '', state_id: '' };
 
 /* 是否自动选择 */
-const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto', warset: 'auto' };
+const BASECHIOSES = { appfile: 'auto', datadb: 'auto', logdb: 'auto', entity: '0' };
 
 class CreateEntity extends React.Component {
   constructor(props) {
     super(props);
-    const { objtype, gameStore } = props;
+    const { objtype } = props;
 
     this.state = {
       exts: EXTSBASE,
@@ -60,12 +61,11 @@ class CreateEntity extends React.Component {
       datadbs: [],
       logdb: null,
       logdbs: [],
-      warset: null,
-      warsets: [],
       platforms: goGameConfig.PLATFORMSWITHANY,
       packages: [],
       choices: [],
       targets: [],
+      worlds: [],
 
       finished: false,
       stepIndex: 0,
@@ -73,7 +73,7 @@ class CreateEntity extends React.Component {
 
     this.isPrivate = objtype === goGameConfig.GAMESERVER;
     this.needDatabase = objtype !== goGameConfig.WARSERVER;
-    this.needWarset = gameStore.group.warsvr && (objtype === goGameConfig.GAMESERVER || objtype === goGameConfig.WARSERVER);
+    this.needOpenTime = objtype === goGameConfig.WORLDSERVER;
   }
 
   componentDidMount() {
@@ -133,18 +133,6 @@ class CreateEntity extends React.Component {
     }
     this.setState({ datadbs, logdbs });
   };
-  indexWarSets = () => {
-    const { appStore, gameStore } = this.props;
-    if (this.state.warsets.length < 1) {
-      this.props.handleLoading();
-      goGameRequest.indexWarsets(appStore.user, gameStore.group.group_id,
-        this.handleindexWarSets, this.props.handleLoadingClose);
-    }
-  };
-  handleindexWarSets = (result) => {
-    this.setState({ warsets: result.data });
-    this.props.handleLoadingClose(result.result);
-  };
 
 
   showAgent = (agentId) => {
@@ -184,6 +172,16 @@ class CreateEntity extends React.Component {
     this.props.handleLoadingClose(result.result);
     this.setState({ packages: result.data, targets: [] });
   };
+  indexWorldSever = () => {
+    const { appStore, gameStore } = this.props;
+    const group = gameStore.group;
+    this.props.handleLoading();
+    goGameRequest.indexWorldSevers(appStore.user, group.group_id, this.handleIndexWorldSever, this.props.handleLoadingClose);
+  };
+  handleIndexWorldSever = (result) => {
+    this.props.handleLoadingClose(result.result);
+    this.setState({ worlds: result.data });
+  };
 
   selectFile = (rows) => {
     if (rows.length === 0) {
@@ -221,15 +219,7 @@ class CreateEntity extends React.Component {
       this.showDatabase(databaseId, goGameConfig.LOGDB);
     }
   };
-  selectWarset = (rows) => {
-    if (rows.length === 0) {
-      this.setState({ warset: null });
-    } else {
-      const index = rows[0];
-      const warset = this.state.warsets[index];
-      this.setState({ warset });
-    }
-  };
+
   selectTargets = (rows) => {
     const targets = [];
     if (rows === 'all') {
@@ -255,7 +245,10 @@ class CreateEntity extends React.Component {
       }
       case 1: {
         /* 数据库参数确认 */
-        if (objtype === goGameConfig.GAMESERVER) this.indexPackages();
+        if (objtype === goGameConfig.GAMESERVER) {
+          this.indexPackages();
+          this.indexWorldSever();
+        }
         break;
       }
       case 2: {
@@ -290,22 +283,199 @@ class CreateEntity extends React.Component {
       case 1: {
         /* 数据库校验 */
         let dbchecked = false;
-        let warchecked = !this.needWarset;
         if (this.state.type.datadb === 'specify' && this.state.datadb === null) return false;
         dbchecked = !(this.state.type.logdb === 'specify' && this.state.logdb === null);
-        /* 战斗组校验 */
-        if (this.needWarset) {
-          warchecked = !(this.state.type.warset === 'specify' && this.state.warset === null);
-          if (warchecked && !this.needDatabase && this.state.type.warset !== 'specify') warchecked = false;
-        }
-        return dbchecked && warchecked;
+        return dbchecked;
       }
       case 2: {
         if (!this.isPrivate) return true;
-        return (this.state.exts.date > 0 && this.state.exts.time >= 0 && this.state.exts.showId.length > 0 && this.state.exts.areasname.length > 0 && this.state.exts.platform.length > 0);
+        return (this.state.exts.date > 0 && this.state.exts.world_id > 0 && this.state.exts.state_id > 0 && this.state.exts.time >= 0 && this.state.exts.showId.length > 0 && this.state.exts.areasname.length > 0 && this.state.exts.platform.length > 0 && this.state.exts.state_id && this.state.exts.world_id);
       }
       default:
         return true;
+    }
+  };
+
+  extargs = (objtype) => {
+    switch (objtype) {
+      case goGameConfig.GAMESERVER: {
+        return (
+          <div>
+            <div style={{ marginLeft: '1%', marginTop: '1%', display: 'inline-block' }}>
+              <div style={{ float: 'left' }}>
+                <TextField
+                  floatingLabelText="区服名"
+                  hintText="新区服的名称(一般为中文)"
+                  value={this.state.exts.areasname}
+                  fullWidth={false}
+                  errorText={this.state.exts.areasname.length > 0 ? '' : '区服名称未填写(必要)'}
+                  onChange={(event, value) => {
+                    const name = value.trim();
+                    if (name || name === '') {
+                      const exts = Object.assign({}, this.state.exts);
+                      exts.areasname = name;
+                      this.setState({ exts });
+                    }
+                  }}
+                />
+              </div>
+              <div style={{ float: 'left' }}>
+                <TextField
+                  style={{ marginLeft: 20, width: 150 }}
+                  floatingLabelText="显示ID"
+                  hintText="新区服显示ID"
+                  value={this.state.exts.showId}
+                  fullWidth={false}
+                  errorText={this.state.exts.showId.length > 0 ? '' : '区服名显示ID未填写(必要)'}
+                  onChange={(event, value) => {
+                    if (isPint(value) || value === '') {
+                      const exts = Object.assign({}, this.state.exts);
+                      exts.showId = value;
+                      this.setState({ exts });
+                    }
+                  }}
+                />
+              </div>
+              <div style={{ float: 'left' }}>
+                <SelectField
+                  autoWidth
+                  hintText="指定平台(必要)"
+                  floatingLabelText="平台"
+                  style={{ marginLeft: '18%', width: 150 }}
+                  onChange={(event, index, value) => {
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.platform = value;
+                    const choices = this.state.packages.filter((p) => p.platform & goGameConfig.PLATFORMMAPWITHANY[value]);
+                    this.setState({ exts, choices, targets: [] });
+                  }}
+                  value={this.state.exts.platform}
+                >
+                  {this.state.platforms.map((platform, index) => (<MenuItem key={`platform-${index}`} value={platform} primaryText={platform} />))}
+                </SelectField>
+              </div>
+              <div style={{ float: 'left' }}>
+                <DatePicker
+                  hintText="开服日期"
+                  floatingLabelText="日期"
+                  textFieldStyle={{ marginLeft: 50, width: 150 }}
+                  onChange={(none, datetime) => {
+                    const unixtime = datetime.getTime();
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.date = unixtime;
+                    this.setState({ exts });
+                  }}
+                />
+              </div>
+              <div style={{ float: 'left' }}>
+                <TimePicker
+                  hintText="具体时间"
+                  floatingLabelText="时间"
+                  textFieldStyle={{ marginLeft: 25, width: 150 }}
+                  format="24hr" minutesStep={10}
+                  onChange={(none, datetime) => {
+                    const h = datetime.getHours();
+                    const m = datetime.getMinutes();
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
+                    this.setState({ exts });
+                  }}
+                />
+              </div>
+              <div style={{ float: 'left' }}>
+                <SelectField
+                  autoWidth
+                  hintText="指定出生州"
+                  floatingLabelText="出生州"
+                  style={{ marginLeft: '18%', width: 150 }}
+                  value={this.state.exts.state_id.toString()}
+                  onChange={(event, index, value) => {
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.state_id = parseInt(value, 10);
+                    this.setState({ exts });
+                  }}
+                >
+                  <MenuItem key="menu-state-1" value="1" primaryText="1" />
+                  <MenuItem key="menu-state-2" value="2" primaryText="2" />
+                  <MenuItem key="menu-state-3" value="3" primaryText="3" />
+                </SelectField>
+              </div>
+
+              <div style={{ float: 'left' }}>
+                <SelectField
+                  autoWidth
+                  hintText="指定世界服"
+                  floatingLabelText="世界服"
+                  value={this.state.exts.world_id.toString()}
+                  style={{ marginLeft: '18%', width: 150 }}
+                  onChange={(event, index, value) => {
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.world_id = parseInt(value, 10);
+                    this.setState({ exts });
+                  }}
+                >
+                  {this.state.worlds.map((world, index) => (<MenuItem key={`menu-world-${index}`} value={world.toString()} primaryText={world.toString()} />))}
+                </SelectField>
+              </div>
+              <div style={{ float: 'left' }}>
+                <p style={{ marginLeft: 30, fontSize: 35 }}>指定新区服不可见渠道(多选)</p>
+              </div>
+            </div>
+            <div>
+              {packagesTableTemplate(this.state.choices,
+                2,
+                this.state.targets, this.selectTargets, null, null, '500px')}
+            </div>
+          </div>
+        );
+      }
+      case goGameConfig.WORLDSERVER: {
+        return (
+          <div>
+            <div style={{ marginLeft: '1%', marginTop: '1%', display: 'inline-block' }}>
+              <div style={{ float: 'left' }}>
+                <DatePicker
+                  hintText="开服日期"
+                  floatingLabelText="日期"
+                  textFieldStyle={{ marginLeft: 50, width: 150 }}
+                  onChange={(none, datetime) => {
+                    const unixtime = datetime.getTime();
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.date = unixtime;
+                    this.setState({ exts });
+                  }}
+                />
+              </div>
+              <div style={{ float: 'left' }}>
+                <TimePicker
+                  hintText="具体时间"
+                  floatingLabelText="时间"
+                  textFieldStyle={{ marginLeft: 25, width: 150 }}
+                  format="24hr" minutesStep={10}
+                  onChange={(none, datetime) => {
+                    const h = datetime.getHours();
+                    const m = datetime.getMinutes();
+                    const exts = Object.assign({}, this.state.exts);
+                    exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
+                    this.setState({ exts });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
+      default: {
+        return (
+          <h1 style={{ marginLeft: '30%', marginTop: '5%' }}>
+            <p style={{ fontSize: 30 }}>
+              <span>{objtype} 程序</span>
+              <span style={{ marginLeft: '1%' }}>不需要额外参数</span>
+              <span style={{ marginLeft: '1%' }}>请点击下一步</span>
+            </p>
+          </h1>
+        );
+      }
+
     }
   };
 
@@ -317,6 +487,7 @@ class CreateEntity extends React.Component {
     const body = {};
     body[goGameConfig.APPFILE] = this.state.objfile.md5;
     if (this.state.agent) body.agent_id = this.state.agent.agent_id;
+    if (this.state.type.entity !== '0') body.entity = parseInt(this.state.type.entity, 10);
     const databases = {};
     if (this.state.datadb) databases[goGameConfig.DATADB] = this.state.datadb.database_id;
     if (this.state.logdb) databases[goGameConfig.LOGDB] = this.state.logdb.database_id;
@@ -326,10 +497,11 @@ class CreateEntity extends React.Component {
       body.show_id = parseInt(this.state.exts.showId, 0);
       body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
       body.platform = this.state.exts.platform;
-      if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
+      // if (this.state.exts.cross > 0) body.cross_id = this.state.cross;
+      body.state_id = this.state.exts.state_id;
+      body.world_id = this.state.exts.world_id;
       if (this.state.targets.length > 0) body.exclude = Object.assign([], this.state.targets);
     }
-    if (this.needWarset && this.state.warset) body.set_id = this.state.warset.set_id;
     this.props.handleLoading();
     goGameRequest.entityCreate(appStore.user, group.group_id, objtype, body,
       this.handleCreate, this.props.handleLoadingClose);
@@ -417,8 +589,8 @@ class CreateEntity extends React.Component {
           </div>
         </div>
         {stepIndex === 0 && (
-          <div>
-            <div style={{ float: 'left' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', marginTop: '1%' }}>
+            <div>
               <Table
                 height="600px"
                 multiSelectable={false}
@@ -444,63 +616,74 @@ class CreateEntity extends React.Component {
                 </TableBody>
               </Table>
             </div>
-            <div style={{ float: 'left', marginLeft: '5%', marginTop: '1%', width: '300px' }}>
-              <div>
-                <h1 style={{ marginLeft: '10%' }}>设置运行服务器</h1>
-                <RadioButtonGroup
-                  style={{ marginLeft: '5%', marginTop: '3%' }}
-                  name="agent"
-                  valueSelected={this.state.type.appfile}
-                  onChange={(event, chiose) => {
-                    const type = Object.assign({}, this.state.type);
-                    const agent = chiose === 'auto' ? null : this.state.agent;
-                    type.appfile = chiose;
-                    if (chiose === 'specify') this.indexAgents();
-                    this.setState({ type, agent });
-                  }}
-                >
-                  <RadioButton
-                    value="auto"
-                    label="自动选取"
-                    style={{ marginBottom: '0.5%' }}
-                  />
-                  <RadioButton
-                    value="specify"
-                    label="指定服务器"
-                  />
-                </RadioButtonGroup>
-              </div>
+            <div style={{ width: '200px', marginLeft: '1%' }}>
+              <h1>设置运行服务器</h1>
+              <RadioButtonGroup
+                name="agent"
+                valueSelected={this.state.type.appfile}
+                onChange={(event, chiose) => {
+                  const type = Object.assign({}, this.state.type);
+                  const agent = chiose === 'auto' ? null : this.state.agent;
+                  type.appfile = chiose;
+                  if (chiose === 'specify') this.indexAgents();
+                  this.setState({ type, agent });
+                }}
+              >
+                <RadioButton
+                  value="auto"
+                  label="自动选取"
+                />
+                <RadioButton
+                  value="specify"
+                  label="指定服务器"
+                />
+              </RadioButtonGroup>
               { this.state.type.appfile === 'specify' && (
-                <div>
-                  <Table
-                    height="600px"
-                    multiSelectable={false}
-                    fixedHeader={false}
-                    style={{ width: '200px', maxWidth: '80%', tableLayout: 'auto' }}
-                    onRowSelection={this.selectAgent}
-                  >
-                    <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                      <TableRow>
-                        <TableHeaderColumn>选择服务器</TableHeaderColumn>
+                <Table
+                  height="600px"
+                  multiSelectable={false}
+                  fixedHeader={false}
+                  style={{ width: '200px', maxWidth: '80%', tableLayout: 'auto' }}
+                  onRowSelection={this.selectAgent}
+                >
+                  <TableHeader enableSelectAll={false} displaySelectAll={false}>
+                    <TableRow>
+                      <TableHeaderColumn>选择服务器</TableHeaderColumn>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody deselectOnClickaway={false}>
+                    {this.state.agents.map((row, index) => (
+                      <TableRow key={`agent-${index}`} selected={(this.state.agent && row === this.state.agent.agent_id) ? true : null}>
+                        <TableRowColumn>{row}</TableRowColumn>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody deselectOnClickaway={false}>
-                      {this.state.agents.map((row, index) => (
-                        <TableRow key={`agent-${index}`} selected={(this.state.agent && row === this.state.agent.agent_id) ? true : null}>
-                          <TableRowColumn>{row}</TableRowColumn>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+            <div style={{ width: '600px', marginLeft: '1%' }}>
+              <TextField
+                floatingLabelText="实体ID指定(0为自动)"
+                hintText="为0表示自动"
+                value={this.state.type.entity}
+                fullWidth={false}
+                onChange={(event, value) => {
+                  const entity = value.trim();
+                  if (/^\d+$/.test(entity)) {
+                  // if (Number.isInteger(entity)) {
+                    const type = Object.assign({}, this.state.type);
+                    type.entity = entity;
+                    this.setState({ type });
+                  }
+                }}
+              />
+              { this.state.agent && (
+                <div style={{ width: '500px', marginLeft: '1%' }}>
+                  {agentTable(this.state.agent,
+                    { width: '500px', tableLayout: 'auto' })}
                 </div>
               )}
             </div>
-            { this.state.agent && (
-              <div>
-                {agentTable(this.state.agent,
-                  { marginLeft: '10%', width: '500px', maxWidth: '30%', tableLayout: 'auto' })}
-              </div>
-            )}
           </div>
         )}
         {stepIndex === 1 && (
@@ -613,167 +796,10 @@ class CreateEntity extends React.Component {
                 </div>
               </div>
             )}
-            {this.needWarset && (
-              <div style={{ width: '600px' }}>
-                <div style={{ width: '600px' }}>
-                  <h1 style={{ marginLeft: '10%' }}>选择战斗组</h1>
-                  <RadioButtonGroup
-                    style={{ marginLeft: '5%', marginTop: '1%' }}
-                    name="warset"
-                    valueSelected={this.state.type.warset}
-                    onChange={(event, chiose) => {
-                      const type = Object.assign({}, this.state.type);
-                      const warset = chiose === 'auto' ? null : this.state.warset;
-                      type.warset = chiose;
-                      if (this.state.warsets.length === 0) this.indexWarSets();
-                      this.setState({ type, warset });
-                    }}
-                  >
-                    <RadioButton
-                      value="auto"
-                      label={objtype === goGameConfig.WARSERVER ? '请选择战斗组(必要)' : '自动选择'}
-                      style={{ marginBottom: '0.5%' }}
-                    />
-                    <RadioButton
-                      value="specify"
-                      label="指定战斗组"
-                    />
-                  </RadioButtonGroup>
-                  { this.state.type.warset === 'specify' && (
-                    <Table
-                      height="400px"
-                      multiSelectable={false}
-                      fixedHeader={false}
-                      style={{ tableLayout: 'auto', width: '500px' }}
-                      onRowSelection={this.selectWarset}
-                    >
-                      <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                        <TableRow>
-                          <TableHeaderColumn>战斗组ID</TableHeaderColumn>
-                          <TableHeaderColumn>host</TableHeaderColumn>
-                          <TableHeaderColumn>port</TableHeaderColumn>
-                          <TableHeaderColumn>vhost</TableHeaderColumn>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody deselectOnClickaway={false}>
-                        {this.state.warsets.map((row) => (
-                          <TableRow key={`warset-${row.set_id}`} selected={(this.state.warset && row.set_id === this.state.warset.set_id) ? true : null}>
-                            <TableRowColumn>{row.set_id}</TableRowColumn>
-                            <TableRowColumn>{row.host}</TableRowColumn>
-                            <TableRowColumn>{row.port}</TableRowColumn>
-                            <TableRowColumn>{row.vhost}</TableRowColumn>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
         {stepIndex === 2 && (
-          <div>
-            { this.isPrivate ? (
-              <div>
-                <div style={{ marginLeft: '1%', marginTop: '1%', display: 'inline-block' }}>
-                  <div style={{ float: 'left' }}>
-                    <TextField
-                      floatingLabelText="区服名"
-                      hintText="新区服的名称(一般为中文)"
-                      value={this.state.exts.areasname}
-                      fullWidth={false}
-                      errorText={this.state.exts.areasname.length > 0 ? '' : '区服名称未填写(必要)'}
-                      onChange={(event, value) => {
-                        const name = value.trim();
-                        if (name || name === '') {
-                          const exts = Object.assign({}, this.state.exts);
-                          exts.areasname = name;
-                          this.setState({ exts });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div style={{ float: 'left' }}>
-                    <TextField
-                      style={{ marginLeft: 20, width: 150 }}
-                      floatingLabelText="显示ID"
-                      hintText="新区服显示ID"
-                      value={this.state.exts.showId}
-                      fullWidth={false}
-                      errorText={this.state.exts.showId.length > 0 ? '' : '区服名显示ID未填写(必要)'}
-                      onChange={(event, value) => {
-                        if (isPint(value) || value === '') {
-                          const exts = Object.assign({}, this.state.exts);
-                          exts.showId = value;
-                          this.setState({ exts });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div style={{ float: 'left' }}>
-                    <SelectField
-                      autoWidth
-                      hintText="指定平台(必要)"
-                      style={{ marginLeft: '18%', marginTop: '17%', width: 150 }}
-                      onChange={(event, index, value) => {
-                        const exts = Object.assign({}, this.state.exts);
-                        exts.platform = value;
-                        const choices = this.state.packages.filter((p) => p.platform & goGameConfig.PLATFORMMAPWITHANY[value]);
-                        this.setState({ exts, choices, targets: [] });
-                      }}
-                      value={this.state.exts.platform}
-                    >
-                      {this.state.platforms.map((platform, index) => (<MenuItem key={`platform-${index}`} value={platform} primaryText={platform} />))}
-                    </SelectField>
-                  </div>
-                  <div style={{ float: 'left' }}>
-                    <DatePicker
-                      hintText="开服日期"
-                      textFieldStyle={{ marginLeft: 50, marginTop: '12.8%', width: 150 }}
-                      onChange={(none, datetime) => {
-                        const unixtime = datetime.getTime();
-                        const exts = Object.assign({}, this.state.exts);
-                        exts.date = unixtime;
-                        this.setState({ exts });
-                      }}
-                    />
-                  </div>
-                  <div style={{ float: 'left' }}>
-                    <TimePicker
-                      hintText="具体时间"
-                      textFieldStyle={{ marginLeft: 25, marginTop: '15%', width: 150 }}
-                      format="24hr" minutesStep={10}
-                      onChange={(none, datetime) => {
-                        const h = datetime.getHours();
-                        const m = datetime.getMinutes();
-                        const exts = Object.assign({}, this.state.exts);
-                        exts.time = (h * 3600 * 1000) + (m * 60 * 1000);
-                        this.setState({ exts });
-                      }}
-                    />
-                  </div>
-                  <div style={{ float: 'left' }}>
-                    <p style={{ marginLeft: 30, fontSize: 35 }}>指定新区服不可见渠道(多选)</p>
-                  </div>
-                </div>
-                <div>
-                  {packagesTableTemplate(this.state.choices,
-                    2,
-                    this.state.targets, this.selectTargets, null, null, '500px')}
-                </div>
-              </div>
-              )
-              : (
-                <h1 style={{ marginLeft: '30%', marginTop: '5%' }}>
-                  <p style={{ fontSize: 30 }}>
-                    <span>{objtype} 程序</span>
-                    <span style={{ marginLeft: '1%' }}>不需要额外参数</span>
-                    <span style={{ marginLeft: '1%' }}>请点击下一步</span>
-                  </p>
-                </h1>
-              )}
-          </div>
+          this.extargs(objtype)
         )}
         {stepIndex >= 3 && (
           <div style={{ marginLeft: '20%', marginTop: '3%' }}>
@@ -824,9 +850,9 @@ class CreateEntity extends React.Component {
                     <TableRowColumn>{this.state.exts.areasname}</TableRowColumn>
                   </TableRow>
                 )}
-                {this.isPrivate && (
+                {(this.isPrivate || this.needOpenTime) && (
                   <TableRow key="opentime">
-                    <TableRowColumn>开服时间</TableRowColumn>
+                    <TableRowColumn>起始时间</TableRowColumn>
                     <TableRowColumn>{new Date(this.state.exts.date + this.state.exts.time).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
                   </TableRow>
                 )}

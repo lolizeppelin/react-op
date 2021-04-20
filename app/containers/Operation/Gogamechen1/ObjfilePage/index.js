@@ -388,6 +388,7 @@ class Objfiles extends React.Component {
                       <MenuItem value={goGameConfig.WARSERVER} primaryText="战斗计算" />
                       <MenuItem value={goGameConfig.GMSERVER} primaryText="GM程序" />
                       <MenuItem value={goGameConfig.CROSSSERVER} primaryText="跨服战场程序" />
+                      <MenuItem value={goGameConfig.WORLDSERVER} primaryText="世界服程序" />
                     </DropDownMenu>
                     <DropDownMenu
                       autoWidth

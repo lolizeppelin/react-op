@@ -42,7 +42,6 @@ const PARAMETERBASE = Object.assign({}, BASEPARAMETER);
 const FLUSHBASE = {
   [goGameConfig.CROSSSERVER]: 0,
   [goGameConfig.GMSERVER]: 0,
-  [goGameConfig.WARSVRSET]: 0,
   force: false,
 };
 
@@ -55,14 +54,12 @@ class AppserverFlushParameter extends React.Component {
       flush: FLUSHBASE,
       gm: false,
       cross: false,
-      warset: false,
       optime: false,
       date: null,
       time: null,
       force: false,
       crosssvr: [],
       gmsvr: [],
-      warsvrsets: [],
       finished: false,
       stepIndex: 0,
     };
@@ -96,20 +93,6 @@ class AppserverFlushParameter extends React.Component {
     this.setState({ crosssvr: result.data.filter((e) => e.status === goGameConfig.OK) });
   };
 
-  indexWarsets = () => {
-    if (this.state.warsvrsets.length > 0) return;
-    const { gameStore, appStore } = this.props;
-    const user = appStore.user;
-    const group = gameStore.group;
-    this.props.handleLoading();
-    goGameRequest.indexWarsets(user, group.group_id,
-      this.handleIndexWarsets, this.props.handleLoadingClose);
-  };
-  handleIndexWarsets = (result) => {
-    this.props.handleLoadingClose(result.result);
-    this.setState({ warsvrsets: result.data });
-  };
-
   selectGm = (rows) => {
     const flush = Object.assign({}, this.state.flush);
     if (rows.length === 0) flush[goGameConfig.GMSERVER] = 0;
@@ -125,15 +108,6 @@ class AppserverFlushParameter extends React.Component {
     else {
       const index = rows[0];
       flush[goGameConfig.CROSSSERVER] = this.state.crosssvr[index].entity;
-    }
-    this.setState({ flush });
-  };
-  selectWarset = (rows) => {
-    const flush = Object.assign({}, this.state.flush);
-    if (rows.length === 0) flush[goGameConfig.WARSVRSET] = 0;
-    else {
-      const index = rows[0];
-      flush[goGameConfig.WARSVRSET] = this.state.warsvrsets[index].set_id;
     }
     this.setState({ flush });
   };
@@ -171,8 +145,7 @@ class AppserverFlushParameter extends React.Component {
 
   render() {
     const { stepIndex, finished } = this.state;
-    const { handleParameter, objtype, gameStore } = this.props;
-    const warsvr = gameStore.group.warsvr;
+    const { handleParameter, objtype } = this.props;
     return (
       <div>
         <div style={{ width: 700, maxWidth: '80%', margin: 'auto', marginTop: '0%' }}>
@@ -358,55 +331,6 @@ class AppserverFlushParameter extends React.Component {
                         <TableRowColumn>{row.ports.join(',')}</TableRowColumn>
                         <TableRowColumn >{row.local_ip === null ? '离线' : row.local_ip }</TableRowColumn>
                         <TableRowColumn >{row.external_ips === null ? '离线' : row.external_ips.join(',') }</TableRowColumn>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </div>
-          <div style={{ marginLeft: '1%', float: 'left', width: 500, display: objtype === goGameConfig.GAMESERVER && warsvr ? undefined : 'none' }}>
-            <div>
-              <Checkbox
-                disabled={this.state.finished}
-                label="更换战斗组"
-                checked={this.state.warset}
-                onCheck={(event, value) => {
-                  const flush = Object.assign({}, this.state.flush);
-                  flush[goGameConfig.WARSVRSET] = 0;
-                  this.setState({ flush, warset: value }, this.indexWarsets);
-                }}
-              />
-              {this.state.warset && (
-                <Table
-                  height="400px"
-                  multiSelectable={false}
-                  fixedHeader={false}
-                  // wrapperStyle={{ width: '800px' }}
-                  style={{ tableLayout: 'auto', width: 400 }}
-                  bodyStyle={{ tableLayout: 'fixed', overflow: 'auto' }}
-                  onRowSelection={this.selectWarset}
-                >
-                  <TableHeader enableSelectAll={false} displaySelectAll={false}>
-                    <TableRow>
-                      <TableHeaderColumn>组ID</TableHeaderColumn>
-                      <TableHeaderColumn>HOST</TableHeaderColumn>
-                      <TableHeaderColumn>端口</TableHeaderColumn>
-                      <TableHeaderColumn>VHOST</TableHeaderColumn>
-                      <TableHeaderColumn>用户</TableHeaderColumn>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody deselectOnClickaway={false}>
-                    {this.state.warsvrsets.map((row) => (
-                      <TableRow
-                        key={row.set_id}
-                        selected={this.state.flush[goGameConfig.WARSVRSET] === row.set_id}
-                      >
-                        <TableRowColumn>{row.set_id}</TableRowColumn>
-                        <TableRowColumn>{row.host}</TableRowColumn>
-                        <TableRowColumn>{row.port}</TableRowColumn>
-                        <TableRowColumn>{row.vhost}</TableRowColumn>
-                        <TableRowColumn>{row.user}</TableRowColumn>
                       </TableRow>
                     ))}
                   </TableBody>

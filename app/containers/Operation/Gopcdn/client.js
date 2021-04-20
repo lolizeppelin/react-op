@@ -121,11 +121,11 @@ function logsResource(user, resourceId, body, successCallback, failCallback) {
 }
 
 
-function addVersionResource(user, resourceId, version, alias,
+function addVersionResource(user, resourceId, version,
                             successCallback, failCallback) {
   const path = urlPrepare('resources', 'version', { resource_id: resourceId });
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, { version, alias })
+  return http(url, 'POST', user.token, { version })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }

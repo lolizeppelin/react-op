@@ -157,7 +157,6 @@ class PackageBulkUpgrade extends React.Component {
             <p>
               <span style={{ marginLeft: '2%', color: '#D50000' }}>默认资源版本更改为</span>
               <span style={{ marginLeft: '5%' }}>{`版本: ${this.state.rversion.version}`}</span>
-              <span style={{ marginLeft: '2%' }}>{`别名(显示版本): ${this.state.rversion.alias}`}</span>
             </p>
           </div>);
         submit = {

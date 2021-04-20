@@ -267,7 +267,7 @@ class CdnResources extends React.Component {
         submit = {
           title: '确认删除',
           onSubmit: this.deleteVersion,
-          data: `删除版本信息: 资源ID:${resource.resource_id} 资源类型:${resource.etype} 资源名:${resource.name} 版本:${version.version} 版本別名:${version.alias}`,
+          data: `删除版本信息: 资源ID:${resource.resource_id} 资源类型:${resource.etype} 资源名:${resource.name} 版本:${version.version}}`,
           onCancel: () => {
             this.handleSumbitDialogs(null);
           },

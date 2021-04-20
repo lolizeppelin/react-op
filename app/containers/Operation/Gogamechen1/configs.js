@@ -6,22 +6,21 @@ export const BASEPATH = OPBASECONFIG.BASEPATH;
 
 /* 游戏相关常量 */
 export const ENDPOINTNAME = OPBASECONFIG.ENDPOINT;
-export const GAMESERVER = 'gamesvr';
-export const GMSERVER = 'gmsvr';
-export const CROSSSERVER = 'publicsvr';
-export const WARSERVER = 'warserver';
-export const WARSVRSET = 'warsvrset';
+export const GAMESERVER = 'svrgame';
+export const GMSERVER = 'svrlogin';
+export const CROSSSERVER = 'svrpublic';
+export const WARSERVER = 'svrfight';
+export const WORLDSERVER = 'svrworld';
 
 export const DATADB = 'datadb';
 export const LOGDB = 'logdb';
 export const APPFILE = 'appfile';
 
-export const APPAFFINITYS = { [GAMESERVER]: 1, [CROSSSERVER]: 2, [GMSERVER]: 3 };
-
 export const DBAFFINITYS = {
   [GAMESERVER]: { [DATADB]: 1, [LOGDB]: 2 },
   [CROSSSERVER]: { [DATADB]: 4 },
   [GMSERVER]: { [DATADB]: 8 },
+  [WORLDSERVER]: { [DATADB]: 16 },
 };
 
 export const UNACTIVE = -1;
@@ -91,7 +90,7 @@ function urlPrepare(type, ext, target = null) {
       break;
     }
     case 'objfiles': {
-      baseUrl = '/${ENDPOINTNAME}/objfiles';
+      baseUrl = `/${ENDPOINTNAME}/objfiles`;
       if (target && target.md5) baseUrl = `${baseUrl}/${target.md5}`;
       if (ext) baseUrl = `${baseUrl}/${ext}`;
       break;

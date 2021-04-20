@@ -12,10 +12,10 @@ function indexGroups(user, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-function createGroup(user, name, warsvr, desc, successCallback, failCallback) {
+function createGroup(user, name, notify, desc, successCallback, failCallback) {
   const path = urlPrepare('groups', null, null);
   const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, { name, warsvr, desc })
+  return http(url, 'POST', user.token, { name, notify, desc })
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -60,7 +60,6 @@ function groupPackages(user, groupId, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-
 function groupArea(user, groupId, body, successCallback, failCallback) {
   const path = urlPrepare('groups', 'area', { group_id: groupId });
   const url = `${baseurl}${path}`;
@@ -69,39 +68,10 @@ function groupArea(user, groupId, body, successCallback, failCallback) {
     .catch((error) => { failCallback(error.message); });
 }
 
-
-function indexWarsets(user, groupId, successCallback, failCallback) {
-  const path = urlPrepare('groups', 'warsvrsets', { group_id: groupId });
+function indexWorldSevers(user, groupId, successCallback, failCallback) {
+  const path = urlPrepare('groups', 'worlds', { group_id: groupId });
   const url = `${baseurl}${path}`;
   return http(url, 'GET', user.token)
-    .then((result) => { successCallback(result); })
-    .catch((error) => { failCallback(error.message); });
-}
-
-
-function createWarsets(user, groupId, body, successCallback, failCallback) {
-  const path = urlPrepare('groups', 'warsvrsets', { group_id: groupId });
-  const url = `${baseurl}${path}`;
-  return http(url, 'POST', user.token, body)
-    .then((result) => { successCallback(result); })
-    .catch((error) => { failCallback(error.message); });
-}
-
-
-function showWarsets(user, groupId, setId, successCallback, failCallback) {
-  const path = urlPrepare('groups', 'warsvrset', { group_id: groupId });
-  const url = `${baseurl}${path}`;
-  const body = { set_id: setId }
-  return http(url, 'GET', user.token, body)
-    .then((result) => { successCallback(result); })
-    .catch((error) => { failCallback(error.message); });
-}
-
-function deleteWarsets(user, groupId, setId, successCallback, failCallback) {
-  const path = urlPrepare('groups', 'warsvrset', { group_id: groupId });
-  const url = `${baseurl}${path}`;
-  const body = { set_id: setId }
-  return http(url, 'DELETE', user.token, body)
     .then((result) => { successCallback(result); })
     .catch((error) => { failCallback(error.message); });
 }
@@ -205,7 +175,6 @@ function entitysAsyncrequest(user, action, method,
     .then((result) => waitAsyncRequestFinish(user, result, true, successCallback, failCallback))
     .catch((error) => { failCallback(error.message); });
 }
-
 
 /* objfile api 接口 */
 function indexObjfiles(user, successCallback, failCallback) {
@@ -350,10 +319,6 @@ export {
   groupChiefs,
   groupPackages,
   groupArea,
-  indexWarsets,
-  createWarsets,
-  showWarsets,
-  deleteWarsets,
   entitysIndex,
   entityCreate,
   entityShow,
@@ -366,6 +331,7 @@ export {
   entityAgents,
   entityDatabases,
   entitysAsyncrequest,
+  indexWorldSevers,
   indexObjfiles,
   createObjfile,
   showObjfile,

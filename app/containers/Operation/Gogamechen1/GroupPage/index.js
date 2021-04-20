@@ -42,7 +42,7 @@ import UpdateAreas from '../factorys/parameter/update';
 const portparten = RegExp('^[0-9]+$');
 
 const getStatus = goGameConfig.getStatus;
-const CREATEBASE = { name: '', desc: '', warsvr: false, platfrom_id: 0 };
+const CREATEBASE = { name: '', desc: '', notify: '', platfrom_id: 0 };
 
 class Groups extends React.Component {
   constructor(props) {
@@ -102,8 +102,8 @@ class Groups extends React.Component {
   create = () => {
     const { appStore } = this.props;
     this.setState({ loading: true, groups: [] });
-    groupRequest.createGroup(appStore.user, this.state.create.name, this.state.create.warsvr,
-      this.state.create.desc,
+    groupRequest.createGroup(appStore.user, this.state.create.name,
+      this.state.create.notify, this.state.create.desc,
       this.handleCreate, this.handleLoadingClose);
   };
   show = () => {
@@ -311,7 +311,6 @@ class Groups extends React.Component {
                       <TableHeaderColumn>组名</TableHeaderColumn>
                       <TableHeaderColumn>渠道ID</TableHeaderColumn>
                       <TableHeaderColumn>注释</TableHeaderColumn>
-                      <TableHeaderColumn>战斗计算</TableHeaderColumn>
                     </TableRow>
                   </TableHeader>
                   <TableBody deselectOnClickaway={false}>
@@ -321,7 +320,6 @@ class Groups extends React.Component {
                         <TableRowColumn>{row.name}</TableRowColumn>
                         <TableRowColumn>{row.platfrom_id}</TableRowColumn>
                         <TableRowColumn>{row.desc}</TableRowColumn>
-                        <TableRowColumn>{row.warsvr ? '是' : '否'}</TableRowColumn>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -369,7 +367,7 @@ class Groups extends React.Component {
             {(showed !== null && group !== null) ? (
               <div>
                 <h1 style={{ marginTop: '1%', fontSize: 30 }} >
-                  {`组ID:${group.group_id}  组名:${group.name} 战斗验证: ${group.warsvr ? '是' : '否'}`}
+                  {`组ID:${group.group_id}  组名:${group.name}`}
                 </h1>
                 <Divider style={{ marginTop: '1%' }} />
                 <div style={{ float: 'left', marginTop: '1%' }} >
@@ -589,6 +587,17 @@ class Groups extends React.Component {
                 }}
               />
               <TextField
+                floatingLabelText="通知接口"
+                hintText="创角通知接口"
+                value={this.state.create.notify}
+                fullWidth
+                onChange={(event, value) => {
+                  const create = Object.assign({}, this.state.create);
+                  create.notify = value.trim();
+                  this.setState({ create });
+                }}
+              />
+              <TextField
                 floatingLabelText="组名"
                 hintText="组名由26个英文字母以及数字组成"
                 value={this.state.create.name}
@@ -608,16 +617,6 @@ class Groups extends React.Component {
                 onChange={(event, value) => {
                   const create = Object.assign({}, this.state.create);
                   create.desc = value;
-                  this.setState({ create });
-                }}
-              />
-              <Checkbox
-                style={{ width: 150, marginTop: 10 }}
-                label="启用战斗计算"
-                checked={this.state.create.warsvr}
-                onCheck={(event, value) => {
-                  const create = Object.assign({}, this.state.create);
-                  create.warsvr = value;
                   this.setState({ create });
                 }}
               />

@@ -7,7 +7,7 @@ const BASEPATH = OPBASECONFIG.BASEPATH;
 const data = {
   menus: [
     { id: 'gogamechen-page',
-      text: '口袋妖怪',
+      text: '新游戏',
       icon: <FontIcon className="material-icons">games</FontIcon>,
       children: [
         { id: 'gogamechen-objfile-page', text: '更新文件管理', url: `${BASEPATH}/objfiles`, index: 5 },
@@ -16,7 +16,7 @@ const data = {
         { id: 'gogamechen-crosssvr-page', text: '战场程序管理', url: `${BASEPATH}/crosssvrs`, index: 8 },
         { id: 'gogamechen-gamesvr-page', text: '区服程序管理', url: `${BASEPATH}/gamesvrs`, index: 9 },
         { id: 'gogamechen-warsvr-page', text: '战斗计算程序管理', url: `${BASEPATH}/warsvrs`, index: 10 },
-        { id: 'gogamechen-warsvrset-page', text: '战斗计算组管理', url: `${BASEPATH}/warsvrsets`, index: 11 },
+        { id: 'gogamechen-worldsvr-page', text: '世界程序管理', url: `${BASEPATH}/worldsvrs`, index: 11 },
         { id: 'gogamechen-page', text: '包管理', url: `${BASEPATH}/packages`, index: 12 },
         { id: 'gogamechen-noitfy', text: '通知接口调用', url: `${BASEPATH}/notifys`, index: 13 },
       ],

@@ -11,13 +11,6 @@ import {
 import { getPlatform } from '../configs';
 
 
-function getVersionAlias(rversion, versions) {
-  if (rversion === null) return '无引用';
-  const matchs = versions.filter((v) => v.version === rversion);
-  if (matchs.length === 0) return '版本引用异常';
-  return `${matchs[0].alias}`;
-}
-
 function getGameVersions(gversion, pfiles) {
   if (gversion === null) return '无引用';
   const matchs = pfiles.filter((p) => p.pfile_id === gversion);
@@ -147,7 +140,7 @@ function packageTable(data, getResource = null, style = null) {
         </TableRow>
         <TableRow >
           <TableRowColumn>默认游戏资源版本</TableRowColumn>
-          <TableRowColumn>{`${data.rversion} 别名: ${getVersionAlias(data.rversion, data.versions)}`}</TableRowColumn>
+          <TableRowColumn>{`${data.rversion} 别名: ${data.alias}`}</TableRowColumn>
         </TableRow>
         <TableRow >
           <TableRowColumn>默认安装包ID(玩家版本)</TableRowColumn>

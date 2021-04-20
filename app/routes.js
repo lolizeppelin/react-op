@@ -103,19 +103,17 @@ export default function createRoutes(store) {
         importModules.catch(errorLoading);
       },
     }, {
-      path: `${BASEPATH}/warsvrsets`,
-      name: 'warsetPage',
+      path: `${BASEPATH}/worldsvrs`,
+      name: 'worldPage',
       getComponent(nextState, cb) {
         const importModules = Promise.all([
-          System.import('containers/Operation/Gogamechen1/WarSetPage'),
+          System.import('containers/Operation/Gogamechen1/WorldSvrPage'),
         ]);
-
         const renderRoute = loadModule(cb);
 
         importModules.then(([component]) => {
           renderRoute(component);
         });
-
         importModules.catch(errorLoading);
       },
     }, {

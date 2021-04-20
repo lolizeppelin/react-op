@@ -28,7 +28,7 @@ import UpgradeTab from './upgrade';
 import FlushConfigTab from './flush';
 import HotfixTab from './hotfix';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import { BASEPATH, GAMESERVER, WARSERVER } from '../configs';
+import {BASEPATH, GAMESERVER, WORLDSERVER} from '../configs';
 
 /* gogamechen 程序主页面 */
 class EntitysPage extends React.Component {
@@ -74,7 +74,7 @@ class EntitysPage extends React.Component {
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID: ${group.group_id}  组名: ${group.name}`;
     const submit = this.state.submit;
-    const isPrivate = (objtype === GAMESERVER || objtype === WARSERVER);
+    const enableHotFix = (objtype === GAMESERVER || objtype === WORLDSERVER);
 
     if (group === null) {
       return (<PageBase title="实体管理" navigation={`Gogamechen1 / ${ginfo} / ${objtype}`} minHeight={180} noWrapContent>
@@ -88,15 +88,6 @@ class EntitysPage extends React.Component {
               <FontIcon className="material-icons">reply</FontIcon>
             </FlatButton>
           </Link>
-        </div>
-      </PageBase>);
-    }
-
-    if (objtype === WARSERVER && !group.warsvr) {
-      console.log(group)
-      return (<PageBase title="战斗计算组" navigation={`Gogamechen1 / ${ginfo}`} minHeight={180} noWrapContent>
-        <div>
-          <p>当前游戏组不支持战斗计算</p>
         </div>
       </PageBase>);
     }
@@ -231,7 +222,7 @@ class EntitysPage extends React.Component {
                 />
               )}
             </Tab>
-            { isPrivate && (
+            { enableHotFix && (
               <Tab
                 label={`热更后台 ${objtype}`}
                 value={7}

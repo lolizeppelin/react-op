@@ -270,7 +270,6 @@ function resourceVersionsTable(data, onSelect = false, selected = null, desc = t
         <TableRow>
           <TableHeaderColumn>唯一ID</TableHeaderColumn>
           <TableHeaderColumn>版本</TableHeaderColumn>
-          <TableHeaderColumn>别名/玩家版本</TableHeaderColumn>
           <TableHeaderColumn>更新时间</TableHeaderColumn>
           { desc && <TableHeaderColumn>说明</TableHeaderColumn> }
         </TableRow>
@@ -280,7 +279,6 @@ function resourceVersionsTable(data, onSelect = false, selected = null, desc = t
           <TableRow key={row.version_id} selected={(selected && row.version_id === selected.version_id) ? true : null}>
             <TableRowColumn>{row.version_id}</TableRowColumn>
             <TableRowColumn>{row.version}</TableRowColumn>
-            <TableRowColumn>{row.alias}</TableRowColumn>
             <TableRowColumn>{new Date(row.vtime * 1000).toLocaleString(('zh-CN'), { hour12: false })}</TableRowColumn>
             { desc && <TableRowColumn>{row.desc}</TableRowColumn>}
           </TableRow>

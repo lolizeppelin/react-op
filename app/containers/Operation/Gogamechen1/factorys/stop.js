@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 /* 私人代码引用部分 */
 import AsyncRequest from './asyncrequest';
-import { GAMESERVER, WARSERVER } from '../configs';
+import { GAMESERVER } from '../configs';
 import GamesvrStopParameter from './parameter/stop';
 
 

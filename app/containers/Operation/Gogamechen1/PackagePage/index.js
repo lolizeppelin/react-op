@@ -505,7 +505,6 @@ class PackageGogame extends React.Component {
             <p>
               <span style={{ marginLeft: '2%', color: '#D50000' }}>默认资源版本更改为</span>
               <span style={{ marginLeft: '5%' }}>{`版本: ${this.state.version.version}`}</span>
-              <span style={{ marginLeft: '2%' }}>{`别名(显示版本): ${this.state.version.alias}`}</span>
             </p>
           </div>);
         submit = {
@@ -751,8 +750,7 @@ class PackageGogame extends React.Component {
                     label="默认资源版本"
                     value="rversion"
                     disabled={this.state.version === null
-                    || this.state.package.rversion === this.state.version.version
-                    || !this.state.version.alias}
+                    || this.state.package.rversion === this.state.version.version}
                     onClick={this.openDialog}
                     icon={<FontIcon className="material-icons">cloud_download</FontIcon>}
                   />
