@@ -37,7 +37,7 @@ const APPFILEBASE = Object.assign({}, OBJFILEBASE);
 APPFILEBASE.timeout = 30;
 
 
-class HotfixParameter extends React.Component {
+class ReloadParameter extends React.Component {
 
   constructor(props) {
     super(props);
@@ -108,7 +108,7 @@ class HotfixParameter extends React.Component {
         <div style={{ width: '100%', maxWidth: '100%', marginTop: '1%', display: 'inline-block' }}>
           <div style={{ float: 'left', maxWidth: '32%', marginLeft: '1%' }}>
             <p>
-              <span>{'热更新超时 '}</span>
+              <span>{' 超时 '}</span>
               <span style={{ color: '#FF5722' }}>{this.state.appfile.timeout}</span>
             </p>
             <Slider
@@ -193,7 +193,7 @@ class HotfixParameter extends React.Component {
   }
 }
 
-HotfixParameter.propTypes = {
+ReloadParameter.propTypes = {
   group: PropTypes.any,
   objfiles: PropTypes.array,
   objtype: PropTypes.string,
@@ -201,4 +201,4 @@ HotfixParameter.propTypes = {
 };
 
 
-export default HotfixParameter;
+export default ReloadParameter;

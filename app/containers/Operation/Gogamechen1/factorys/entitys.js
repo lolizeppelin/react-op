@@ -26,9 +26,10 @@ import StartTab from './start';
 import StopTab from './stop';
 import UpgradeTab from './upgrade';
 import FlushConfigTab from './flush';
-import HotfixTab from './hotfix';
+import ReloadTab from './reload';
+import HotFixTab from './hotfix';
 import { SubmitDialogs } from '../../factorys/dialogs';
-import {BASEPATH, GAMESERVER, WORLDSERVER} from '../configs';
+import {BASEPATH, GAMESERVER, WARSERVER, WORLDSERVER} from '../configs';
 
 /* gogamechen 程序主页面 */
 class EntitysPage extends React.Component {
@@ -74,7 +75,8 @@ class EntitysPage extends React.Component {
     const group = gameStore.group;
     const ginfo = group === null ? 'No Group' : `组ID: ${group.group_id}  组名: ${group.name}`;
     const submit = this.state.submit;
-    const enableHotFix = (objtype === GAMESERVER || objtype === WORLDSERVER);
+    const enableReload = (objtype === GAMESERVER || objtype === WORLDSERVER || objtype === WARSERVER);
+    const enableHotfix = (objtype === GAMESERVER || objtype === WORLDSERVER);
 
     if (group === null) {
       return (<PageBase title="实体管理" navigation={`Gogamechen1 / ${ginfo} / ${objtype}`} minHeight={180} noWrapContent>
@@ -208,7 +210,7 @@ class EntitysPage extends React.Component {
               )}
             </Tab>
             <Tab
-              label={`配置刷新 ${objtype}`}
+              label={`刷新设置 ${objtype}`}
               value={6}
             >
               { this.state.active === 6 && (
@@ -222,13 +224,13 @@ class EntitysPage extends React.Component {
                 />
               )}
             </Tab>
-            { enableHotFix && (
+            { enableReload && (
               <Tab
-                label={`热更后台 ${objtype}`}
+                label={`重载配置 ${objtype}`}
                 value={7}
               >
                 { this.state.active === 7 && (
-                  <HotfixTab
+                  <ReloadTab
                     objtype={objtype}
                     gameStore={this.props.gameStore}
                     appStore={this.props.appStore}
@@ -239,6 +241,25 @@ class EntitysPage extends React.Component {
                 )}
               </Tab>
             ) }
+
+            { enableHotfix && (
+              <Tab
+                label={`热更进程 ${objtype}`}
+                value={8}
+              >
+                { this.state.active === 8 && (
+                  <HotFixTab
+                    objtype={objtype}
+                    gameStore={this.props.gameStore}
+                    appStore={this.props.appStore}
+                    handleLoadingClose={this.handleLoadingClose}
+                    handleLoading={this.handleLoading}
+                    handleSumbitDialogs={this.handleSumbitDialogs}
+                  />
+                )}
+              </Tab>
+            ) }
+
           </Tabs>
           <Snackbar
             open={this.state.showSnackbar}

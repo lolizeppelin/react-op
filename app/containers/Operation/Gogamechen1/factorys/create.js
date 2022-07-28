@@ -502,6 +502,9 @@ class CreateEntity extends React.Component {
       body.world_id = this.state.exts.world_id;
       if (this.state.targets.length > 0) body.exclude = Object.assign([], this.state.targets);
     }
+    if (objtype === goGameConfig.WORLDSERVER) {
+      body.opentime = parseInt(Number((this.state.exts.date + this.state.exts.time) / 1000), 0);
+    }
     this.props.handleLoading();
     goGameRequest.entityCreate(appStore.user, group.group_id, objtype, body,
       this.handleCreate, this.props.handleLoadingClose);

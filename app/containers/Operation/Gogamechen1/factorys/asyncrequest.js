@@ -80,6 +80,9 @@ const ACTIONSMAP = {
   flushconfig: {
     name: '配置刷新',
     method: 'PUT' },
+  reload: {
+    name: '重载配置',
+    method: 'POST' },
   hotfix: {
     name: '热更程序',
     method: 'POST' },

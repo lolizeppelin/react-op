@@ -8,12 +8,12 @@ import AsyncRequest from './asyncrequest';
 import ReloadParameter from './parameter/reload';
 import * as goGameRequest from '../client';
 
-function hotfixParamer(group, objtype, objfiles, handleParameter) {
+function reloadParamer(group, objtype, objfiles, handleParameter) {
   return <ReloadParameter handleParameter={handleParameter} group={group} objtype={objtype} objfiles={objfiles} />;
 }
 
 
-class HotFixTab extends React.Component {
+class ReloadTab extends React.Component {
 
   constructor(props) {
     super(props);
@@ -51,19 +51,19 @@ class HotFixTab extends React.Component {
 
     return (
       <AsyncRequest
-        action="hotfix"
+        action="reload"
         objtype={this.props.objtype}
         gameStore={this.props.gameStore}
         appStore={this.props.appStore}
         handleLoading={this.props.handleLoading}
         handleLoadingClose={this.props.handleLoadingClose}
-        paramTab={(handle) => hotfixParamer(this.props.gameStore.group, objtype, objfiles, handle)}
+        paramTab={(handle) => reloadParamer(this.props.gameStore.group, objtype, objfiles, handle)}
       />
     );
   }
 }
 
-HotFixTab.propTypes = {
+ReloadTab.propTypes = {
   objtype: PropTypes.string,
   gameStore: PropTypes.object,
   appStore: PropTypes.object,
@@ -71,4 +71,4 @@ HotFixTab.propTypes = {
   handleLoadingClose: PropTypes.func,
 };
 
-export default HotFixTab;
+export default ReloadTab;

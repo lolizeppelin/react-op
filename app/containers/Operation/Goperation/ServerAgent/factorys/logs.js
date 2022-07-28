@@ -141,8 +141,9 @@ class LogReaderDialog extends React.Component {
     const path = this.logpath(logfile);
     gopRequest.entitysReadLog(appStore.user, endpoint, entity, path, this.state.lines,
       (result) => {
+        const urlpath = this.curpath == null ? path : path.replace(this.curpath, '');
         if (result.resultcode !== 0) this.setState({ loading: false, errmsg: result.result });
-        else this.connect(result.data[0], path);
+        else this.connect(result.data[0], urlpath);
       },
       (msg) => {
         this.setState({ loading: false, errmsg: msg });

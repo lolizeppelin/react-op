@@ -17,7 +17,7 @@ const NOTIFY = {
 
 /* 后台API */
 const API = {
-  host: '172.31.0.128',
+  host: '62.234.43.134',
   lan: '192.168.1.202',
   port: 7999,
   version: 'v1.0',
